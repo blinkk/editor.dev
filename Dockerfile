@@ -23,7 +23,7 @@ RUN yarn install --frozen-lockfile
 COPY ./tsconfig.json ./
 COPY ./src ./src
 
-# Compile the production js/css files.
+# Compile the production js files.
 RUN yarn run compile
 
 EXPOSE 8080

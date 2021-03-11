@@ -34,7 +34,7 @@
     "dev": "concurrently \"npx ava --watch\" \"tsc --watch\"",
     "docs": "typedoc",
     "fix": "npx eslint --fix src/**/*.ts",
-    "prepare": "yarn run compile",
+    "prepublishOnly": "yarn run compile",
     "serve": "nodemon",
     "test": "nyc ava",
     "test-ci": "nyc --reporter=lcov ava && codecov"
