@@ -1,5 +1,5 @@
-import {FileData, ProjectData} from '@blinkk/editor/dist/src/editor/api';
 import {ConnectorStorage} from '../storage/storage';
+import {ProjectData} from '@blinkk/editor/dist/src/editor/api';
 import express from 'express';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface

@@ -3,7 +3,6 @@ import {
   CopyFileRequest,
   CreateFileRequest,
   CreateWorkspaceRequest,
-  DEFAULT_DEVICES,
   DeleteFileRequest,
   GetDevicesRequest,
   handleError,
@@ -143,7 +142,7 @@ export class LocalApi implements ApiComponent {
   ): Promise<Array<DeviceData>> {
     // TODO: Get the device settings from editor.yaml file.
     const editorConfig = (await this.readEditorConfig()) as EditorFileSettings;
-    return Promise.resolve(editorConfig.devices || DEFAULT_DEVICES);
+    return Promise.resolve(editorConfig.devices || []);
   }
 
   async readEditorConfig(): Promise<EditorFileSettings> {

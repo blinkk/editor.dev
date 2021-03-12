@@ -72,22 +72,3 @@ export function handleError(
     message: err.toString(),
   } as ApiError);
 }
-
-export const DEFAULT_DEVICES = [
-  {
-    label: 'Mobile',
-    width: 411,
-    height: 731,
-    canRotate: true,
-  } as DeviceData,
-  {
-    label: 'Tablet',
-    width: 1024,
-    height: 768,
-    canRotate: true,
-  } as DeviceData,
-  {
-    label: 'Desktop',
-    width: 1440,
-  } as DeviceData,
-];
