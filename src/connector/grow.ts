@@ -1,10 +1,4 @@
-import {
-  ConnectorComponent,
-  CopyFileRequest,
-  CreateFileRequest,
-  DeleteFileRequest,
-  GetProjectRequest,
-} from './connector';
+import {ConnectorComponent, GetProjectRequest} from './connector';
 import {
   FileData,
   ProjectData,
@@ -205,36 +199,6 @@ export class GrowConnector implements ConnectorComponent {
 
   static async canApply(storage: ConnectorStorage): Promise<boolean> {
     return storage.exists('podspec.yaml');
-  }
-
-  async copyFile(
-    expressRequest: express.Request,
-    request: CopyFileRequest
-  ): Promise<FileData> {
-    await this.storage.write(
-      request.path,
-      await this.storage.read(request.originalPath)
-    );
-    return {
-      path: request.path,
-    };
-  }
-
-  async createFile(
-    expressRequest: express.Request,
-    request: CreateFileRequest
-  ): Promise<FileData> {
-    await this.storage.write(request.path, request.content || '');
-    return {
-      path: request.path,
-    };
-  }
-
-  async deleteFile(
-    expressRequest: express.Request,
-    request: DeleteFileRequest
-  ): Promise<void> {
-    return this.storage.delete(request.file.path);
   }
 
   async getProject(

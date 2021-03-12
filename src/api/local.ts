@@ -1,13 +1,17 @@
 import {
   ApiComponent,
+  CopyFileRequest,
+  CreateFileRequest,
   CreateWorkspaceRequest,
   DEFAULT_DEVICES,
+  DeleteFileRequest,
   GetDevicesRequest,
   handleError,
 } from './api';
 import {
   DeviceData,
   EditorFileSettings,
+  FileData,
   WorkspaceData,
 } from '@blinkk/editor/dist/src/editor/api';
 import {ConnectorComponent} from '../connector/connector';
@@ -30,7 +34,7 @@ export class LocalApi implements ApiComponent {
       this._apiRouter = express.Router();
       this._apiRouter.use(express.json());
 
-      // TODO: Use auth middleware in other apis.
+      // TODO: Use auth middleware for non-local apis.
       // this._apiRouter.use(...);
 
       this._apiRouter.get('/devices', (req, res) => {
@@ -40,35 +44,20 @@ export class LocalApi implements ApiComponent {
       });
 
       this._apiRouter.delete('/file', (req, res) => {
-        this.getConnector()
-          .then(connector => {
-            connector
-              .deleteFile(req, req.body)
-              .then(() => res.json({}))
-              .catch(e => handleError(e, req, res));
-          })
+        this.deleteFile(req, req.body)
+          .then(response => res.json(response))
           .catch(e => handleError(e, req, res));
       });
 
       this._apiRouter.put('/file', (req, res) => {
-        this.getConnector()
-          .then(connector => {
-            connector
-              .createFile(req, req.body)
-              .then(response => res.json(response))
-              .catch(e => handleError(e, req, res));
-          })
+        this.createFile(req, req.body)
+          .then(response => res.json(response))
           .catch(e => handleError(e, req, res));
       });
 
       this._apiRouter.post('/file/copy', (req, res) => {
-        this.getConnector()
-          .then(connector => {
-            connector
-              .copyFile(req, req.body)
-              .then(response => res.json(response))
-              .catch(e => handleError(e, req, res));
-          })
+        this.copyFile(req, req.body)
+          .then(response => res.json(response))
           .catch(e => handleError(e, req, res));
       });
 
@@ -93,11 +82,43 @@ export class LocalApi implements ApiComponent {
     return this._apiRouter;
   }
 
-  async createWorkspace(
+  async copyFile(
     expressRequest: express.Request,
+    request: CopyFileRequest
+  ): Promise<FileData> {
+    await this.storage.write(
+      request.path,
+      await this.storage.read(request.originalPath)
+    );
+    return {
+      path: request.path,
+    };
+  }
+
+  async createFile(
+    expressRequest: express.Request,
+    request: CreateFileRequest
+  ): Promise<FileData> {
+    await this.storage.write(request.path, request.content || '');
+    return {
+      path: request.path,
+    };
+  }
+
+  async createWorkspace(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    expressRequest: express.Request,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: CreateWorkspaceRequest
   ): Promise<WorkspaceData> {
     throw new Error('Unable to create new workspace locally.');
+  }
+
+  async deleteFile(
+    expressRequest: express.Request,
+    request: DeleteFileRequest
+  ): Promise<void> {
+    return this.storage.delete(request.file.path);
   }
 
   async getConnector(): Promise<ConnectorComponent> {
@@ -115,7 +136,9 @@ export class LocalApi implements ApiComponent {
   }
 
   async getDevices(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: GetDevicesRequest
   ): Promise<Array<DeviceData>> {
     // TODO: Get the device settings from editor.yaml file.
