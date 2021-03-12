@@ -73,7 +73,6 @@
   },
   "dependencies": {
     "@blinkk/editor": "^1.0.6",
-    "@blinkk/selective-edit": "^1.0.23",
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "js-yaml": "^4.0.0"
