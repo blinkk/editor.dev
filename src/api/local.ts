@@ -1,9 +1,20 @@
-import {ApiComponent, CreateWorkspaceRequest, handleError} from './api';
+import {
+  ApiComponent,
+  CreateWorkspaceRequest,
+  DEFAULT_DEVICES,
+  GetDevicesRequest,
+  handleError,
+} from './api';
+import {
+  DeviceData,
+  EditorFileSettings,
+  WorkspaceData,
+} from '@blinkk/editor/dist/src/editor/api';
 import {ConnectorComponent} from '../connector/connector';
 import {ConnectorStorage} from '../storage/storage';
 import {GrowConnector} from '../connector/grow';
-import {WorkspaceData} from '@blinkk/editor/dist/src/editor/api';
 import express from 'express';
+import yaml from 'js-yaml';
 
 export class LocalApi implements ApiComponent {
   protected _connector?: ConnectorComponent;
@@ -21,6 +32,12 @@ export class LocalApi implements ApiComponent {
 
       // TODO: Use auth middleware in other apis.
       // this._apiRouter.use(...);
+
+      this._apiRouter.get('/devices', (req, res) => {
+        this.getDevices(req, req.body)
+          .then(response => res.json(response))
+          .catch(e => handleError(e, req, res));
+      });
 
       this._apiRouter.delete('/file', (req, res) => {
         this.getConnector()
@@ -95,5 +112,28 @@ export class LocalApi implements ApiComponent {
     }
 
     return Promise.resolve(this._connector);
+  }
+
+  async getDevices(
+    expressRequest: express.Request,
+    request: GetDevicesRequest
+  ): Promise<Array<DeviceData>> {
+    // TODO: Get the device settings from editor.yaml file.
+    const editorConfig = (await this.readEditorConfig()) as EditorFileSettings;
+    return Promise.resolve(editorConfig.devices || DEFAULT_DEVICES);
+  }
+
+  async readEditorConfig(): Promise<EditorFileSettings> {
+    let rawFile = null;
+    try {
+      rawFile = await this.storage.read('editor.yaml');
+    } catch (error) {
+      if (error.code === 'ENOENT') {
+        rawFile = Promise.resolve('');
+      } else {
+        throw error;
+      }
+    }
+    return (yaml.load(rawFile) || {}) as EditorFileSettings;
   }
 }

@@ -1,4 +1,8 @@
-import {ApiError, WorkspaceData} from '@blinkk/editor/dist/src/editor/api';
+import {
+  ApiError,
+  DeviceData,
+  WorkspaceData,
+} from '@blinkk/editor/dist/src/editor/api';
 import {ConnectorStorage} from '../storage/storage';
 import express from 'express';
 
@@ -10,12 +14,20 @@ export interface ApiComponent {
     expressRequest: express.Request,
     request: CreateWorkspaceRequest
   ): Promise<WorkspaceData>;
+
+  getDevices(
+    expressRequest: express.Request,
+    request: GetDevicesRequest
+  ): Promise<Array<DeviceData>>;
 }
 
 export interface CreateWorkspaceRequest {
   base: WorkspaceData;
   workspace: string;
 }
+
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface GetDevicesRequest {}
 
 export function handleError(
   err: Error,
@@ -30,3 +42,22 @@ export function handleError(
     message: err.toString(),
   } as ApiError);
 }
+
+export const DEFAULT_DEVICES = [
+  {
+    label: 'Mobile',
+    width: 411,
+    height: 731,
+    canRotate: true,
+  } as DeviceData,
+  {
+    label: 'Tablet',
+    width: 1024,
+    height: 768,
+    canRotate: true,
+  } as DeviceData,
+  {
+    label: 'Desktop',
+    width: 1440,
+  } as DeviceData,
+];

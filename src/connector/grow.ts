@@ -243,7 +243,7 @@ export class GrowConnector implements ConnectorComponent {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: GetProjectRequest
   ): Promise<ProjectData> {
-    const podspec = (await this.readPodspec()) as PodspecConfig;
+    const podspec = await this.readPodspecConfig();
 
     // TODO: Project publish settings.
 
@@ -252,9 +252,9 @@ export class GrowConnector implements ConnectorComponent {
     };
   }
 
-  async readPodspec() {
-    const rawPodspec = await this.storage.read('podspec.yaml');
-    return yaml.load(rawPodspec);
+  async readPodspecConfig(): Promise<PodspecConfig> {
+    const rawFile = await this.storage.read('podspec.yaml');
+    return yaml.load(rawFile) as PodspecConfig;
   }
 }
 
@@ -264,34 +264,6 @@ export interface PodspecConfig {
 
 // export class ServerApi implements LiveEditorApiComponent {
 //
-
-//   async getDevices(): Promise<Array<DeviceData>> {
-//     return new Promise<Array<DeviceData>>((resolve, reject) => {
-//       resolve([
-//         {
-//           label: 'Mobile',
-//           width: 411,
-//           height: 731,
-//           canRotate: true,
-//         } as DeviceData,
-//         {
-//           label: 'Tablet',
-//           width: 1024,
-//           height: 768,
-//           canRotate: true,
-//         } as DeviceData,
-//         {
-//           label: 'Desktop',
-//           width: 1440,
-//         } as DeviceData,
-//         {
-//           label: 'Desktop (Large)',
-//           width: 2200,
-//         } as DeviceData,
-//       ]);
-//     });
-//   }
-
 //   async getFile(file: FileData): Promise<EditorFileData> {
 //     return new Promise<EditorFileData>((resolve, reject) => {
 //       const url = new URL(window.location.toString());
