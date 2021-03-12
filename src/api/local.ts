@@ -37,31 +37,31 @@ export class LocalApi implements ApiComponent {
       // TODO: Use auth middleware for non-local apis.
       // this._apiRouter.use(...);
 
-      this._apiRouter.get('/devices', (req, res) => {
+      this._apiRouter.post('/devices.get', (req, res) => {
         this.getDevices(req, req.body)
           .then(response => res.json(response))
           .catch(e => handleError(e, req, res));
       });
 
-      this._apiRouter.delete('/file', (req, res) => {
-        this.deleteFile(req, req.body)
-          .then(response => res.json(response))
-          .catch(e => handleError(e, req, res));
-      });
-
-      this._apiRouter.put('/file', (req, res) => {
-        this.createFile(req, req.body)
-          .then(response => res.json(response))
-          .catch(e => handleError(e, req, res));
-      });
-
-      this._apiRouter.post('/file/copy', (req, res) => {
+      this._apiRouter.post('/file.copy', (req, res) => {
         this.copyFile(req, req.body)
           .then(response => res.json(response))
           .catch(e => handleError(e, req, res));
       });
 
-      this._apiRouter.get('/project', (req, res) => {
+      this._apiRouter.post('/file.create', (req, res) => {
+        this.createFile(req, req.body)
+          .then(response => res.json(response))
+          .catch(e => handleError(e, req, res));
+      });
+
+      this._apiRouter.post('/file.delete', (req, res) => {
+        this.deleteFile(req, req.body)
+          .then(response => res.json(response))
+          .catch(e => handleError(e, req, res));
+      });
+
+      this._apiRouter.post('/project.get', (req, res) => {
         this.getConnector()
           .then(connector => {
             connector
@@ -72,7 +72,7 @@ export class LocalApi implements ApiComponent {
           .catch(e => handleError(e, req, res));
       });
 
-      this._apiRouter.put('/workspace', (req, res) => {
+      this._apiRouter.post('/workspace.create', (req, res) => {
         this.createWorkspace(req, req.body)
           .then(response => res.json(response))
           .catch(e => handleError(e, req, res));
