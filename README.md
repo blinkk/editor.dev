@@ -21,8 +21,8 @@ npx @blinkk/editor-server
 To develop on the live editor server for local projects, run the following command:
 
 ```sh
-# ex: yarn run serve -- ~/code/project
-yarn run serve -- <project_dir>
+# ex: yarn run serve ~/code/project
+yarn run serve <project_dir>
 ```
 
 If you are developing the hosted version of the server (that provides access to github, etc) then run the following command:

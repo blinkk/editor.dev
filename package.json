@@ -52,6 +52,7 @@
     ]
   },
   "devDependencies": {
+    "@types/cors": "^2.8.10",
     "@types/express": "^4.17.11",
     "@types/js-yaml": "^4.0.0",
     "@types/node": "^14.14.31",
@@ -72,6 +73,7 @@
   },
   "dependencies": {
     "@blinkk/editor": "^1.0.6",
+    "cors": "^2.8.5",
     "express": "^4.17.1",
     "js-yaml": "^4.0.0"
   }
