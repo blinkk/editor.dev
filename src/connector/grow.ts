@@ -265,29 +265,6 @@ export interface PodspecConfig {
 // export class ServerApi implements LiveEditorApiComponent {
 //
 
-//   async createWorkspace(
-//     base: WorkspaceData,
-//     workspace: string
-//   ): Promise<WorkspaceData> {
-//     return new Promise<WorkspaceData>((resolve, reject) => {
-//       const newWorkspace: WorkspaceData = {
-//         branch: {
-//           name: `workspace/${workspace}`,
-//           commit: {
-//             author: base.branch.commit.author,
-//             hash: base.branch.commit.hash,
-//             message: base.branch.commit.message,
-//             summary: base.branch.commit.summary,
-//             timestamp: new Date().toISOString(),
-//           },
-//         },
-//         name: workspace,
-//       };
-//       currentWorkspaces.push(newWorkspace);
-//       resolve(newWorkspace);
-//     });
-//   }
-
 //   async getDevices(): Promise<Array<DeviceData>> {
 //     return new Promise<Array<DeviceData>>((resolve, reject) => {
 //       resolve([

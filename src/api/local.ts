@@ -1,7 +1,8 @@
-import {ApiComponent, handleError} from './api';
+import {ApiComponent, CreateWorkspaceRequest, handleError} from './api';
 import {ConnectorComponent} from '../connector/connector';
 import {ConnectorStorage} from '../storage/storage';
 import {GrowConnector} from '../connector/grow';
+import {WorkspaceData} from '@blinkk/editor/dist/src/editor/api';
 import express from 'express';
 
 export class LocalApi implements ApiComponent {
@@ -64,9 +65,22 @@ export class LocalApi implements ApiComponent {
           })
           .catch(e => handleError(e, req, res));
       });
+
+      this._apiRouter.put('/workspace', (req, res) => {
+        this.createWorkspace(req, req.body)
+          .then(response => res.json(response))
+          .catch(e => handleError(e, req, res));
+      });
     }
 
     return this._apiRouter;
+  }
+
+  async createWorkspace(
+    expressRequest: express.Request,
+    request: CreateWorkspaceRequest
+  ): Promise<WorkspaceData> {
+    throw new Error('Unable to create new workspace locally.');
   }
 
   async getConnector(): Promise<ConnectorComponent> {
