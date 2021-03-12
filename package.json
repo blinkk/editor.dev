@@ -34,8 +34,9 @@
     "dev": "concurrently \"npx ava --watch\" \"tsc --watch\"",
     "docs": "typedoc",
     "fix": "npx eslint --fix src/**/*.ts",
+    "hosted": "nodemon ./src/server/server.ts",
     "prepublishOnly": "yarn run compile",
-    "serve": "nodemon",
+    "serve": "nodemon  ./src/index.ts",
     "test": "nyc ava",
     "test-ci": "nyc --reporter=lcov ava && codecov"
   },
@@ -51,8 +52,8 @@
     ]
   },
   "devDependencies": {
-    "@blinkk/editor": "^1.0.6",
     "@types/express": "^4.17.11",
+    "@types/js-yaml": "^4.0.0",
     "@types/node": "^14.14.31",
     "@typescript-eslint/eslint-plugin": "^4.16.1",
     "@typescript-eslint/parser": "^4.16.1",
@@ -70,6 +71,8 @@
     "typescript": "^4.2.2"
   },
   "dependencies": {
-    "express": "^4.17.1"
+    "@blinkk/editor": "^1.0.6",
+    "express": "^4.17.1",
+    "js-yaml": "^4.0.0"
   }
 }
