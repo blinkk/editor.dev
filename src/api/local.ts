@@ -16,25 +16,53 @@ export class LocalApi implements ApiComponent {
   get apiRouter() {
     if (!this._apiRouter) {
       this._apiRouter = express.Router();
+      this._apiRouter.use(express.json());
 
-      // TODO: Use auth middleware.
-      // router.use(...);
+      // TODO: Use auth middleware in other apis.
+      // this._apiRouter.use(...);
+
+      this._apiRouter.delete('/file', (req, res) => {
+        this.getConnector()
+          .then(connector => {
+            connector
+              .deleteFile(req, req.body)
+              .then(() => res.json({}))
+              .catch(e => handleError(e, req, res));
+          })
+          .catch(e => handleError(e, req, res));
+      });
+
+      this._apiRouter.put('/file', (req, res) => {
+        this.getConnector()
+          .then(connector => {
+            connector
+              .createFile(req, req.body)
+              .then(response => res.json(response))
+              .catch(e => handleError(e, req, res));
+          })
+          .catch(e => handleError(e, req, res));
+      });
+
+      this._apiRouter.post('/file/copy', (req, res) => {
+        this.getConnector()
+          .then(connector => {
+            connector
+              .copyFile(req, req.body)
+              .then(response => res.json(response))
+              .catch(e => handleError(e, req, res));
+          })
+          .catch(e => handleError(e, req, res));
+      });
 
       this._apiRouter.get('/project', (req, res) => {
         this.getConnector()
           .then(connector => {
             connector
               .getProject(req, req.body)
-              .then(response => {
-                res.json(response);
-              })
-              .catch(e => {
-                handleError(e, req, res);
-              });
+              .then(response => res.json(response))
+              .catch(e => handleError(e, req, res));
           })
-          .catch(e => {
-            handleError(e, req, res);
-          });
+          .catch(e => handleError(e, req, res));
       });
     }
 

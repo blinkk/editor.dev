@@ -10,6 +10,11 @@ export class LocalStorage implements ConnectorStorage {
     this.cwd = path.resolve(cwd || process.cwd());
   }
 
+  async delete(filePath: string): Promise<void> {
+    const fullPath = this.expandPath(filePath);
+    await fs.rm(fullPath);
+  }
+
   async exists(filePath: string): Promise<boolean> {
     const fullPath = this.expandPath(filePath);
 
@@ -23,6 +28,7 @@ export class LocalStorage implements ConnectorStorage {
 
   expandPath(filePath: string): string {
     // TODO: More security around file access?
+    filePath = path.join(this.cwd, filePath);
     const fullPath = path.resolve(this.cwd, filePath);
 
     if (!fullPath.startsWith(this.cwd)) {
@@ -37,5 +43,10 @@ export class LocalStorage implements ConnectorStorage {
   async read(filePath: string): Promise<any> {
     const fullPath = this.expandPath(filePath);
     return fs.readFile(fullPath);
+  }
+
+  async write(filePath: string, content: string): Promise<void> {
+    const fullPath = this.expandPath(filePath);
+    return fs.writeFile(fullPath, content);
   }
 }
