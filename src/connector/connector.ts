@@ -1,4 +1,5 @@
 import {ConnectorStorage} from '../storage/storage';
+import {FilterComponent} from '@blinkk/editor/dist/src/utility/filter';
 import {ProjectData} from '@blinkk/editor/dist/src/editor/api';
 import express from 'express';
 
@@ -6,6 +7,8 @@ import express from 'express';
 export interface GetProjectRequest {}
 
 export interface ConnectorComponent {
+  fileFilter?: FilterComponent;
+
   getProject(
     expressRequest: express.Request,
     request: GetProjectRequest

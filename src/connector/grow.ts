@@ -5,6 +5,10 @@ import {
   UserData,
   WorkspaceData,
 } from '@blinkk/editor/dist/src/editor/api';
+import {
+  FilterComponent,
+  IncludeExcludeFilter,
+} from '@blinkk/editor/dist/src/utility/filter';
 import {ConnectorStorage} from '../storage/storage';
 import express from 'express';
 import yaml from 'js-yaml';
@@ -192,13 +196,20 @@ const currentWorkspaces: Array<WorkspaceData> = [
  */
 export class GrowConnector implements ConnectorComponent {
   storage: ConnectorStorage;
+  fileFilter?: FilterComponent;
 
   constructor(storage: ConnectorStorage) {
     this.storage = storage;
+
+    // TODO: Make the file filter configurable for grow projects.
+    this.fileFilter = new IncludeExcludeFilter({
+      includes: [/^\/(content|static)/],
+      excludes: [/\/[_.]/],
+    });
   }
 
   static async canApply(storage: ConnectorStorage): Promise<boolean> {
-    return storage.exists('podspec.yaml');
+    return storage.existsFile('podspec.yaml');
   }
 
   async getProject(
@@ -208,16 +219,13 @@ export class GrowConnector implements ConnectorComponent {
     request: GetProjectRequest
   ): Promise<ProjectData> {
     const podspec = await this.readPodspecConfig();
-
-    // TODO: Project publish settings.
-
     return {
       title: podspec.title,
     };
   }
 
   async readPodspecConfig(): Promise<PodspecConfig> {
-    const rawFile = await this.storage.read('podspec.yaml');
+    const rawFile = await this.storage.readFile('podspec.yaml');
     return yaml.load(rawFile) as PodspecConfig;
   }
 }
@@ -226,8 +234,6 @@ export interface PodspecConfig {
   title: string;
 }
 
-// export class ServerApi implements LiveEditorApiComponent {
-//
 //   async getFile(file: FileData): Promise<EditorFileData> {
 //     return new Promise<EditorFileData>((resolve, reject) => {
 //       const url = new URL(window.location.toString());
@@ -235,38 +241,6 @@ export interface PodspecConfig {
 //       window.history.pushState({}, '', url.toString());
 
 //       resolve(DEFAULT_EDITOR_FILE);
-//     });
-//   }
-
-//   async getFiles(): Promise<Array<FileData>> {
-//     return new Promise<Array<FileData>>((resolve, reject) => {
-//       resolve([...currentFileset]);
-//     });
-//   }
-
-//   async getFileUrl(file: FileData): Promise<FileData> {
-//     return new Promise<FileData>((resolve, reject) => {
-//       // TODO: Use some logic to determine what url to return.
-//       resolve({
-//         path: file.path,
-//         url: 'image-landscape.png',
-//       } as FileData);
-//     });
-//   }
-
-//   async getProject(): Promise<ProjectData> {
-//     return getJSON(`${this.baseUrl}project`) as Promise<ProjectData>;
-//   }
-
-//   async getSite(): Promise<SiteData> {
-//     return new Promise<SiteData>((resolve, reject) => {
-//       resolve({});
-//     });
-//   }
-
-//   async getUsers(): Promise<Array<UserData>> {
-//     return new Promise<Array<UserData>>((resolve, reject) => {
-//       resolve([...currentUsers]);
 //     });
 //   }
 
@@ -317,4 +291,3 @@ export interface PodspecConfig {
 //       } as FileData);
 //     });
 //   }
-// }

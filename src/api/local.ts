@@ -5,6 +5,7 @@ import {
   CreateWorkspaceRequest,
   DeleteFileRequest,
   GetDevicesRequest,
+  GetFilesRequest,
   handleError,
 } from './api';
 import {
@@ -60,12 +61,34 @@ export class LocalApi implements ApiComponent {
           .catch(e => handleError(e, req, res));
       });
 
+      this._apiRouter.post('/files.get', (req, res) => {
+        this.getFiles(req, req.body)
+          .then(response => res.json(response))
+          .catch(e => handleError(e, req, res));
+      });
+
       this._apiRouter.post('/project.get', (req, res) => {
         this.getConnector()
           .then(connector => {
             connector
               .getProject(req, req.body)
-              .then(response => res.json(response))
+              .then(response => {
+                // TODO: Project publish settings.
+
+                // Add the editor config data to the connector response.
+                this.readEditorConfig().then(editorConfig => {
+                  res.json(
+                    Object.assign(
+                      {},
+                      {
+                        site: editorConfig.site,
+                        title: editorConfig.title,
+                      },
+                      response
+                    )
+                  );
+                });
+              })
               .catch(e => handleError(e, req, res));
           })
           .catch(e => handleError(e, req, res));
@@ -85,9 +108,9 @@ export class LocalApi implements ApiComponent {
     expressRequest: express.Request,
     request: CopyFileRequest
   ): Promise<FileData> {
-    await this.storage.write(
+    await this.storage.writeFile(
       request.path,
-      await this.storage.read(request.originalPath)
+      await this.storage.readFile(request.originalPath)
     );
     return {
       path: request.path,
@@ -98,7 +121,7 @@ export class LocalApi implements ApiComponent {
     expressRequest: express.Request,
     request: CreateFileRequest
   ): Promise<FileData> {
-    await this.storage.write(request.path, request.content || '');
+    await this.storage.writeFile(request.path, request.content || '');
     return {
       path: request.path,
     };
@@ -114,10 +137,11 @@ export class LocalApi implements ApiComponent {
   }
 
   async deleteFile(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
     request: DeleteFileRequest
   ): Promise<void> {
-    return this.storage.delete(request.file.path);
+    return this.storage.deleteFile(request.file.path);
   }
 
   async getConnector(): Promise<ConnectorComponent> {
@@ -131,7 +155,7 @@ export class LocalApi implements ApiComponent {
       }
     }
 
-    return Promise.resolve(this._connector);
+    return Promise.resolve(this._connector as ConnectorComponent);
   }
 
   async getDevices(
@@ -140,15 +164,40 @@ export class LocalApi implements ApiComponent {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: GetDevicesRequest
   ): Promise<Array<DeviceData>> {
-    // TODO: Get the device settings from editor.yaml file.
     const editorConfig = (await this.readEditorConfig()) as EditorFileSettings;
     return Promise.resolve(editorConfig.devices || []);
+  }
+
+  async getFiles(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    expressRequest: express.Request,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    request: GetFilesRequest
+  ): Promise<Array<FileData>> {
+    const connector = await this.getConnector();
+    const files = await this.storage.readDir('/');
+    let filteredFiles = files;
+    if (connector.fileFilter) {
+      filteredFiles = files.filter(file =>
+        connector.fileFilter?.matches(file.path)
+      );
+    } else {
+    }
+
+    // Convert to the correct FileDate interface.
+    const responseFiles: Array<FileData> = [];
+    for (const file of filteredFiles) {
+      responseFiles.push({
+        path: file.path,
+      });
+    }
+    return responseFiles;
   }
 
   async readEditorConfig(): Promise<EditorFileSettings> {
     let rawFile = null;
     try {
-      rawFile = await this.storage.read('editor.yaml');
+      rawFile = await this.storage.readFile('editor.yaml');
     } catch (error) {
       if (error.code === 'ENOENT') {
         rawFile = Promise.resolve('');

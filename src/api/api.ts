@@ -59,6 +59,9 @@ export interface DeleteFileRequest {
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface GetDevicesRequest {}
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface GetFilesRequest {}
+
 export function handleError(
   err: Error,
   req: express.Request,
