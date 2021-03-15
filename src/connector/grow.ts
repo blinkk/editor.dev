@@ -1,9 +1,18 @@
-import {EditorFileData, ProjectData} from '@blinkk/editor/dist/src/editor/api';
+import {
+  EditorFileData,
+  FileData,
+  ProjectData,
+} from '@blinkk/editor/dist/src/editor/api';
 import {
   FilterComponent,
   IncludeExcludeFilter,
 } from '@blinkk/editor/dist/src/utility/filter';
-import {GetFileRequest, GetProjectRequest} from '../api/api';
+import {
+  GetFileRequest,
+  GetProjectRequest,
+  SaveFileRequest,
+  UploadFileRequest,
+} from '../api/api';
 import {ConnectorComponent} from './connector';
 import {ConnectorStorage} from '../storage/storage';
 import express from 'express';
@@ -38,44 +47,42 @@ export class GrowConnector implements ConnectorComponent {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: GetFileRequest
   ): Promise<EditorFileData> {
-    return new Promise<EditorFileData>((resolve, reject) => {
-      resolve({
-        content: 'Example content.',
-        data: {
-          title: 'Testing',
-        },
-        dataRaw: 'title: Testing',
-        file: {
-          path: '/content/pages/index.yaml',
-        },
-        editor: {
-          fields: [
-            {
-              type: 'text',
-              key: 'title',
-              label: 'Title',
-              validation: [
-                {
-                  type: 'require',
-                  message: 'Title is required.',
-                },
-              ],
-            },
-            {
-              type: 'text',
-              key: 'desc',
-              label: 'Title',
-              validation: [
-                {
-                  type: 'require',
-                  message: 'Title is required.',
-                },
-              ],
-            },
-          ],
-        },
-      });
-    });
+    return {
+      content: 'Example content.',
+      data: {
+        title: 'Testing',
+      },
+      dataRaw: 'title: Testing',
+      file: {
+        path: '/content/pages/index.yaml',
+      },
+      editor: {
+        fields: [
+          {
+            type: 'text',
+            key: 'title',
+            label: 'Title',
+            validation: [
+              {
+                type: 'require',
+                message: 'Title is required.',
+              },
+            ],
+          },
+          {
+            type: 'text',
+            key: 'desc',
+            label: 'Title',
+            validation: [
+              {
+                type: 'require',
+                message: 'Title is required.',
+              },
+            ],
+          },
+        ],
+      },
+    };
   }
 
   async getProject(
@@ -94,56 +101,63 @@ export class GrowConnector implements ConnectorComponent {
     const rawFile = await this.storage.readFile('podspec.yaml');
     return yaml.load(rawFile) as PodspecConfig;
   }
+
+  async saveFile(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    expressRequest: express.Request,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    request: SaveFileRequest
+  ): Promise<EditorFileData> {
+    return {
+      content: 'Example content.',
+      data: {
+        title: 'Testing',
+      },
+      dataRaw: 'title: Testing',
+      file: {
+        path: '/content/pages/index.yaml',
+      },
+      editor: {
+        fields: [
+          {
+            type: 'text',
+            key: 'title',
+            label: 'Title',
+            validation: [
+              {
+                type: 'require',
+                message: 'Title is required.',
+              },
+            ],
+          },
+          {
+            type: 'text',
+            key: 'desc',
+            label: 'Title',
+            validation: [
+              {
+                type: 'require',
+                message: 'Title is required.',
+              },
+            ],
+          },
+        ],
+      },
+    };
+  }
+
+  async uploadFile(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    expressRequest: express.Request,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    request: UploadFileRequest
+  ): Promise<FileData> {
+    return {
+      path: '/unsupported',
+    };
+  }
 }
 
 export interface PodspecConfig {
   title: string;
 }
-
-//   async getWorkspace(): Promise<WorkspaceData> {
-//     return new Promise<WorkspaceData>((resolve, reject) => {
-//       resolve(currentWorkspace);
-//     });
-//   }
-
-//   async getWorkspaces(): Promise<Array<WorkspaceData>> {
-//     return new Promise<Array<WorkspaceData>>((resolve, reject) => {
-//       resolve([...currentWorkspaces]);
-//     });
-//   }
-
-//   async loadWorkspace(workspace: WorkspaceData): Promise<WorkspaceData> {
-//     return new Promise<WorkspaceData>((resolve, reject) => {
-//       currentWorkspace = workspace;
-//       resolve(currentWorkspace);
-//     });
-//   }
-
-//   async publish(
-//     workspace: WorkspaceData,
-//     data?: Record<string, any>
-//   ): Promise<PublishResult> {
-//     return new Promise<PublishResult>((resolve, reject) => {
-//       const status: PublishStatus = PublishStatus.Complete;
-
-//       resolve({
-//         status: status,
-//         workspace: currentWorkspace,
-//       });
-//     });
-//   }
-
-//   async saveFile(file: EditorFileData): Promise<EditorFileData> {
-//     return new Promise<EditorFileData>((resolve, reject) => {
-//       resolve(DEFAULT_EDITOR_FILE);
-//     });
-//   }
-
-//   async uploadFile(file: File, meta?: Record<string, any>): Promise<FileData> {
-//     return new Promise<FileData>((resolve, reject) => {
-//       resolve({
-//         path: '/static/img/portrait.png',
-//         url: 'image-portrait.png',
-//       } as FileData);
-//     });
-//   }

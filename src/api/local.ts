@@ -8,7 +8,12 @@ import {
   GetFileRequest,
   GetFilesRequest,
   GetProjectRequest,
-  handleError,
+  GetWorkspaceRequest,
+  GetWorkspacesRequest,
+  PublishRequest,
+  SaveFileRequest,
+  UploadFileRequest,
+  addApiRoute,
 } from './api';
 import {
   DeviceData,
@@ -16,6 +21,7 @@ import {
   EditorFileSettings,
   FileData,
   ProjectData,
+  PublishResult,
   WorkspaceData,
 } from '@blinkk/editor/dist/src/editor/api';
 import {ConnectorComponent} from '../connector/connector';
@@ -35,59 +41,27 @@ export class LocalApi implements ApiComponent {
 
   get apiRouter() {
     if (!this._apiRouter) {
-      this._apiRouter = express.Router();
-      this._apiRouter.use(express.json());
+      const router = express.Router();
+      router.use(express.json());
 
       // TODO: Use auth middleware for non-local apis.
-      // this._apiRouter.use(...);
+      // router.use(...);
 
-      this._apiRouter.post('/devices.get', (req, res) => {
-        this.getDevices(req, req.body)
-          .then(response => res.json(response))
-          .catch(e => handleError(e, req, res));
-      });
+      addApiRoute(router, '/devices.get', this.getDevices.bind(this));
+      addApiRoute(router, '/file.copy', this.copyFile.bind(this));
+      addApiRoute(router, '/file.create', this.createFile.bind(this));
+      addApiRoute(router, '/file.delete', this.deleteFile.bind(this));
+      addApiRoute(router, '/file.get', this.getFile.bind(this));
+      addApiRoute(router, '/file.save', this.saveFile.bind(this));
+      addApiRoute(router, '/file.upload', this.uploadFile.bind(this));
+      addApiRoute(router, '/files.get', this.getFiles.bind(this));
+      addApiRoute(router, '/project.get', this.getProject.bind(this));
+      addApiRoute(router, '/publish.start', this.publish.bind(this));
+      addApiRoute(router, '/workspace.create', this.createWorkspace.bind(this));
+      addApiRoute(router, '/workspace.get', this.getWorkspace.bind(this));
+      addApiRoute(router, '/workspaces.get', this.getWorkspaces.bind(this));
 
-      this._apiRouter.post('/file.copy', (req, res) => {
-        this.copyFile(req, req.body)
-          .then(response => res.json(response))
-          .catch(e => handleError(e, req, res));
-      });
-
-      this._apiRouter.post('/file.create', (req, res) => {
-        this.createFile(req, req.body)
-          .then(response => res.json(response))
-          .catch(e => handleError(e, req, res));
-      });
-
-      this._apiRouter.post('/file.delete', (req, res) => {
-        this.deleteFile(req, req.body)
-          .then(response => res.json(response))
-          .catch(e => handleError(e, req, res));
-      });
-
-      this._apiRouter.post('/file.get', (req, res) => {
-        this.getFile(req, req.body)
-          .then(response => res.json(response))
-          .catch(e => handleError(e, req, res));
-      });
-
-      this._apiRouter.post('/files.get', (req, res) => {
-        this.getFiles(req, req.body)
-          .then(response => res.json(response))
-          .catch(e => handleError(e, req, res));
-      });
-
-      this._apiRouter.post('/project.get', (req, res) => {
-        this.getProject(req, req.body)
-          .then(response => res.json(response))
-          .catch(e => handleError(e, req, res));
-      });
-
-      this._apiRouter.post('/workspace.create', (req, res) => {
-        this.createWorkspace(req, req.body)
-          .then(response => res.json(response))
-          .catch(e => handleError(e, req, res));
-      });
+      this._apiRouter = router;
     }
 
     return this._apiRouter;
@@ -265,6 +239,56 @@ export class LocalApi implements ApiComponent {
     );
   }
 
+  async getWorkspace(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    expressRequest: express.Request,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    request: GetWorkspaceRequest
+  ): Promise<WorkspaceData> {
+    // TODO: Read workspace information from git.
+    return {
+      branch: {
+        name: 'main',
+        commit: {
+          author: {
+            name: 'Example User',
+            email: 'example@example.com',
+          },
+          hash: '951c206e5f10ba99d13259293b349e321e4a6a9e',
+          summary: 'Example commit summary.',
+          timestamp: new Date().toISOString(),
+        },
+      },
+      name: 'main',
+    };
+  }
+
+  async getWorkspaces(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    expressRequest: express.Request,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    request: GetWorkspacesRequest
+  ): Promise<Array<WorkspaceData>> {
+    // TODO: Read workspace information from git.
+    return [
+      {
+        branch: {
+          name: 'main',
+          commit: {
+            author: {
+              name: 'Example User',
+              email: 'example@example.com',
+            },
+            hash: '951c206e5f10ba99d13259293b349e321e4a6a9e',
+            summary: 'Example commit summary.',
+            timestamp: new Date().toISOString(),
+          },
+        },
+        name: 'main',
+      },
+    ];
+  }
+
   async readEditorConfig(): Promise<EditorFileSettings> {
     let rawFile = null;
     try {
@@ -277,5 +301,33 @@ export class LocalApi implements ApiComponent {
       }
     }
     return (yaml.load(rawFile) || {}) as EditorFileSettings;
+  }
+
+  async publish(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    expressRequest: express.Request,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    request: PublishRequest
+  ): Promise<PublishResult> {
+    // TODO: Publish process.
+    throw new Error('Publish workflow not available for local.');
+  }
+
+  async saveFile(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    expressRequest: express.Request,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    request: SaveFileRequest
+  ): Promise<EditorFileData> {
+    return (await this.getConnector()).saveFile(expressRequest, request);
+  }
+
+  async uploadFile(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    expressRequest: express.Request,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    request: UploadFileRequest
+  ): Promise<FileData> {
+    return (await this.getConnector()).uploadFile(expressRequest, request);
   }
 }

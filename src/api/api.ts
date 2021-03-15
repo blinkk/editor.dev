@@ -4,6 +4,7 @@ import {
   EditorFileData,
   FileData,
   ProjectData,
+  PublishResult,
   WorkspaceData,
 } from '@blinkk/editor/dist/src/editor/api';
 import {ConnectorStorage} from '../storage/storage';
@@ -52,6 +53,31 @@ export interface ApiComponent {
     expressRequest: express.Request,
     request: GetProjectRequest
   ): Promise<ProjectData>;
+
+  getWorkspace(
+    expressRequest: express.Request,
+    request: GetWorkspaceRequest
+  ): Promise<WorkspaceData>;
+
+  getWorkspaces(
+    expressRequest: express.Request,
+    request: GetWorkspacesRequest
+  ): Promise<Array<WorkspaceData>>;
+
+  publish(
+    expressRequest: express.Request,
+    request: PublishRequest
+  ): Promise<PublishResult>;
+
+  saveFile(
+    expressRequest: express.Request,
+    request: SaveFileRequest
+  ): Promise<EditorFileData>;
+
+  uploadFile(
+    expressRequest: express.Request,
+    request: UploadFileRequest
+  ): Promise<FileData>;
 }
 
 export interface CopyFileRequest {
@@ -86,16 +112,50 @@ export interface GetFilesRequest {}
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface GetProjectRequest {}
 
-export function handleError(
-  err: Error,
-  req: express.Request,
-  res: express.Response
-) {
-  console.error(err);
-  if (err.stack) {
-    console.error(err.stack);
-  }
-  return res.status(500).json({
-    message: err.toString(),
-  } as ApiError);
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface GetWorkspaceRequest {}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface GetWorkspacesRequest {}
+
+export interface PublishRequest {
+  workspace: WorkspaceData;
+  data?: Record<string, any>;
+}
+
+export interface SaveFileRequest {
+  file: EditorFileData;
+}
+
+export interface UploadFileRequest {
+  file: File;
+  meta: Record<string, any>;
+}
+
+/**
+ * Shortcut for adding an api route to the router with error handling
+ * to keep the api result in a consistent format.
+ *
+ * @param router Router for api.
+ * @param route Route path for the endpoint.
+ * @param apiMethod Method to handle the request.
+ */
+export function addApiRoute(
+  router: express.Router,
+  route: string,
+  apiMethod: (req: express.Request, data: any) => Promise<any>
+): void {
+  router.post(route, (req, res) => {
+    apiMethod(req, req.body)
+      .then(response => res.json(response))
+      .catch(err => {
+        console.error(err);
+        if (err.stack) {
+          console.error(err.stack);
+        }
+        return res.status(500).json({
+          message: err.toString(),
+        } as ApiError);
+      });
+  });
 }
