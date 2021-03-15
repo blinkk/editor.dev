@@ -1,5 +1,6 @@
 import {ConnectorComponent, GetProjectRequest} from './connector';
 import {
+  EditorFileData,
   FileData,
   ProjectData,
   UserData,
@@ -17,101 +18,101 @@ import yaml from 'js-yaml';
  * Stub the variables until the connector correctly reads
  * the actual files and parses a correct response.
  */
-// const DEFAULT_EDITOR_FILE: EditorFileData = {
-//   content: 'Example content.',
-//   data: {
-//     title: 'Testing',
-//   },
-//   dataRaw: 'title: Testing',
-//   file: {
-//     path: '/content/pages/index.yaml',
-//   },
-//   editor: {
-//     fields: [
-//       {
-//         type: 'text',
-//         key: 'title',
-//         label: 'Title',
-//         validation: [
-//           {
-//             type: 'require',
-//             message: 'Title is required.',
-//           },
-//         ],
-//       },
-//     ],
-//   },
-//   history: [
-//     {
-//       author: {
-//         name: 'Example User',
-//         email: 'example@example.com',
-//       },
-//       hash: 'db29a258dacdd416bb24bb63c689d669df08d409',
-//       summary: 'Example commit summary.',
-//       timestamp: new Date(
-//         new Date().getTime() - 1 * 60 * 60 * 1000
-//       ).toISOString(),
-//     },
-//     {
-//       author: {
-//         name: 'Example User',
-//         email: 'example@example.com',
-//       },
-//       hash: 'f36d7c0d556e30421a7a8f22038234a9174f0e04',
-//       summary: 'Example commit summary.',
-//       timestamp: new Date(
-//         new Date().getTime() - 2 * 60 * 60 * 1000
-//       ).toISOString(),
-//     },
-//     {
-//       author: {
-//         name: 'Example User',
-//         email: 'example@example.com',
-//       },
-//       hash: '6dda2682901bf4f2f03f936267169454120f1806',
-//       summary:
-//         'Example commit summary. With a long summary. Like really too long for a summary. Probably should use a shorter summary.',
-//       timestamp: new Date(
-//         new Date().getTime() - 4 * 60 * 60 * 1000
-//       ).toISOString(),
-//     },
-//     {
-//       author: {
-//         name: 'Example User',
-//         email: 'example@example.com',
-//       },
-//       hash: '465e3720c050f045d9500bd9bc7c7920f192db78',
-//       summary: 'Example commit summary.',
-//       timestamp: new Date(
-//         new Date().getTime() - 14 * 60 * 60 * 1000
-//       ).toISOString(),
-//     },
-//   ],
-//   url: 'preview.html',
-//   urls: [
-//     {
-//       url: '#private',
-//       label: 'Live editor preview',
-//       level: UrlLevel.PRIVATE,
-//     },
-//     {
-//       url: '#protected',
-//       label: 'Staging',
-//       level: UrlLevel.PROTECTED,
-//     },
-//     {
-//       url: '#public',
-//       label: 'Live',
-//       level: UrlLevel.PUBLIC,
-//     },
-//     {
-//       url: 'https://github.com/blinkkcode/live-edit/',
-//       label: 'View in Github',
-//       level: UrlLevel.SOURCE,
-//     },
-//   ],
-// };
+const DEFAULT_EDITOR_FILE: EditorFileData = {
+  content: 'Example content.',
+  data: {
+    title: 'Testing',
+  },
+  dataRaw: 'title: Testing',
+  file: {
+    path: '/content/pages/index.yaml',
+  },
+  editor: {
+    fields: [
+      {
+        type: 'text',
+        key: 'title',
+        label: 'Title',
+        validation: [
+          {
+            type: 'require',
+            message: 'Title is required.',
+          },
+        ],
+      },
+    ],
+  },
+  history: [
+    {
+      author: {
+        name: 'Example User',
+        email: 'example@example.com',
+      },
+      hash: 'db29a258dacdd416bb24bb63c689d669df08d409',
+      summary: 'Example commit summary.',
+      timestamp: new Date(
+        new Date().getTime() - 1 * 60 * 60 * 1000
+      ).toISOString(),
+    },
+    {
+      author: {
+        name: 'Example User',
+        email: 'example@example.com',
+      },
+      hash: 'f36d7c0d556e30421a7a8f22038234a9174f0e04',
+      summary: 'Example commit summary.',
+      timestamp: new Date(
+        new Date().getTime() - 2 * 60 * 60 * 1000
+      ).toISOString(),
+    },
+    {
+      author: {
+        name: 'Example User',
+        email: 'example@example.com',
+      },
+      hash: '6dda2682901bf4f2f03f936267169454120f1806',
+      summary:
+        'Example commit summary. With a long summary. Like really too long for a summary. Probably should use a shorter summary.',
+      timestamp: new Date(
+        new Date().getTime() - 4 * 60 * 60 * 1000
+      ).toISOString(),
+    },
+    {
+      author: {
+        name: 'Example User',
+        email: 'example@example.com',
+      },
+      hash: '465e3720c050f045d9500bd9bc7c7920f192db78',
+      summary: 'Example commit summary.',
+      timestamp: new Date(
+        new Date().getTime() - 14 * 60 * 60 * 1000
+      ).toISOString(),
+    },
+  ],
+  url: 'preview.html',
+  urls: [
+    {
+      url: '#private',
+      label: 'Live editor preview',
+      level: 'private',
+    },
+    {
+      url: '#protected',
+      label: 'Staging',
+      level: 'protected',
+    },
+    {
+      url: '#public',
+      label: 'Live',
+      level: 'public',
+    },
+    {
+      url: 'https://github.com/blinkkcode/live-edit/',
+      label: 'View in Github',
+      level: 'source',
+    },
+  ],
+};
 
 const currentFileset: Array<FileData> = [
   {
