@@ -1,7 +1,9 @@
 import {
   ApiError,
   DeviceData,
+  EditorFileData,
   FileData,
+  ProjectData,
   WorkspaceData,
 } from '@blinkk/editor/dist/src/editor/api';
 import {ConnectorStorage} from '../storage/storage';
@@ -35,6 +37,21 @@ export interface ApiComponent {
     expressRequest: express.Request,
     request: GetDevicesRequest
   ): Promise<Array<DeviceData>>;
+
+  getFile(
+    expressRequest: express.Request,
+    request: GetFileRequest
+  ): Promise<EditorFileData>;
+
+  getFiles(
+    expressRequest: express.Request,
+    request: GetFilesRequest
+  ): Promise<Array<FileData>>;
+
+  getProject(
+    expressRequest: express.Request,
+    request: GetProjectRequest
+  ): Promise<ProjectData>;
 }
 
 export interface CopyFileRequest {
@@ -59,8 +76,15 @@ export interface DeleteFileRequest {
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface GetDevicesRequest {}
 
+export interface GetFileRequest {
+  file: FileData;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface GetFilesRequest {}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface GetProjectRequest {}
 
 export function handleError(
   err: Error,

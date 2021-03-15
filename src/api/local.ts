@@ -5,13 +5,17 @@ import {
   CreateWorkspaceRequest,
   DeleteFileRequest,
   GetDevicesRequest,
+  GetFileRequest,
   GetFilesRequest,
+  GetProjectRequest,
   handleError,
 } from './api';
 import {
   DeviceData,
+  EditorFileData,
   EditorFileSettings,
   FileData,
+  ProjectData,
   WorkspaceData,
 } from '@blinkk/editor/dist/src/editor/api';
 import {ConnectorComponent} from '../connector/connector';
@@ -61,6 +65,12 @@ export class LocalApi implements ApiComponent {
           .catch(e => handleError(e, req, res));
       });
 
+      this._apiRouter.post('/file.get', (req, res) => {
+        this.getFile(req, req.body)
+          .then(response => res.json(response))
+          .catch(e => handleError(e, req, res));
+      });
+
       this._apiRouter.post('/files.get', (req, res) => {
         this.getFiles(req, req.body)
           .then(response => res.json(response))
@@ -68,29 +78,8 @@ export class LocalApi implements ApiComponent {
       });
 
       this._apiRouter.post('/project.get', (req, res) => {
-        this.getConnector()
-          .then(connector => {
-            connector
-              .getProject(req, req.body)
-              .then(response => {
-                // TODO: Project publish settings.
-
-                // Add the editor config data to the connector response.
-                this.readEditorConfig().then(editorConfig => {
-                  res.json(
-                    Object.assign(
-                      {},
-                      {
-                        site: editorConfig.site,
-                        title: editorConfig.title,
-                      },
-                      response
-                    )
-                  );
-                });
-              })
-              .catch(e => handleError(e, req, res));
-          })
+        this.getProject(req, req.body)
+          .then(response => res.json(response))
           .catch(e => handleError(e, req, res));
       });
 
@@ -168,6 +157,67 @@ export class LocalApi implements ApiComponent {
     return Promise.resolve(editorConfig.devices || []);
   }
 
+  async getFile(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    expressRequest: express.Request,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    request: GetFileRequest
+  ): Promise<EditorFileData> {
+    const connector = await this.getConnector();
+    const connectorResult = await connector.getFile(expressRequest, request);
+
+    // TODO: Pull the git history for the file to enrich the connector result.
+    return Object.assign({}, connectorResult, {
+      history: [
+        {
+          author: {
+            name: 'Example User',
+            email: 'example@example.com',
+          },
+          hash: 'db29a258dacdd416bb24bb63c689d669df08d409',
+          summary: 'Example commit summary.',
+          timestamp: new Date(
+            new Date().getTime() - 1 * 60 * 60 * 1000
+          ).toISOString(),
+        },
+        {
+          author: {
+            name: 'Example User',
+            email: 'example@example.com',
+          },
+          hash: 'f36d7c0d556e30421a7a8f22038234a9174f0e04',
+          summary: 'Example commit summary.',
+          timestamp: new Date(
+            new Date().getTime() - 2 * 60 * 60 * 1000
+          ).toISOString(),
+        },
+        {
+          author: {
+            name: 'Example User',
+            email: 'example@example.com',
+          },
+          hash: '6dda2682901bf4f2f03f936267169454120f1806',
+          summary:
+            'Example commit summary. With a long summary. Like really too long for a summary. Probably should use a shorter summary.',
+          timestamp: new Date(
+            new Date().getTime() - 4 * 60 * 60 * 1000
+          ).toISOString(),
+        },
+        {
+          author: {
+            name: 'Example User',
+            email: 'example@example.com',
+          },
+          hash: '465e3720c050f045d9500bd9bc7c7920f192db78',
+          summary: 'Example commit summary.',
+          timestamp: new Date(
+            new Date().getTime() - 14 * 60 * 60 * 1000
+          ).toISOString(),
+        },
+      ],
+    });
+  }
+
   async getFiles(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
@@ -182,6 +232,7 @@ export class LocalApi implements ApiComponent {
         connector.fileFilter?.matches(file.path)
       );
     } else {
+      // TODO: Default file filter for api.
     }
 
     // Convert to the correct FileDate interface.
@@ -192,6 +243,26 @@ export class LocalApi implements ApiComponent {
       });
     }
     return responseFiles;
+  }
+
+  async getProject(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    expressRequest: express.Request,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    request: GetProjectRequest
+  ): Promise<ProjectData> {
+    const connector = await this.getConnector();
+    const connectorResult = await connector.getProject(expressRequest, request);
+    const editorConfig = await this.readEditorConfig();
+    // Connector config take precedence over editor config.
+    return Object.assign(
+      {},
+      {
+        site: editorConfig.site,
+        title: editorConfig.title,
+      },
+      connectorResult
+    );
   }
 
   async readEditorConfig(): Promise<EditorFileSettings> {
