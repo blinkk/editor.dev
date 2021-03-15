@@ -1,7 +1,6 @@
 {
   "compilerOptions": {
     "esModuleInterop": true,
-    "experimentalDecorators": true,
     "lib": ["es2020", "dom", "dom.iterable"],
     "module": "commonjs",
     "moduleResolution": "node",
