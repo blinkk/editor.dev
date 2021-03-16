@@ -7,12 +7,10 @@ import {
   PublishResult,
   WorkspaceData,
 } from '@blinkk/editor/dist/src/editor/api';
-import {ConnectorStorage} from '../storage/storage';
 import express from 'express';
 
 export interface ApiComponent {
   apiRouter: express.Router;
-  storage: ConnectorStorage;
 
   copyFile(
     expressRequest: express.Request,

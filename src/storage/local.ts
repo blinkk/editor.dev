@@ -4,10 +4,10 @@ import {constants as fsConstants} from 'fs';
 import path from 'path';
 
 export class LocalStorage implements ConnectorStorage {
-  cwd: string;
+  root: string;
 
-  constructor(cwd?: string) {
-    this.cwd = path.resolve(cwd || process.cwd());
+  constructor(root?: string) {
+    this.root = path.resolve(root || process.cwd());
   }
 
   async deleteFile(filePath: string): Promise<void> {
@@ -28,12 +28,12 @@ export class LocalStorage implements ConnectorStorage {
 
   expandPath(filePath: string): string {
     // TODO: More security around file access?
-    filePath = path.join(this.cwd, filePath);
-    const fullPath = path.resolve(this.cwd, filePath);
+    filePath = path.join(this.root, filePath);
+    const fullPath = path.resolve(this.root, filePath);
 
-    if (!fullPath.startsWith(this.cwd)) {
+    if (!fullPath.startsWith(this.root)) {
       throw new Error(
-        `Cannot work with files outside of '${this.cwd}'. '${filePath}' resolved to '${fullPath}'`
+        `Cannot work with files outside of '${this.root}'. '${filePath}' resolved to '${fullPath}'`
       );
     }
 
@@ -53,7 +53,7 @@ export class LocalStorage implements ConnectorStorage {
       .filter(file => !file.isDirectory())
       .map(file => ({
         ...file,
-        path: `${path}/${file.name}`.slice(this.cwd.length),
+        path: `${path}/${file.name}`.slice(this.root.length),
       }));
 
     // Get directorys within the current directory
