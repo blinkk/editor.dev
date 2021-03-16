@@ -26,6 +26,7 @@ import {
   WorkspaceData,
 } from '@blinkk/editor/dist/src/editor/api';
 import {ConnectorComponent} from '../connector/connector';
+import {FeatureFlags} from '@blinkk/editor/dist/src/editor/features';
 import {GrowConnector} from '../connector/grow';
 import {LocalStorage} from '../storage/local';
 import {ReadCommitResult} from 'isomorphic-git';
@@ -259,6 +260,30 @@ export class LocalApi implements ApiComponent {
     const connector = await this.getConnector();
     const connectorResult = await connector.getProject(expressRequest, request);
     const editorConfig = await this.readEditorConfig();
+    connectorResult.experiments = connectorResult.experiments || {};
+    connectorResult.features = connectorResult.features || {};
+
+    // Pull in editor configuration for experiments.
+    if (editorConfig.experiments) {
+      connectorResult.experiments = Object.assign(
+        {},
+        editorConfig.experiments,
+        connectorResult.experiments
+      );
+    }
+
+    // Pull in editor configuration for features.
+    if (editorConfig.features) {
+      connectorResult.features = Object.assign(
+        {},
+        editorConfig.features,
+        connectorResult.features
+      );
+    }
+
+    // Local api does not currently allow creating workspaces.
+    connectorResult.features[FeatureFlags.WorkspaceCreate] = false;
+
     // Connector config take precedence over editor config.
     return Object.assign(
       {},
