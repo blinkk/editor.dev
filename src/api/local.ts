@@ -22,20 +22,24 @@ import {
   FileData,
   ProjectData,
   PublishResult,
+  RepoCommit,
   WorkspaceData,
 } from '@blinkk/editor/dist/src/editor/api';
 import {ConnectorComponent} from '../connector/connector';
-import {ConnectorStorage} from '../storage/storage';
 import {GrowConnector} from '../connector/grow';
+import {LocalStorage} from '../storage/local';
+import {ReadCommitResult} from 'isomorphic-git';
 import express from 'express';
+import fs from 'fs';
+import git from 'isomorphic-git';
 import yaml from 'js-yaml';
 
 export class LocalApi implements ApiComponent {
   protected _connector?: ConnectorComponent;
   protected _apiRouter?: express.Router;
-  storage: ConnectorStorage;
+  storage: LocalStorage;
 
-  constructor(storage: ConnectorStorage) {
+  constructor(storage: LocalStorage) {
     this.storage = storage;
   }
 
@@ -107,6 +111,61 @@ export class LocalApi implements ApiComponent {
     return this.storage.deleteFile(request.file.path);
   }
 
+  /**
+   * Retrieve the commits that have the file by looking through all commits.
+   *
+   * Not the best performance.
+   *
+   * @see https://isomorphic-git.org/docs/en/snippets#git-log-path-to-file
+   *
+   * @param filePath File path to
+   * @param depth
+   * @returns Array of commits that match the file.
+   */
+  async fileHistory(
+    filePath: string,
+    depth = 10
+  ): Promise<Array<ReadCommitResult>> {
+    // Remove preceding slash.
+    filePath = filePath.replace(/^\/*/, '');
+
+    const commits = await git.log({
+      fs: fs,
+      dir: this.storage.cwd,
+    });
+    let lastSHA = null;
+    let lastCommit = null;
+    const commitsThatMatter: Array<ReadCommitResult> = [];
+    for (const commit of commits) {
+      if (commitsThatMatter.length >= depth) {
+        break;
+      }
+
+      try {
+        const o = await git.readObject({
+          fs: fs,
+          dir: this.storage.cwd,
+          oid: commit.oid,
+          filepath: filePath,
+        });
+        if (o.oid !== lastSHA) {
+          if (lastSHA !== null) {
+            commitsThatMatter.push(lastCommit as ReadCommitResult);
+          }
+          lastSHA = o.oid;
+        }
+      } catch (err) {
+        // File no longer there.
+        if (lastCommit !== null) {
+          commitsThatMatter.push(lastCommit as ReadCommitResult);
+        }
+        break;
+      }
+      lastCommit = commit;
+    }
+    return commitsThatMatter;
+  }
+
   async getConnector(): Promise<ConnectorComponent> {
     if (!this._connector) {
       // Check for specific features of the supported connectors.
@@ -140,55 +199,26 @@ export class LocalApi implements ApiComponent {
     const connector = await this.getConnector();
     const connectorResult = await connector.getFile(expressRequest, request);
 
+    const history = await this.fileHistory(request.file.path);
+    const commitHistory: Array<RepoCommit> = [];
+    for (const commit of history) {
+      commitHistory.push({
+        author: {
+          name: commit.commit.author.name,
+          email: commit.commit.author.email,
+        },
+        hash: commit.oid,
+        summary: commit.commit.message,
+        timestamp: new Date(
+          // TODO: Use commit.commit.author.timezoneOffset ?
+          commit.commit.author.timestamp * 1000
+        ).toISOString(),
+      });
+    }
+
     // TODO: Pull the git history for the file to enrich the connector result.
     return Object.assign({}, connectorResult, {
-      history: [
-        {
-          author: {
-            name: 'Example User',
-            email: 'example@example.com',
-          },
-          hash: 'db29a258dacdd416bb24bb63c689d669df08d409',
-          summary: 'Example commit summary.',
-          timestamp: new Date(
-            new Date().getTime() - 1 * 60 * 60 * 1000
-          ).toISOString(),
-        },
-        {
-          author: {
-            name: 'Example User',
-            email: 'example@example.com',
-          },
-          hash: 'f36d7c0d556e30421a7a8f22038234a9174f0e04',
-          summary: 'Example commit summary.',
-          timestamp: new Date(
-            new Date().getTime() - 2 * 60 * 60 * 1000
-          ).toISOString(),
-        },
-        {
-          author: {
-            name: 'Example User',
-            email: 'example@example.com',
-          },
-          hash: '6dda2682901bf4f2f03f936267169454120f1806',
-          summary:
-            'Example commit summary. With a long summary. Like really too long for a summary. Probably should use a shorter summary.',
-          timestamp: new Date(
-            new Date().getTime() - 4 * 60 * 60 * 1000
-          ).toISOString(),
-        },
-        {
-          author: {
-            name: 'Example User',
-            email: 'example@example.com',
-          },
-          hash: '465e3720c050f045d9500bd9bc7c7920f192db78',
-          summary: 'Example commit summary.',
-          timestamp: new Date(
-            new Date().getTime() - 14 * 60 * 60 * 1000
-          ).toISOString(),
-        },
-      ],
+      history: commitHistory,
     });
   }
 
@@ -245,21 +275,36 @@ export class LocalApi implements ApiComponent {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: GetWorkspaceRequest
   ): Promise<WorkspaceData> {
-    // TODO: Read workspace information from git.
+    const currentBranch = await git.currentBranch({
+      fs,
+      dir: this.storage.cwd,
+    });
+
+    const commits = await git.log({
+      fs,
+      dir: this.storage.cwd,
+      depth: 1,
+    });
+
+    const commit = commits[0];
+
     return {
       branch: {
-        name: 'main',
+        name: currentBranch || '',
         commit: {
           author: {
-            name: 'Example User',
-            email: 'example@example.com',
+            name: commit.commit.author.name,
+            email: commit.commit.author.email,
           },
-          hash: '951c206e5f10ba99d13259293b349e321e4a6a9e',
-          summary: 'Example commit summary.',
-          timestamp: new Date().toISOString(),
+          hash: commit.oid,
+          summary: commit.commit.message,
+          timestamp: new Date(
+            // TODO: Use commit.commit.author.timezoneOffset ?
+            commit.commit.author.timestamp * 1000
+          ).toISOString(),
         },
       },
-      name: 'main',
+      name: (currentBranch || '').replace(/^workspace\//, ''),
     };
   }
 
@@ -269,22 +314,38 @@ export class LocalApi implements ApiComponent {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: GetWorkspacesRequest
   ): Promise<Array<WorkspaceData>> {
-    // TODO: Read workspace information from git.
+    // Only list the current branch as a workspace for local.
+    const currentBranch = await git.currentBranch({
+      fs,
+      dir: this.storage.cwd,
+    });
+
+    const commits = await git.log({
+      fs,
+      dir: this.storage.cwd,
+      depth: 1,
+    });
+
+    const commit = commits[0];
+
     return [
       {
         branch: {
-          name: 'main',
+          name: currentBranch || '',
           commit: {
             author: {
-              name: 'Example User',
-              email: 'example@example.com',
+              name: commit.commit.author.name,
+              email: commit.commit.author.email,
             },
-            hash: '951c206e5f10ba99d13259293b349e321e4a6a9e',
-            summary: 'Example commit summary.',
-            timestamp: new Date().toISOString(),
+            hash: commit.oid,
+            summary: commit.commit.message,
+            timestamp: new Date(
+              // TODO: Use commit.commit.author.timezoneOffset ?
+              commit.commit.author.timestamp * 1000
+            ).toISOString(),
           },
         },
-        name: 'main',
+        name: (currentBranch || '').replace(/^workspace\//, ''),
       },
     ];
   }
