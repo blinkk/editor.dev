@@ -30,6 +30,7 @@ import {GrowConnector} from '../connector/grow';
 import {LocalStorage} from '../storage/local';
 import {ReadCommitResult} from 'isomorphic-git';
 import express from 'express';
+// TODO: FS promises does not work with isomorphic-git?
 import fs from 'fs';
 import git from 'isomorphic-git';
 import yaml from 'js-yaml';
@@ -276,12 +277,12 @@ export class LocalApi implements ApiComponent {
     request: GetWorkspaceRequest
   ): Promise<WorkspaceData> {
     const currentBranch = await git.currentBranch({
-      fs,
+      fs: fs,
       dir: this.storage.cwd,
     });
 
     const commits = await git.log({
-      fs,
+      fs: fs,
       dir: this.storage.cwd,
       depth: 1,
     });
@@ -316,12 +317,12 @@ export class LocalApi implements ApiComponent {
   ): Promise<Array<WorkspaceData>> {
     // Only list the current branch as a workspace for local.
     const currentBranch = await git.currentBranch({
-      fs,
+      fs: fs,
       dir: this.storage.cwd,
     });
 
     const commits = await git.log({
-      fs,
+      fs: fs,
       dir: this.storage.cwd,
       depth: 1,
     });
