@@ -75,6 +75,7 @@ export class LocalApi implements ApiComponent {
 
   async copyFile(
     expressRequest: express.Request,
+    expressResponse: express.Response,
     request: CopyFileRequest
   ): Promise<FileData> {
     await this.storage.writeFile(
@@ -88,6 +89,7 @@ export class LocalApi implements ApiComponent {
 
   async createFile(
     expressRequest: express.Request,
+    expressResponse: express.Response,
     request: CreateFileRequest
   ): Promise<FileData> {
     await this.storage.writeFile(request.path, request.content || '');
@@ -99,6 +101,7 @@ export class LocalApi implements ApiComponent {
   async createWorkspace(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
+    expressResponse: express.Response,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: CreateWorkspaceRequest
   ): Promise<WorkspaceData> {
@@ -108,6 +111,7 @@ export class LocalApi implements ApiComponent {
   async deleteFile(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
+    expressResponse: express.Response,
     request: DeleteFileRequest
   ): Promise<void> {
     return this.storage.deleteFile(request.file.path);
@@ -133,7 +137,7 @@ export class LocalApi implements ApiComponent {
 
     const commits = await git.log({
       fs: fs,
-      dir: this.storage.cwd,
+      dir: this.storage.root,
     });
     let lastSHA = null;
     let lastCommit = null;
@@ -146,7 +150,7 @@ export class LocalApi implements ApiComponent {
       try {
         const o = await git.readObject({
           fs: fs,
-          dir: this.storage.cwd,
+          dir: this.storage.root,
           oid: commit.oid,
           filepath: filePath,
         });
@@ -185,6 +189,7 @@ export class LocalApi implements ApiComponent {
   async getDevices(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
+    expressResponse: express.Response,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: GetDevicesRequest
   ): Promise<Array<DeviceData>> {
@@ -195,6 +200,7 @@ export class LocalApi implements ApiComponent {
   async getFile(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
+    expressResponse: express.Response,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: GetFileRequest
   ): Promise<EditorFileData> {
@@ -227,6 +233,7 @@ export class LocalApi implements ApiComponent {
   async getFiles(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
+    expressResponse: express.Response,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: GetFilesRequest
   ): Promise<Array<FileData>> {
@@ -254,6 +261,7 @@ export class LocalApi implements ApiComponent {
   async getProject(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
+    expressResponse: express.Response,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: GetProjectRequest
   ): Promise<ProjectData> {
@@ -298,17 +306,18 @@ export class LocalApi implements ApiComponent {
   async getWorkspace(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
+    expressResponse: express.Response,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: GetWorkspaceRequest
   ): Promise<WorkspaceData> {
     const currentBranch = await git.currentBranch({
       fs: fs,
-      dir: this.storage.cwd,
+      dir: this.storage.root,
     });
 
     const commits = await git.log({
       fs: fs,
-      dir: this.storage.cwd,
+      dir: this.storage.root,
       depth: 1,
     });
 
@@ -337,18 +346,19 @@ export class LocalApi implements ApiComponent {
   async getWorkspaces(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
+    expressResponse: express.Response,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: GetWorkspacesRequest
   ): Promise<Array<WorkspaceData>> {
     // Only list the current branch as a workspace for local.
     const currentBranch = await git.currentBranch({
       fs: fs,
-      dir: this.storage.cwd,
+      dir: this.storage.root,
     });
 
     const commits = await git.log({
       fs: fs,
-      dir: this.storage.cwd,
+      dir: this.storage.root,
       depth: 1,
     });
 
@@ -393,6 +403,7 @@ export class LocalApi implements ApiComponent {
   async publish(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
+    expressResponse: express.Response,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: PublishRequest
   ): Promise<PublishResult> {
@@ -403,6 +414,7 @@ export class LocalApi implements ApiComponent {
   async saveFile(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
+    expressResponse: express.Response,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: SaveFileRequest
   ): Promise<EditorFileData> {
@@ -412,6 +424,7 @@ export class LocalApi implements ApiComponent {
   async uploadFile(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
+    expressResponse: express.Response,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: UploadFileRequest
   ): Promise<FileData> {

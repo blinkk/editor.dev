@@ -1,6 +1,6 @@
-import {StorageManager, StorageManagerDevConfig} from '../storage/storage';
 import {GithubApi} from '../api/github';
 import {GithubStorage} from '../storage/github';
+import {StorageManager} from '../storage/storage';
 import cors from 'cors';
 import express from 'express';
 
@@ -23,22 +23,10 @@ app.use(
   })
 );
 
-let devConfig: StorageManagerDevConfig | undefined = undefined;
-let rootDir = './sites';
-
-if (MODE === 'dev') {
-  const args = process.argv.slice(2);
-  devConfig = {
-    useSingleDirectory: true,
-  };
-  rootDir = args.length ? args[0] : rootDir;
-}
-
 // Site files are managed by the storage manager to separate out the
 // different projects and branches.
 const storageManager = new StorageManager({
-  dev: devConfig,
-  rootDir: rootDir,
+  rootDir: './sites',
   storageCls: GithubStorage,
 });
 

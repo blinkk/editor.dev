@@ -9,71 +9,86 @@ import {
 } from '@blinkk/editor/dist/src/editor/api';
 import express from 'express';
 
+export const SPECIAL_BRANCHES = ['main', 'master', 'staging'];
+
 export interface ApiComponent {
   apiRouter: express.Router;
 
   copyFile(
     expressRequest: express.Request,
+    expressResponse: express.Response,
     request: CopyFileRequest
   ): Promise<FileData>;
 
   createFile(
     expressRequest: express.Request,
+    expressResponse: express.Response,
     request: CreateFileRequest
   ): Promise<FileData>;
 
   createWorkspace(
     expressRequest: express.Request,
+    expressResponse: express.Response,
     request: CreateWorkspaceRequest
   ): Promise<WorkspaceData>;
 
   deleteFile(
     expressRequest: express.Request,
+    expressResponse: express.Response,
     request: DeleteFileRequest
   ): Promise<void>;
 
   getDevices(
     expressRequest: express.Request,
+    expressResponse: express.Response,
     request: GetDevicesRequest
   ): Promise<Array<DeviceData>>;
 
   getFile(
     expressRequest: express.Request,
+    expressResponse: express.Response,
     request: GetFileRequest
   ): Promise<EditorFileData>;
 
   getFiles(
     expressRequest: express.Request,
+    expressResponse: express.Response,
     request: GetFilesRequest
   ): Promise<Array<FileData>>;
 
   getProject(
     expressRequest: express.Request,
+    expressResponse: express.Response,
     request: GetProjectRequest
   ): Promise<ProjectData>;
 
   getWorkspace(
     expressRequest: express.Request,
+    expressResponse: express.Response,
     request: GetWorkspaceRequest
   ): Promise<WorkspaceData>;
 
   getWorkspaces(
     expressRequest: express.Request,
+    expressResponse: express.Response,
     request: GetWorkspacesRequest
   ): Promise<Array<WorkspaceData>>;
 
   publish(
     expressRequest: express.Request,
+    expressResponse: express.Response,
     request: PublishRequest
   ): Promise<PublishResult>;
 
   saveFile(
     expressRequest: express.Request,
+    expressResponse: express.Response,
     request: SaveFileRequest
   ): Promise<EditorFileData>;
 
   uploadFile(
     expressRequest: express.Request,
+    expressResponse: express.Response,
     request: UploadFileRequest
   ): Promise<FileData>;
 }
@@ -141,10 +156,14 @@ export interface UploadFileRequest {
 export function addApiRoute(
   router: express.Router,
   route: string,
-  apiMethod: (req: express.Request, data: any) => Promise<any>
+  apiMethod: (
+    req: express.Request,
+    res: express.Response,
+    data: any
+  ) => Promise<any>
 ): void {
   router.post(route, (req, res) => {
-    apiMethod(req, req.body)
+    apiMethod(req, res, req.body)
       .then(response => res.json(response))
       .catch(err => {
         console.error(err);
@@ -156,4 +175,16 @@ export function addApiRoute(
         } as ApiError);
       });
   });
+}
+
+export function isWorkspaceBranch(branch: string) {
+  // Special branches are considered workspace branches.
+  if (SPECIAL_BRANCHES.includes(branch)) {
+    return true;
+  }
+  return branch.startsWith('workspace/');
+}
+
+export function shortenWorkspaceName(branch: string) {
+  return branch.replace(/^workspace\//, '');
 }

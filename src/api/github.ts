@@ -14,8 +14,10 @@ import {
   SaveFileRequest,
   UploadFileRequest,
   addApiRoute,
+  isWorkspaceBranch,
+  shortenWorkspaceName,
 } from './api';
-import {ConnectorStorage, StorageManager} from '../storage/storage';
+import {ConnectorStorageComponent, StorageManager} from '../storage/storage';
 import {
   DeviceData,
   EditorFileData,
@@ -29,12 +31,40 @@ import {
 import {ConnectorComponent} from '../connector/connector';
 import {FeatureFlags} from '@blinkk/editor/dist/src/editor/features';
 import {GrowConnector} from '../connector/grow';
+import {Octokit} from '@octokit/core';
 import {ReadCommitResult} from 'isomorphic-git';
+import bent from 'bent';
 import express from 'express';
 // TODO: FS promises does not work with isomorphic-git?
 import fs from 'fs';
 import git from 'isomorphic-git';
 import yaml from 'js-yaml';
+
+const clientId = 'Iv1.e422a5bfa1197db1';
+const clientSecret = fs.readFileSync('./secrets/client-secret.txt').toString();
+
+// TODO: Shared cache between docker instances and with old auth cleanup.
+const authCache: Record<string, Promise<GHAccessToken>> = {};
+
+const postJSON = bent('POST', 'json', {
+  Accept: 'application/vnd.github.v3+json',
+  'User-Agent': 'editor.dev',
+});
+
+export interface GHRequest {
+  /**
+   * Github state value used to retrieve the code.
+   */
+  githubState: string;
+  /**
+   * Github code used for retrieving the token.
+   */
+  githubCode: string;
+}
+
+export interface GHAccessToken {
+  access_token: string;
+}
 
 export class GithubApi implements ApiComponent {
   protected _connector?: ConnectorComponent;
@@ -52,8 +82,8 @@ export class GithubApi implements ApiComponent {
       });
       router.use(express.json());
 
-      // TODO: Use auth middleware for non-local apis.
-      // router.use(...);
+      // Use auth middleware for authenticating.
+      router.use(githubAuthentication);
 
       addApiRoute(router, '/devices.get', this.getDevices.bind(this));
       addApiRoute(router, '/file.copy', this.copyFile.bind(this));
@@ -77,9 +107,10 @@ export class GithubApi implements ApiComponent {
 
   async copyFile(
     expressRequest: express.Request,
+    expressResponse: express.Response,
     request: CopyFileRequest
   ): Promise<FileData> {
-    const storage = await this.getStorage(expressRequest);
+    const storage = await this.getStorage(expressRequest, expressResponse);
     await storage.writeFile(
       request.path,
       await storage.readFile(request.originalPath)
@@ -91,9 +122,10 @@ export class GithubApi implements ApiComponent {
 
   async createFile(
     expressRequest: express.Request,
+    expressResponse: express.Response,
     request: CreateFileRequest
   ): Promise<FileData> {
-    const storage = await this.getStorage(expressRequest);
+    const storage = await this.getStorage(expressRequest, expressResponse);
     await storage.writeFile(request.path, request.content || '');
     return {
       path: request.path,
@@ -103,6 +135,7 @@ export class GithubApi implements ApiComponent {
   async createWorkspace(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
+    expressResponse: express.Response,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: CreateWorkspaceRequest
   ): Promise<WorkspaceData> {
@@ -111,9 +144,10 @@ export class GithubApi implements ApiComponent {
 
   async deleteFile(
     expressRequest: express.Request,
+    expressResponse: express.Response,
     request: DeleteFileRequest
   ): Promise<void> {
-    const storage = await this.getStorage(expressRequest);
+    const storage = await this.getStorage(expressRequest, expressResponse);
     return storage.deleteFile(request.file.path);
   }
 
@@ -173,10 +207,16 @@ export class GithubApi implements ApiComponent {
     return commitsThatMatter;
   }
 
+  getApi(expressResponse: express.Response): Octokit {
+    // TODO: handle refreshing expired tokens.
+    return new Octokit({auth: expressResponse.locals.access.access_token});
+  }
+
   async getConnector(
-    expressRequest: express.Request
+    expressRequest: express.Request,
+    expressResponse: express.Response
   ): Promise<ConnectorComponent> {
-    const storage = await this.getStorage(expressRequest);
+    const storage = await this.getStorage(expressRequest, expressResponse);
     if (!this._connector) {
       // Check for specific features of the supported connectors.
       if (await GrowConnector.canApply(storage)) {
@@ -192,11 +232,13 @@ export class GithubApi implements ApiComponent {
 
   async getDevices(
     expressRequest: express.Request,
+    expressResponse: express.Response,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: GetDevicesRequest
   ): Promise<Array<DeviceData>> {
     const editorConfig = (await this.readEditorConfig(
-      expressRequest
+      expressRequest,
+      expressResponse
     )) as EditorFileSettings;
     return Promise.resolve(editorConfig.devices || []);
   }
@@ -204,11 +246,12 @@ export class GithubApi implements ApiComponent {
   async getFile(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
+    expressResponse: express.Response,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: GetFileRequest
   ): Promise<EditorFileData> {
-    const storage = await this.getStorage(expressRequest);
-    const connector = await this.getConnector(expressRequest);
+    const storage = await this.getStorage(expressRequest, expressResponse);
+    const connector = await this.getConnector(expressRequest, expressResponse);
     const connectorResult = await connector.getFile(expressRequest, request);
 
     const history = await this.fileHistory(storage.root, request.file.path);
@@ -237,15 +280,16 @@ export class GithubApi implements ApiComponent {
   async getFiles(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
+    expressResponse: express.Response,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: GetFilesRequest
   ): Promise<Array<FileData>> {
-    const storage = await this.getStorage(expressRequest);
-    const connector = await this.getConnector(expressRequest);
+    const storage = await this.getStorage(expressRequest, expressResponse);
+    const connector = await this.getConnector(expressRequest, expressResponse);
     const files = await storage.readDir('/');
     let filteredFiles = files;
     if (connector.fileFilter) {
-      filteredFiles = files.filter(file =>
+      filteredFiles = files.filter((file: any) =>
         connector.fileFilter?.matches(file.path)
       );
     } else {
@@ -264,11 +308,15 @@ export class GithubApi implements ApiComponent {
 
   async getProject(
     expressRequest: express.Request,
+    expressResponse: express.Response,
     request: GetProjectRequest
   ): Promise<ProjectData> {
-    const connector = await this.getConnector(expressRequest);
+    const connector = await this.getConnector(expressRequest, expressResponse);
     const connectorResult = await connector.getProject(expressRequest, request);
-    const editorConfig = await this.readEditorConfig(expressRequest);
+    const editorConfig = await this.readEditorConfig(
+      expressRequest,
+      expressResponse
+    );
     connectorResult.experiments = connectorResult.experiments || {};
     connectorResult.features = connectorResult.features || {};
 
@@ -304,100 +352,101 @@ export class GithubApi implements ApiComponent {
     );
   }
 
-  async getStorage(expressRequest: express.Request): Promise<ConnectorStorage> {
+  async getStorage(
+    expressRequest: express.Request,
+    expressResponse: express.Response
+  ): Promise<ConnectorStorageComponent> {
     return this.storageManager.storageForBranch(
       expressRequest.params.organization,
       expressRequest.params.project,
-      expressRequest.params.branch
+      expressRequest.params.branch,
+      this.getApi(expressResponse)
     );
   }
 
   async getWorkspace(
     expressRequest: express.Request,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    expressResponse: express.Response,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: GetWorkspaceRequest
   ): Promise<WorkspaceData> {
-    const storage = await this.getStorage(expressRequest);
-    const currentBranch = await git.currentBranch({
-      fs: fs,
-      dir: storage.root,
-    });
+    const api = this.getApi(expressResponse);
+    const branchResponse = await api.request(
+      'GET /repos/{owner}/{repo}/branches/{branch}',
+      {
+        owner: expressRequest.params.organization,
+        repo: expressRequest.params.project,
+        branch: expressRequest.params.branch,
+      }
+    );
 
-    const commits = await git.log({
-      fs: fs,
-      dir: storage.root,
-      depth: 1,
-    });
-
-    const commit = commits[0];
+    const commitResponse = await api.request(
+      'GET /repos/{owner}/{repo}/commits/{commit}',
+      {
+        owner: expressRequest.params.organization,
+        repo: expressRequest.params.project,
+        commit: branchResponse.data.commit.sha,
+      }
+    );
 
     return {
       branch: {
-        name: currentBranch || '',
+        name: branchResponse.data.name,
         commit: {
+          hash: branchResponse.data.commit.sha,
+          url: branchResponse.data.commit.url,
           author: {
-            name: commit.commit.author.name,
-            email: commit.commit.author.email,
+            name: commitResponse.data.commit.author.name,
+            email: commitResponse.data.commit.author.email,
           },
-          hash: commit.oid,
-          summary: commit.commit.message,
-          timestamp: new Date(
-            // TODO: Use commit.commit.author.timezoneOffset ?
-            commit.commit.author.timestamp * 1000
-          ).toISOString(),
+          timestamp: commitResponse.data.commit.author.date,
         },
       },
-      name: (currentBranch || '').replace(/^workspace\//, ''),
+      name: shortenWorkspaceName(branchResponse.data.name || ''),
     };
   }
 
   async getWorkspaces(
     expressRequest: express.Request,
+    expressResponse: express.Response,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: GetWorkspacesRequest
   ): Promise<Array<WorkspaceData>> {
-    const storage = await this.getStorage(expressRequest);
-
-    // Only list the current branch as a workspace for local.
-    const currentBranch = await git.currentBranch({
-      fs: fs,
-      dir: storage.root,
-    });
-
-    const commits = await git.log({
-      fs: fs,
-      dir: storage.root,
-      depth: 1,
-    });
-
-    const commit = commits[0];
-
-    return [
+    const api = this.getApi(expressResponse);
+    const branchesResponse = await api.request(
+      'GET /repos/{owner}/{repo}/branches',
       {
+        owner: expressRequest.params.organization,
+        repo: expressRequest.params.project,
+      }
+    );
+    const resultBranches: Array<WorkspaceData> = [];
+
+    for (const branchInfo of branchesResponse.data) {
+      if (!isWorkspaceBranch(branchInfo.name)) {
+        continue;
+      }
+
+      resultBranches.push({
         branch: {
-          name: currentBranch || '',
+          name: branchInfo.name,
           commit: {
-            author: {
-              name: commit.commit.author.name,
-              email: commit.commit.author.email,
-            },
-            hash: commit.oid,
-            summary: commit.commit.message,
-            timestamp: new Date(
-              // TODO: Use commit.commit.author.timezoneOffset ?
-              commit.commit.author.timestamp * 1000
-            ).toISOString(),
+            hash: branchInfo.commit.sha,
+            url: branchInfo.commit.url,
           },
         },
-        name: (currentBranch || '').replace(/^workspace\//, ''),
-      },
-    ];
+        name: shortenWorkspaceName(branchInfo.name || ''),
+      });
+    }
+    return resultBranches;
   }
 
   async readEditorConfig(
-    expressRequest: express.Request
+    expressRequest: express.Request,
+    expressResponse: express.Response
   ): Promise<EditorFileSettings> {
-    const storage = await this.getStorage(expressRequest);
+    const storage = await this.getStorage(expressRequest, expressResponse);
     let rawFile = null;
     try {
       rawFile = await storage.readFile('editor.yaml');
@@ -415,6 +464,8 @@ export class GithubApi implements ApiComponent {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    expressResponse: express.Response,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: PublishRequest
   ): Promise<PublishResult> {
     // TODO: Publish process.
@@ -424,24 +475,59 @@ export class GithubApi implements ApiComponent {
   async saveFile(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
+    expressResponse: express.Response,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: SaveFileRequest
   ): Promise<EditorFileData> {
-    return (await this.getConnector(expressRequest)).saveFile(
+    return (await this.getConnector(expressRequest, expressResponse)).saveFile(
       expressRequest,
       request
     );
   }
 
   async uploadFile(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
+    expressResponse: express.Response,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: UploadFileRequest
   ): Promise<FileData> {
-    return (await this.getConnector(expressRequest)).uploadFile(
-      expressRequest,
-      request
-    );
+    return (
+      await this.getConnector(expressRequest, expressResponse)
+    ).uploadFile(expressRequest, request);
   }
+}
+
+function githubAuthentication(
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+) {
+  const request = req.body as GHRequest;
+  // TODO: Fail when no provided the code and state.
+  const cacheKey = `${request.githubCode}-${request.githubState}`;
+
+  // TODO: Auto refresh a token that is expired.
+
+  // Persist the access token promise.
+  // TODO: Use a shared datastore for access between docker instances?
+  let authPromise = authCache[cacheKey];
+  if (!authPromise) {
+    authPromise = postJSON('https://github.com/login/oauth/access_token', {
+      client_id: clientId,
+      client_secret: clientSecret,
+      code: request.githubCode,
+      state: request.githubState,
+    });
+    authCache[cacheKey] = authPromise;
+  }
+
+  authPromise
+    .then((response: GHAccessToken) => {
+      res.locals.access = response;
+      next();
+    })
+    .catch((err: any) => {
+      console.error(err);
+      throw err;
+    });
 }

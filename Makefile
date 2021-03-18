@@ -5,19 +5,12 @@ tag := latest
 
 build:
 	gcloud builds submit \
-		--project=$(project) \
-		--tag gcr.io/${project}/live-edit-server:main
+		--project=$(project)
 
 build-prod:
 	gcloud builds submit \
 		--project=$(project) \
-		--tag gcr.io/${project}/live-edit-server:latest
-
-  # Tagged version. Cannot do two --tag in one build... :(
-	gcloud builds submit \
-	  --async \
-		--project=$(project) \
-		--tag gcr.io/${project}/live-edit-server:$(subst refs/tags/,,$(GITHUB_REF))
+		--config=cloudbuild-prod.yaml
 
 deploy:
 	$(MAKE) build
