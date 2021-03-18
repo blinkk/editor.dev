@@ -159,7 +159,7 @@ export function addApiRoute(
   apiMethod: (
     req: express.Request,
     res: express.Response,
-    data: any
+    request: any
   ) => Promise<any>
 ): void {
   router.post(route, (req, res) => {

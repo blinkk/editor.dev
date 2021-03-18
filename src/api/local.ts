@@ -14,6 +14,7 @@ import {
   SaveFileRequest,
   UploadFileRequest,
   addApiRoute,
+  shortenWorkspaceName,
 } from './api';
 import {
   DeviceData,
@@ -74,7 +75,9 @@ export class LocalApi implements ApiComponent {
   }
 
   async copyFile(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressResponse: express.Response,
     request: CopyFileRequest
   ): Promise<FileData> {
@@ -88,7 +91,9 @@ export class LocalApi implements ApiComponent {
   }
 
   async createFile(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressResponse: express.Response,
     request: CreateFileRequest
   ): Promise<FileData> {
@@ -101,6 +106,7 @@ export class LocalApi implements ApiComponent {
   async createWorkspace(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressResponse: express.Response,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: CreateWorkspaceRequest
@@ -189,6 +195,7 @@ export class LocalApi implements ApiComponent {
   async getDevices(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressResponse: express.Response,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: GetDevicesRequest
@@ -198,10 +205,9 @@ export class LocalApi implements ApiComponent {
   }
 
   async getFile(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
-    expressResponse: express.Response,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    expressResponse: express.Response,
     request: GetFileRequest
   ): Promise<EditorFileData> {
     const connector = await this.getConnector();
@@ -233,6 +239,7 @@ export class LocalApi implements ApiComponent {
   async getFiles(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressResponse: express.Response,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: GetFilesRequest
@@ -259,10 +266,9 @@ export class LocalApi implements ApiComponent {
   }
 
   async getProject(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
-    expressResponse: express.Response,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    expressResponse: express.Response,
     request: GetProjectRequest
   ): Promise<ProjectData> {
     const connector = await this.getConnector();
@@ -306,6 +312,7 @@ export class LocalApi implements ApiComponent {
   async getWorkspace(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressResponse: express.Response,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: GetWorkspaceRequest
@@ -339,13 +346,14 @@ export class LocalApi implements ApiComponent {
           ).toISOString(),
         },
       },
-      name: (currentBranch || '').replace(/^workspace\//, ''),
+      name: shortenWorkspaceName(currentBranch || ''),
     };
   }
 
   async getWorkspaces(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressResponse: express.Response,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: GetWorkspacesRequest
@@ -381,7 +389,7 @@ export class LocalApi implements ApiComponent {
             ).toISOString(),
           },
         },
-        name: (currentBranch || '').replace(/^workspace\//, ''),
+        name: shortenWorkspaceName(currentBranch || ''),
       },
     ];
   }
@@ -403,6 +411,7 @@ export class LocalApi implements ApiComponent {
   async publish(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressResponse: express.Response,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: PublishRequest
@@ -412,20 +421,18 @@ export class LocalApi implements ApiComponent {
   }
 
   async saveFile(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
-    expressResponse: express.Response,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    expressResponse: express.Response,
     request: SaveFileRequest
   ): Promise<EditorFileData> {
     return (await this.getConnector()).saveFile(expressRequest, request);
   }
 
   async uploadFile(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
-    expressResponse: express.Response,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    expressResponse: express.Response,
     request: UploadFileRequest
   ): Promise<FileData> {
     return (await this.getConnector()).uploadFile(expressRequest, request);

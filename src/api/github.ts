@@ -41,7 +41,9 @@ import git from 'isomorphic-git';
 import yaml from 'js-yaml';
 
 const clientId = 'Iv1.e422a5bfa1197db1';
-const clientSecret = fs.readFileSync('./secrets/client-secret.txt').toString();
+const clientSecret = fs
+  .readFileSync('./secrets/client-secret.secret')
+  .toString();
 
 // TODO: Shared cache between docker instances and with old auth cleanup.
 const authCache: Record<string, Promise<GHAccessToken>> = {};
@@ -208,7 +210,6 @@ export class GithubApi implements ApiComponent {
   }
 
   getApi(expressResponse: express.Response): Octokit {
-    // TODO: handle refreshing expired tokens.
     return new Octokit({auth: expressResponse.locals.access.access_token});
   }
 
@@ -503,7 +504,13 @@ function githubAuthentication(
   next: express.NextFunction
 ) {
   const request = req.body as GHRequest;
+
   // TODO: Fail when no provided the code and state.
+  if (!request.githubCode || !request.githubState) {
+    next('router');
+    return;
+  }
+
   const cacheKey = `${request.githubCode}-${request.githubState}`;
 
   // TODO: Auto refresh a token that is expired.

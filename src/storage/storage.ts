@@ -28,11 +28,9 @@ export interface StorageManagerConfig {
 
 export class StorageManager {
   config: StorageManagerConfig;
-  storages: Record<string, ConnectorStorageComponent>;
 
   constructor(config: StorageManagerConfig) {
     this.config = config;
-    this.storages = {};
   }
 
   storageForBranch(
@@ -53,7 +51,7 @@ export class StorageManager {
 function cleanDirectory(dirName: string): string {
   // TODO: More security around valid directory names.
 
-  // Disallow all slashes from directory name.
+  // Disallow slashes in a directory name.
   if (dirName.search(/[/\\]/) >= 0) {
     throw new Error(`Unable to have directory name with slashes: ${dirName}`);
   }
