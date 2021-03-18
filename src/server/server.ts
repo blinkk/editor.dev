@@ -1,5 +1,6 @@
-import {LocalApi} from '../api/local';
-import {LocalStorage} from '../storage/local';
+import {StorageManager, StorageManagerDevConfig} from '../storage/storage';
+import {GithubApi} from '../api/github';
+import {GithubStorage} from '../storage/github';
 import cors from 'cors';
 import express from 'express';
 
@@ -22,16 +23,27 @@ app.use(
   })
 );
 
-// Services use a local cache for the files, but pull from the
-// remote service when the cache is out of date.
+let devConfig: StorageManagerDevConfig | undefined = undefined;
+let rootDir = './sites';
 
-// TODO: Figure out how the storage is going to work for
-// hosted docker image.
-const args = process.argv.slice(2);
-const storage = new LocalStorage(args.length ? args[0] : undefined);
-// TODO: Create a github api.
-const localApi = new LocalApi(storage);
-app.use('/gh/:organization/:project/:branch', localApi.apiRouter);
+if (MODE === 'dev') {
+  const args = process.argv.slice(2);
+  devConfig = {
+    useSingleDirectory: true,
+  };
+  rootDir = args.length ? args[0] : rootDir;
+}
+
+// Site files are managed by the storage manager to separate out the
+// different projects and branches.
+const storageManager = new StorageManager({
+  dev: devConfig,
+  rootDir: rootDir,
+  storageCls: GithubStorage,
+});
+
+const githubApi = new GithubApi(storageManager);
+app.use('/gh/:organization/:project/:branch', githubApi.apiRouter);
 
 app.listen(PORT, () => {
   console.log(`Running on port ${PORT}`);
