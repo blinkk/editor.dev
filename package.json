@@ -73,6 +73,7 @@
   },
   "dependencies": {
     "@blinkk/editor": "^1.0.8",
+    "@google-cloud/datastore": "^6.3.1",
     "@octokit/core": "^3.3.1",
     "@types/bent": "^7.3.2",
     "bent": "^7.3.12",

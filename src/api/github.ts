@@ -14,11 +14,13 @@ import {
   SaveFileRequest,
   UploadFileRequest,
   addApiRoute,
+  apiErrorHandler,
   isWorkspaceBranch,
   shortenWorkspaceName,
 } from './api';
 import {ConnectorStorageComponent, StorageManager} from '../storage/storage';
 import {
+  ApiError,
   DeviceData,
   EditorFileData,
   EditorFileSettings,
@@ -29,6 +31,7 @@ import {
   WorkspaceData,
 } from '@blinkk/editor/dist/src/editor/api';
 import {ConnectorComponent} from '../connector/connector';
+import {Datastore} from '@google-cloud/datastore';
 import {FeatureFlags} from '@blinkk/editor/dist/src/editor/features';
 import {GrowConnector} from '../connector/grow';
 import {Octokit} from '@octokit/core';
@@ -47,6 +50,8 @@ const clientSecret = fs
 
 // TODO: Shared cache between docker instances and with old auth cleanup.
 const authCache: Record<string, Promise<GHAccessToken>> = {};
+const datastore = new Datastore();
+const AUTH_KIND = 'AuthGH';
 
 const postJSON = bent('POST', 'json', {
   Accept: 'application/vnd.github.v3+json',
@@ -62,6 +67,21 @@ export interface GHRequest {
    * Github code used for retrieving the token.
    */
   githubCode: string;
+}
+
+export interface GHError {
+  /**
+   * Github error identifier.
+   */
+  error: string;
+  /**
+   * Github error description
+   */
+  error_description: string;
+  /**
+   * Github error reference
+   */
+  error_uri: string;
 }
 
 export interface GHAccessToken {
@@ -100,6 +120,8 @@ export class GithubApi implements ApiComponent {
       addApiRoute(router, '/workspace.create', this.createWorkspace.bind(this));
       addApiRoute(router, '/workspace.get', this.getWorkspace.bind(this));
       addApiRoute(router, '/workspaces.get', this.getWorkspaces.bind(this));
+
+      router.use(apiErrorHandler);
 
       this._apiRouter = router;
     }
@@ -285,26 +307,27 @@ export class GithubApi implements ApiComponent {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: GetFilesRequest
   ): Promise<Array<FileData>> {
-    const storage = await this.getStorage(expressRequest, expressResponse);
-    const connector = await this.getConnector(expressRequest, expressResponse);
-    const files = await storage.readDir('/');
-    let filteredFiles = files;
-    if (connector.fileFilter) {
-      filteredFiles = files.filter((file: any) =>
-        connector.fileFilter?.matches(file.path)
-      );
-    } else {
-      // TODO: Default file filter for api.
-    }
+    return [];
+    // const storage = await this.getStorage(expressRequest, expressResponse);
+    // const connector = await this.getConnector(expressRequest, expressResponse);
+    // const files = await storage.readDir('/');
+    // let filteredFiles = files;
+    // if (connector.fileFilter) {
+    //   filteredFiles = files.filter((file: any) =>
+    //     connector.fileFilter?.matches(file.path)
+    //   );
+    // } else {
+    //   // TODO: Default file filter for api.
+    // }
 
-    // Convert to the correct FileDate interface.
-    const responseFiles: Array<FileData> = [];
-    for (const file of filteredFiles) {
-      responseFiles.push({
-        path: file.path,
-      });
-    }
-    return responseFiles;
+    // // Convert to the correct FileDate interface.
+    // const responseFiles: Array<FileData> = [];
+    // for (const file of filteredFiles) {
+    //   responseFiles.push({
+    //     path: file.path,
+    //   });
+    // }
+    // return responseFiles;
   }
 
   async getProject(
@@ -507,34 +530,81 @@ function githubAuthentication(
 
   // TODO: Fail when no provided the code and state.
   if (!request.githubCode || !request.githubState) {
-    next('router');
+    next(new Error('No authentication information provided.'));
     return;
   }
 
   const cacheKey = `${request.githubCode}-${request.githubState}`;
+  const key = datastore.key([AUTH_KIND, cacheKey]);
 
-  // TODO: Auto refresh a token that is expired.
+  datastore
+    .get(key)
+    .then(entities => {
+      const entity = entities[0];
 
-  // Persist the access token promise.
-  // TODO: Use a shared datastore for access between docker instances?
-  let authPromise = authCache[cacheKey];
-  if (!authPromise) {
-    authPromise = postJSON('https://github.com/login/oauth/access_token', {
-      client_id: clientId,
-      client_secret: clientSecret,
-      code: request.githubCode,
-      state: request.githubState,
-    });
-    authCache[cacheKey] = authPromise;
-  }
+      if (entity === undefined) {
+        let authPromise = authCache[cacheKey];
+        if (!authPromise) {
+          authPromise = postJSON(
+            'https://github.com/login/oauth/access_token',
+            {
+              client_id: clientId,
+              client_secret: clientSecret,
+              code: request.githubCode,
+              state: request.githubState,
+            }
+          );
+          authCache[cacheKey] = authPromise;
+        }
 
-  authPromise
-    .then((response: GHAccessToken) => {
-      res.locals.access = response;
-      next();
+        authPromise
+          .then((response: GHAccessToken | GHError) => {
+            if ((response as GHError).error) {
+              response = response as GHError;
+              next({
+                message: 'Unable to confirm authentication with GitHub.',
+                description: response.error_description || response.error,
+                details: {
+                  uri: response.error_uri,
+                },
+              } as ApiError);
+              return;
+            }
+            response = response as GHAccessToken;
+            res.locals.access = response;
+
+            // Persist the access token info.
+            datastore
+              .save({
+                key: key,
+                data: {
+                  auth: response,
+                },
+              })
+              .then(() => {
+                next();
+                return;
+              })
+              .catch((err: any) => {
+                next(err);
+                return;
+              });
+          })
+          .catch((err: any) => {
+            next(err);
+            return;
+          });
+      } else {
+        // TODO: Auto refresh a token that is expired.
+
+        res.locals.access = entity.auth;
+
+        next();
+        return;
+      }
     })
     .catch((err: any) => {
-      console.error(err);
-      throw err;
+      next(err);
+      return;
     });
 }

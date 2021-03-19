@@ -177,6 +177,26 @@ export function addApiRoute(
   });
 }
 
+export function apiErrorHandler(
+  err: any,
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+) {
+  console.error(err);
+  res.status(500);
+
+  if (err.message && err.description) {
+    // Handle as an ApiError response.
+    res.json(err as ApiError);
+  } else {
+    // Handle as a generic error.
+    res.json({
+      message: err.message || err,
+    } as ApiError);
+  }
+}
+
 export function isWorkspaceBranch(branch: string) {
   // Special branches are considered workspace branches.
   if (SPECIAL_BRANCHES.includes(branch)) {
