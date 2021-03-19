@@ -18,7 +18,6 @@ import {
   isWorkspaceBranch,
   shortenWorkspaceName,
 } from './api';
-import {ConnectorStorageComponent, StorageManager} from '../storage/storage';
 import {
   ApiError,
   DeviceData,
@@ -30,6 +29,7 @@ import {
   RepoCommit,
   WorkspaceData,
 } from '@blinkk/editor/dist/src/editor/api';
+import {ConnectorStorageComponent, StorageManager} from '../storage/storage';
 import {ConnectorComponent} from '../connector/connector';
 import {Datastore} from '@google-cloud/datastore';
 import {FeatureFlags} from '@blinkk/editor/dist/src/editor/features';
@@ -303,6 +303,7 @@ export class GithubApi implements ApiComponent {
   async getFiles(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressResponse: express.Response,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: GetFilesRequest
@@ -579,6 +580,8 @@ function githubAuthentication(
                 key: key,
                 data: {
                   auth: response,
+                  createdOn: new Date(),
+                  lastUsedOn: new Date(),
                 },
               })
               .then(() => {
@@ -599,8 +602,18 @@ function githubAuthentication(
 
         res.locals.access = entity.auth;
 
-        next();
-        return;
+        // Update the usage for the auth token.
+        entity.lastUsedOn = new Date();
+        datastore
+          .save(entity)
+          .then(() => {
+            next();
+            return;
+          })
+          .catch((err: any) => {
+            next(err);
+            return;
+          });
       }
     })
     .catch((err: any) => {

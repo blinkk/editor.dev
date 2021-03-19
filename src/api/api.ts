@@ -7,7 +7,10 @@ import {
   PublishResult,
   WorkspaceData,
 } from '@blinkk/editor/dist/src/editor/api';
+import {ErrorReporting} from '@google-cloud/error-reporting';
 import express from 'express';
+
+const errorReporting = new ErrorReporting();
 
 export const SPECIAL_BRANCHES = ['main', 'master', 'staging'];
 
@@ -181,11 +184,15 @@ export function apiErrorHandler(
   err: any,
   req: express.Request,
   res: express.Response,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   next: express.NextFunction
 ) {
-  console.error(err);
-  res.status(500);
+  // Cloud error reporting
+  errorReporting.report(err);
 
+  console.error(err);
+
+  res.status(500);
   if (err.message && err.description) {
     // Handle as an ApiError response.
     res.json(err as ApiError);
