@@ -32,10 +32,8 @@ import {
 import {ConnectorStorageComponent, StorageManager} from '../storage/storage';
 import {ConnectorComponent} from '../connector/connector';
 import {Datastore} from '@google-cloud/datastore';
-import {FeatureFlags} from '@blinkk/editor/dist/src/editor/features';
 import {GrowConnector} from '../connector/grow';
 import {Octokit} from '@octokit/core';
-import {ReadCommitResult} from 'isomorphic-git';
 import bent from 'bent';
 import express from 'express';
 // TODO: FS promises does not work with isomorphic-git?
@@ -159,11 +157,12 @@ export class GithubApi implements ApiComponent {
   async createWorkspace(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressResponse: express.Response,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: CreateWorkspaceRequest
   ): Promise<WorkspaceData> {
-    throw new Error('Unable to create new workspace locally.');
+    throw new Error('Unable to create new workspace yet.');
   }
 
   async deleteFile(
@@ -173,62 +172,6 @@ export class GithubApi implements ApiComponent {
   ): Promise<void> {
     const storage = await this.getStorage(expressRequest, expressResponse);
     return storage.deleteFile(request.file.path);
-  }
-
-  /**
-   * Retrieve the commits that have the file by looking through all commits.
-   *
-   * Not the best performance.
-   *
-   * @see https://isomorphic-git.org/docs/en/snippets#git-log-path-to-file
-   *
-   * @param filePath File path to
-   * @param depth
-   * @returns Array of commits that match the file.
-   */
-  async fileHistory(
-    repoDir: string,
-    filePath: string,
-    depth = 10
-  ): Promise<Array<ReadCommitResult>> {
-    // Remove preceding slash.
-    filePath = filePath.replace(/^\/*/, '');
-
-    const commits = await git.log({
-      fs: fs,
-      dir: repoDir,
-    });
-    let lastSHA = null;
-    let lastCommit = null;
-    const commitsThatMatter: Array<ReadCommitResult> = [];
-    for (const commit of commits) {
-      if (commitsThatMatter.length >= depth) {
-        break;
-      }
-
-      try {
-        const o = await git.readObject({
-          fs: fs,
-          dir: repoDir,
-          oid: commit.oid,
-          filepath: filePath,
-        });
-        if (o.oid !== lastSHA) {
-          if (lastSHA !== null) {
-            commitsThatMatter.push(lastCommit as ReadCommitResult);
-          }
-          lastSHA = o.oid;
-        }
-      } catch (err) {
-        // File no longer there.
-        if (lastCommit !== null) {
-          commitsThatMatter.push(lastCommit as ReadCommitResult);
-        }
-        break;
-      }
-      lastCommit = commit;
-    }
-    return commitsThatMatter;
   }
 
   getApi(expressResponse: express.Response): Octokit {
@@ -273,62 +216,97 @@ export class GithubApi implements ApiComponent {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: GetFileRequest
   ): Promise<EditorFileData> {
-    const storage = await this.getStorage(expressRequest, expressResponse);
     const connector = await this.getConnector(expressRequest, expressResponse);
     const connectorResult = await connector.getFile(expressRequest, request);
 
-    const history = await this.fileHistory(storage.root, request.file.path);
-    const commitHistory: Array<RepoCommit> = [];
-    for (const commit of history) {
-      commitHistory.push({
-        author: {
-          name: commit.commit.author.name,
-          email: commit.commit.author.email,
-        },
-        hash: commit.oid,
-        summary: commit.commit.message,
-        timestamp: new Date(
-          // TODO: Use commit.commit.author.timezoneOffset ?
-          commit.commit.author.timestamp * 1000
-        ).toISOString(),
-      });
-    }
+    // TODO: Git history for file.
 
-    // TODO: Pull the git history for the file to enrich the connector result.
     return Object.assign({}, connectorResult, {
-      history: commitHistory,
+      history: [],
     });
   }
 
   async getFiles(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressResponse: express.Response,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: GetFilesRequest
   ): Promise<Array<FileData>> {
-    return [];
-    // const storage = await this.getStorage(expressRequest, expressResponse);
-    // const connector = await this.getConnector(expressRequest, expressResponse);
-    // const files = await storage.readDir('/');
-    // let filteredFiles = files;
-    // if (connector.fileFilter) {
-    //   filteredFiles = files.filter((file: any) =>
-    //     connector.fileFilter?.matches(file.path)
-    //   );
-    // } else {
-    //   // TODO: Default file filter for api.
-    // }
+    const api = this.getApi(expressResponse);
 
-    // // Convert to the correct FileDate interface.
-    // const responseFiles: Array<FileData> = [];
-    // for (const file of filteredFiles) {
-    //   responseFiles.push({
-    //     path: file.path,
-    //   });
-    // }
-    // return responseFiles;
+    const branchResponse = await api.request(
+      'GET /repos/{owner}/{repo}/branches/{branch}',
+      {
+        owner: expressRequest.params.organization,
+        repo: expressRequest.params.project,
+        branch: expressRequest.params.branch,
+      }
+    );
+
+    // Find the tree for the the last commit on branch.
+    const commitResponse = await api.request(
+      'GET /repos/{owner}/{repo}/git/commits/{commitSha}',
+      {
+        owner: expressRequest.params.organization,
+        repo: expressRequest.params.project,
+        commitSha: branchResponse.data.commit.sha,
+      }
+    );
+
+    return await this.getFilesRecursive(
+      api,
+      expressRequest.params.organization,
+      expressRequest.params.project,
+      commitResponse.data.tree.sha
+    );
+  }
+
+  protected async getFilesRecursive(
+    api: Octokit,
+    owner: string,
+    repo: string,
+    treeSha: string,
+    root?: string
+  ): Promise<Array<FileData>> {
+    root = root || '';
+    const treeResponse = await api.request(
+      'GET /repos/{owner}/{repo}/git/trees/{treeSha}',
+      {
+        owner: owner,
+        repo: repo,
+        treeSha: treeSha,
+      }
+    );
+
+    let files: Array<FileData> = [];
+    const folderPromises: Array<Promise<any>> = [];
+
+    for (const treeObj of treeResponse.data.tree) {
+      if (treeObj.type === 'blob') {
+        files.push({
+          path: `${root}/${treeObj.path}`,
+        });
+      } else if (treeObj.type === 'tree') {
+        // Collect the promises so they can be done async.
+        folderPromises.push(
+          this.getFilesRecursive(
+            api,
+            owner,
+            repo,
+            treeObj.sha,
+            `${root}/${treeObj.path}`
+          )
+        );
+      }
+    }
+
+    // Wait for all of the sub folder promises before adding to files.
+    const subFolderResults = await Promise.all(folderPromises);
+    for (const subFolderResult of subFolderResults) {
+      files = [...files, ...subFolderResult];
+    }
+
+    return files;
   }
 
   async getProject(
@@ -362,9 +340,6 @@ export class GithubApi implements ApiComponent {
         connectorResult.features
       );
     }
-
-    // Local api does not currently allow creating workspaces.
-    connectorResult.features[FeatureFlags.WorkspaceCreate] = false;
 
     // Connector config take precedence over editor config.
     return Object.assign(

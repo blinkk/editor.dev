@@ -14,6 +14,7 @@ import {
   SaveFileRequest,
   UploadFileRequest,
   addApiRoute,
+  apiErrorHandler,
   shortenWorkspaceName,
 } from './api';
 import {
@@ -51,9 +52,6 @@ export class LocalApi implements ApiComponent {
       const router = express.Router();
       router.use(express.json());
 
-      // TODO: Use auth middleware for non-local apis.
-      // router.use(...);
-
       addApiRoute(router, '/devices.get', this.getDevices.bind(this));
       addApiRoute(router, '/file.copy', this.copyFile.bind(this));
       addApiRoute(router, '/file.create', this.createFile.bind(this));
@@ -67,6 +65,8 @@ export class LocalApi implements ApiComponent {
       addApiRoute(router, '/workspace.create', this.createWorkspace.bind(this));
       addApiRoute(router, '/workspace.get', this.getWorkspace.bind(this));
       addApiRoute(router, '/workspaces.get', this.getWorkspaces.bind(this));
+
+      router.use(apiErrorHandler);
 
       this._apiRouter = router;
     }
