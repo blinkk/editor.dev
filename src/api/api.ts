@@ -207,6 +207,9 @@ export function apiErrorHandler(
   if (err.message && err.description) {
     // Handle as an ApiError response.
     res.json(err as ApiError);
+  } else if (err.name === 'ApiError') {
+    // Handle as an ApiError response.
+    res.json((err as GenericApiError).apiError);
   } else {
     // Handle as a generic error.
     res.json({
