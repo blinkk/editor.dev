@@ -1,11 +1,9 @@
-import * as fsSync from 'fs';
 import {
   ConnectorApiComponent,
   ConnectorApiStorageComponent,
   expandPath,
 } from './storage';
 import {Octokit} from '@octokit/core';
-import crypto from 'crypto';
 import {promises as fs} from 'fs';
 import path from 'path';
 

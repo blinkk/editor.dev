@@ -29,8 +29,8 @@ import {
 } from '@blinkk/editor/dist/src/editor/api';
 import {ConnectorComponent} from '../connector/connector';
 import {FeatureFlags} from '@blinkk/editor/dist/src/editor/features';
-import {GrowConnector} from '../connector/grow';
-import {LocalStorage} from '../storage/local';
+import {GrowConnector} from '../connector/growConnector';
+import {LocalStorage} from '../storage/localStorage';
 import {ReadCommitResult} from 'isomorphic-git';
 import express from 'express';
 // TODO: FS promises does not work with isomorphic-git?

@@ -4,7 +4,6 @@ import {
   CreateFileRequest,
   CreateWorkspaceRequest,
   DeleteFileRequest,
-  GenericApiError,
   GetDevicesRequest,
   GetFileRequest,
   GetFilesRequest,
@@ -20,8 +19,8 @@ import {
   isWorkspaceBranch,
   shortenWorkspaceName,
 } from './api';
+import {ConnectorStorageComponent, StorageManager} from '../storage/storage';
 import {
-  ApiError,
   DeviceData,
   EditorFileData,
   EditorFileSettings,
@@ -30,64 +29,12 @@ import {
   PublishResult,
   WorkspaceData,
 } from '@blinkk/editor/dist/src/editor/api';
-import {ConnectorStorageComponent, StorageManager} from '../storage/storage';
 import {ConnectorComponent} from '../connector/connector';
-import {Datastore} from '@google-cloud/datastore';
-import {GrowConnector} from '../connector/grow';
+import {GrowConnector} from '../connector/growConnector';
 import {Octokit} from '@octokit/core';
-import bent from 'bent';
 import express from 'express';
-// TODO: FS promises does not work with isomorphic-git?
-import fs from 'fs';
+import {githubAuthMiddleware} from '../auth/githubAuth';
 import yaml from 'js-yaml';
-
-const clientId = 'Iv1.e422a5bfa1197db1';
-const clientSecret = fs
-  .readFileSync('./secrets/client-secret.secret')
-  .toString();
-
-// TODO: Shared cache between docker instances and with old auth cleanup.
-const authCache: Record<string, AuthPromiseMeta> = {};
-const datastore = new Datastore();
-const AUTH_KIND = 'AuthGH';
-
-const postJSON = bent('POST', 'json', {
-  Accept: 'application/vnd.github.v3+json',
-  'User-Agent': 'editor.dev',
-});
-
-export interface GHRequest {
-  /**
-   * Github state value used to retrieve the code.
-   */
-  githubState: string;
-  /**
-   * Github code used for retrieving the token.
-   */
-  githubCode: string;
-}
-
-export interface GHError {
-  /**
-   * Github error identifier.
-   */
-  error: string;
-  /**
-   * Github error description
-   */
-  error_description: string;
-  /**
-   * Github error reference
-   */
-  error_uri: string;
-}
-
-export interface GHAccessToken {
-  access_token: string;
-  expires_in: string;
-  refresh_token: string;
-  refresh_token_expires_in: string;
-}
 
 export class GithubApi implements ApiComponent {
   protected _connector?: ConnectorComponent;
@@ -122,6 +69,7 @@ export class GithubApi implements ApiComponent {
       addApiRoute(router, '/workspace.get', this.getWorkspace.bind(this));
       addApiRoute(router, '/workspaces.get', this.getWorkspaces.bind(this));
 
+      // Error handler needs to be last.
       router.use(apiErrorHandler);
 
       this._apiRouter = router;
@@ -498,224 +446,4 @@ export class GithubApi implements ApiComponent {
       await this.getConnector(expressRequest, expressResponse)
     ).uploadFile(expressRequest, request);
   }
-}
-
-interface AuthPromiseMeta {
-  /**
-   * Promise from the auth request.
-   */
-  promise: Promise<GHAccessToken>;
-  /**
-   * If the promise is for a refresh, keep track of the time it was expiring.
-   */
-  expiresOn?: Date;
-}
-
-// TODO: Make this an async middleware when express.js 5 is released.
-function githubAuthMiddleware(
-  req: express.Request,
-  res: express.Response,
-  next: express.NextFunction
-) {
-  authenticateGithub(req.body as GHRequest)
-    .then(accessInfo => {
-      res.locals.access = accessInfo;
-      next();
-    })
-    .catch((err: any) => {
-      next(err);
-    });
-}
-
-async function authenticateGithub(request: GHRequest): Promise<GHAccessToken> {
-  // Fail when not provided the code and state.
-  if (!request.githubCode || !request.githubState) {
-    throw new Error('No authentication information provided.');
-  }
-
-  const cacheKey = `${request.githubCode}-${request.githubState}`;
-  const key = datastore.key([AUTH_KIND, cacheKey]);
-
-  const entities = await datastore.get(key);
-  const entity = entities[0];
-
-  if (entity === undefined) {
-    // Check for in-process authentication.
-    let authMeta = authCache[cacheKey];
-
-    if (!authMeta) {
-      // No in-progress authentication, authenticate!
-      authMeta = {
-        promise: postJSON('https://github.com/login/oauth/access_token', {
-          client_id: clientId,
-          client_secret: clientSecret,
-          code: request.githubCode,
-          state: request.githubState,
-        }),
-      };
-      authCache[cacheKey] = authMeta;
-
-      // Only update datastore in the original request.
-      let response: GHAccessToken | GHError = await authMeta.promise;
-
-      // Check for auth error.
-      if (((response as unknown) as GHError).error) {
-        response = (response as unknown) as GHError;
-        throw new GenericApiError(
-          'Unable to confirm authentication with GitHub.',
-          {
-            message: 'Unable to confirm authentication with GitHub.',
-            description: response.error_description || response.error,
-            details: {
-              uri: response.error_uri,
-            },
-          } as ApiError
-        );
-      }
-
-      response = response as GHAccessToken;
-
-      // Persist the access token info.
-      const dates = tokenDates(
-        parseInt(response.expires_in),
-        parseInt(response.refresh_token_expires_in)
-      );
-      await datastore.save({
-        key: key,
-        data: {
-          auth: response,
-          createdOn: dates.now,
-          lastUsedOn: dates.now,
-          expiresOn: dates.expiresOn,
-          refreshExpiresOn: dates.refreshExpiresOn,
-        },
-      });
-      return response;
-    }
-
-    let response: GHAccessToken | GHError = await authMeta.promise;
-    if (((response as unknown) as GHError).error) {
-      response = (response as unknown) as GHError;
-      throw new GenericApiError(
-        'Unable to confirm authentication with GitHub.',
-        {
-          message: 'Unable to confirm authentication with GitHub.',
-          description: response.error_description || response.error,
-          details: {
-            uri: response.error_uri,
-          },
-        } as ApiError
-      );
-    }
-    response = response as GHAccessToken;
-    return response;
-  }
-
-  // Refresh a token that is expired.
-  if (!entity.expiresOn || entity.expiresOn < new Date()) {
-    let authMeta = authCache[cacheKey];
-    if (
-      !authMeta ||
-      (authMeta &&
-        authMeta.expiresOn &&
-        authMeta.expiresOn.getTime() !== entity.expiresOn.getTime())
-    ) {
-      authMeta = {
-        promise: postJSON('https://github.com/login/oauth/access_token', {
-          client_id: clientId,
-          client_secret: clientSecret,
-          refresh_token: entity.auth.refresh_token,
-          grant_type: 'refresh_token',
-        }),
-        expiresOn: entity.expiresOn,
-      };
-      authCache[cacheKey] = authMeta;
-
-      // Only update datastore with the original request.
-      let response: GHAccessToken | GHError = await authMeta.promise;
-
-      if (((response as unknown) as GHError).error) {
-        response = (response as unknown) as GHError;
-        throw new GenericApiError(
-          'Unable to refresh authentication with GitHub.',
-          {
-            message: 'Unable to refresh authentication with GitHub.',
-            description: response.error_description || response.error,
-            details: {
-              uri: response.error_uri,
-            },
-          } as ApiError
-        );
-      }
-
-      response = response as GHAccessToken;
-
-      // Persist the access token info.
-      const dates = tokenDates(
-        parseInt(response.expires_in),
-        parseInt(response.refresh_token_expires_in)
-      );
-      await datastore.upsert({
-        key: key,
-        data: {
-          auth: response,
-          createdOn: entity.createdOn,
-          lastUsedOn: dates.now,
-          expiresOn: dates.expiresOn,
-          refreshExpiresOn: dates.refreshExpiresOn,
-        },
-      });
-      return response;
-    }
-
-    let response: GHAccessToken | GHError = await authMeta.promise;
-    if (((response as unknown) as GHError).error) {
-      response = (response as unknown) as GHError;
-      throw new GenericApiError(
-        'Unable to refresh authentication with GitHub.',
-        {
-          message: 'Unable to refresh authentication with GitHub.',
-          description: response.error_description || response.error,
-          details: {
-            uri: response.error_uri,
-          },
-        } as ApiError
-      );
-    }
-
-    // Request continues after the promise.
-    return response as GHAccessToken;
-  }
-
-  // Update the usage for the auth token.
-  entity.lastUsedOn = new Date();
-  await datastore.save(entity);
-
-  return entity.auth;
-}
-
-/**
- * Creates dates for auth tokens.
- *
- * @param expiresIn Seconds until token expires.
- * @param refreshExpiresIn Seconds until refresh token expires.
- * @param buffer Buffer seconds to refresh token before it is expired.
- */
-function tokenDates(
-  expiresIn: number,
-  refreshExpiresIn: number,
-  buffer = 60
-): Record<string, Date> {
-  const dates = {
-    now: new Date(),
-    expiresOn: new Date(),
-    refreshExpiresOn: new Date(),
-  };
-  dates.expiresOn.setTime(
-    dates.expiresOn.getTime() + (expiresIn - buffer) * 1000
-  );
-  dates.refreshExpiresOn.setTime(
-    dates.refreshExpiresOn.getTime() + (refreshExpiresIn - buffer) * 1000
-  );
-  return dates;
 }

@@ -1,5 +1,5 @@
-import {GithubApi} from '../api/github';
-import {GithubStorage} from '../storage/github';
+import {GithubApi} from '../api/githubApi';
+import {GithubStorage} from '../storage/githubStorage';
 import {StorageManager} from '../storage/storage';
 import cors from 'cors';
 import express from 'express';
