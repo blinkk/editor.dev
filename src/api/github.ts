@@ -47,7 +47,7 @@ const clientSecret = fs
   .toString();
 
 // TODO: Shared cache between docker instances and with old auth cleanup.
-const authCache: Record<string, Promise<GHAccessToken>> = {};
+const authCache: Record<string, AuthPromiseMeta> = {};
 const datastore = new Datastore();
 const AUTH_KIND = 'AuthGH';
 
@@ -84,6 +84,9 @@ export interface GHError {
 
 export interface GHAccessToken {
   access_token: string;
+  expires_in: string;
+  refresh_token: string;
+  refresh_token_expires_in: string;
 }
 
 export class GithubApi implements ApiComponent {
@@ -497,6 +500,18 @@ export class GithubApi implements ApiComponent {
   }
 }
 
+interface AuthPromiseMeta {
+  /**
+   * Promise from the auth request.
+   */
+  promise: Promise<GHAccessToken>;
+  /**
+   * If the promise is for a refresh, keep track of the time it was expiring.
+   */
+  expiresOn?: Date;
+}
+
+// TODO: Make this an async middleware when express.js 5 is released.
 function githubAuthentication(
   req: express.Request,
   res: express.Response,
@@ -519,21 +534,70 @@ function githubAuthentication(
       const entity = entities[0];
 
       if (entity === undefined) {
-        let authPromise = authCache[cacheKey];
-        if (!authPromise) {
-          authPromise = postJSON(
-            'https://github.com/login/oauth/access_token',
-            {
+        let authMeta = authCache[cacheKey];
+        if (!authMeta) {
+          authMeta = {
+            promise: postJSON('https://github.com/login/oauth/access_token', {
               client_id: clientId,
               client_secret: clientSecret,
               code: request.githubCode,
               state: request.githubState,
-            }
-          );
-          authCache[cacheKey] = authPromise;
+            }),
+          };
+          authCache[cacheKey] = authMeta;
+
+          // Only update datastore with the original request.
+          authMeta.promise
+            .then((response: GHAccessToken | GHError) => {
+              if ((response as GHError).error) {
+                response = response as GHError;
+                next({
+                  message: 'Unable to confirm authentication with GitHub.',
+                  description: response.error_description || response.error,
+                  details: {
+                    uri: response.error_uri,
+                  },
+                } as ApiError);
+                return;
+              }
+              response = response as GHAccessToken;
+              res.locals.access = response;
+
+              // Persist the access token info.
+              const dates = tokenDates(
+                parseInt(response.expires_in),
+                parseInt(response.refresh_token_expires_in)
+              );
+              datastore
+                .save({
+                  key: key,
+                  data: {
+                    auth: response,
+                    createdOn: dates.now,
+                    lastUsedOn: dates.now,
+                    expiresOn: dates.expiresOn,
+                    refreshExpiresOn: dates.refreshExpiresOn,
+                  },
+                })
+                .then(() => {
+                  next();
+                  return;
+                })
+                .catch((err: any) => {
+                  next(err);
+                  return;
+                });
+            })
+            .catch((err: any) => {
+              next(err);
+              return;
+            });
+
+          // Request continues after the datastore save.
+          return;
         }
 
-        authPromise
+        authMeta.promise
           .then((response: GHAccessToken | GHError) => {
             if ((response as GHError).error) {
               response = response as GHError;
@@ -548,40 +612,6 @@ function githubAuthentication(
             }
             response = response as GHAccessToken;
             res.locals.access = response;
-
-            // Persist the access token info.
-            datastore
-              .save({
-                key: key,
-                data: {
-                  auth: response,
-                  createdOn: new Date(),
-                  lastUsedOn: new Date(),
-                },
-              })
-              .then(() => {
-                next();
-                return;
-              })
-              .catch((err: any) => {
-                next(err);
-                return;
-              });
-          })
-          .catch((err: any) => {
-            next(err);
-            return;
-          });
-      } else {
-        // TODO: Auto refresh a token that is expired.
-
-        res.locals.access = entity.auth;
-
-        // Update the usage for the auth token.
-        entity.lastUsedOn = new Date();
-        datastore
-          .save(entity)
-          .then(() => {
             next();
             return;
           })
@@ -589,10 +619,151 @@ function githubAuthentication(
             next(err);
             return;
           });
+
+        // Request continues after the promise.
+        return;
       }
+
+      // Refresh a token that is expired.
+      if (!entity.expiresOn || entity.expiresOn < new Date()) {
+        let authMeta = authCache[cacheKey];
+        if (
+          !authMeta ||
+          (authMeta &&
+            authMeta.expiresOn &&
+            authMeta.expiresOn.getTime() !== entity.expiresOn.getTime())
+        ) {
+          authMeta = {
+            promise: postJSON('https://github.com/login/oauth/access_token', {
+              client_id: clientId,
+              client_secret: clientSecret,
+              refresh_token: entity.auth.refresh_token,
+              grant_type: 'refresh_token',
+            }),
+            expiresOn: entity.expiresOn,
+          };
+          authCache[cacheKey] = authMeta;
+
+          // Only update datastore with the original request.
+          authMeta.promise
+            .then((response: GHAccessToken | GHError) => {
+              if ((response as GHError).error) {
+                response = response as GHError;
+                next({
+                  message: 'Unable to refresh authentication with GitHub.',
+                  description: response.error_description || response.error,
+                  details: {
+                    uri: response.error_uri,
+                  },
+                } as ApiError);
+                return;
+              }
+              response = response as GHAccessToken;
+              res.locals.access = response;
+
+              // Persist the access token info.
+              const dates = tokenDates(
+                parseInt(response.expires_in),
+                parseInt(response.refresh_token_expires_in)
+              );
+              datastore
+                .upsert({
+                  key: key,
+                  data: {
+                    auth: response,
+                    createdOn: entity.createdOn,
+                    lastUsedOn: dates.now,
+                    expiresOn: dates.expiresOn,
+                    refreshExpiresOn: dates.refreshExpiresOn,
+                  },
+                })
+                .then(() => {
+                  next();
+                  return;
+                })
+                .catch((err: any) => {
+                  next(err);
+                  return;
+                });
+            })
+            .catch((err: any) => {
+              next(err);
+              return;
+            });
+
+          // Request continues after the datastore save.
+          return;
+        }
+
+        authMeta.promise
+          .then((response: GHAccessToken | GHError) => {
+            if ((response as GHError).error) {
+              response = response as GHError;
+              next({
+                message: 'Unable to refresh authentication with GitHub.',
+                description: response.error_description || response.error,
+                details: {
+                  uri: response.error_uri,
+                },
+              } as ApiError);
+              return;
+            }
+            response = response as GHAccessToken;
+            res.locals.access = response;
+            next();
+            return;
+          })
+          .catch((err: any) => {
+            next(err);
+            return;
+          });
+
+        // Request continues after the promise.
+        return;
+      }
+
+      res.locals.access = entity.auth;
+
+      // Update the usage for the auth token.
+      entity.lastUsedOn = new Date();
+      datastore
+        .save(entity)
+        .then(() => {
+          next();
+          return;
+        })
+        .catch((err: any) => {
+          return;
+        });
     })
     .catch((err: any) => {
       next(err);
       return;
     });
+}
+
+/**
+ * Creates dates for auth tokens.
+ *
+ * @param expiresIn Seconds until token expires.
+ * @param refreshExpiresIn Seconds until refresh token expires.
+ * @param buffer Buffer seconds to refresh token before it is expired.
+ */
+function tokenDates(
+  expiresIn: number,
+  refreshExpiresIn: number,
+  buffer = 60
+): Record<string, Date> {
+  const dates = {
+    now: new Date(),
+    expiresOn: new Date(),
+    refreshExpiresOn: new Date(),
+  };
+  dates.expiresOn.setTime(
+    dates.expiresOn.getTime() + (expiresIn - buffer) * 1000
+  );
+  dates.refreshExpiresOn.setTime(
+    dates.refreshExpiresOn.getTime() + (refreshExpiresIn - buffer) * 1000
+  );
+  return dates;
 }
