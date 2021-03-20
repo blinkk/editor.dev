@@ -148,6 +148,17 @@ export interface UploadFileRequest {
   meta: Record<string, any>;
 }
 
+export class GenericApiError extends Error {
+  apiError: ApiError;
+
+  constructor(message: string, apiError: ApiError) {
+    super(message);
+    this.name = 'ApiError';
+    this.apiError = apiError;
+    this.stack = (<any>new Error()).stack;
+  }
+}
+
 /**
  * Shortcut for adding an api route to the router with error handling
  * to keep the api result in a consistent format.
