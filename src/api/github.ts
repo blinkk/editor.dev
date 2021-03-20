@@ -16,6 +16,7 @@ import {
   UploadFileRequest,
   addApiRoute,
   apiErrorHandler,
+  expandWorkspaceBranch,
   isWorkspaceBranch,
   shortenWorkspaceName,
 } from './api';
@@ -241,7 +242,7 @@ export class GithubApi implements ApiComponent {
       {
         owner: expressRequest.params.organization,
         repo: expressRequest.params.project,
-        branch: expressRequest.params.branch,
+        branch: expandWorkspaceBranch(expressRequest.params.branch),
       }
     );
 
@@ -379,7 +380,7 @@ export class GithubApi implements ApiComponent {
       {
         owner: expressRequest.params.organization,
         repo: expressRequest.params.project,
-        branch: expressRequest.params.branch,
+        branch: expandWorkspaceBranch(expressRequest.params.branch),
       }
     );
 
