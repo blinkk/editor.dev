@@ -13,11 +13,17 @@ import path from 'path';
  */
 export class GithubStorage implements ConnectorApiStorageComponent {
   api: Octokit;
+  meta?: Record<string, any>;
   root: string;
 
-  constructor(root: string, api?: ConnectorApiComponent) {
+  constructor(
+    root: string,
+    api?: ConnectorApiComponent,
+    meta?: Record<string, any>
+  ) {
     this.root = path.resolve(root);
     this.api = api as Octokit;
+    this.meta = meta;
 
     fs.mkdir(this.root, {recursive: true})
       .then(() => {})
@@ -44,10 +50,10 @@ export class GithubStorage implements ConnectorApiStorageComponent {
         'GET /repos/{owner}/{repo}/contents/{path}',
         {
           headers: headers,
-          owner: 'blinkkcode',
-          repo: 'starter',
+          owner: this.meta?.owner,
+          repo: this.meta?.repo,
           path: remotePath,
-          ref: 'main',
+          ref: this.meta?.branch,
         }
       );
 
@@ -123,10 +129,10 @@ export class GithubStorage implements ConnectorApiStorageComponent {
         'GET /repos/{owner}/{repo}/contents/{path}',
         {
           headers: headers,
-          owner: 'blinkkcode',
-          repo: 'starter',
+          owner: this.meta?.owner,
+          repo: this.meta?.repo,
           path: remotePath,
-          ref: 'main',
+          ref: this.meta?.branch,
         }
       );
 

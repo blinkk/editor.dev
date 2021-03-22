@@ -475,7 +475,12 @@ export class GithubApi implements ApiComponent {
       expressRequest.params.organization,
       expressRequest.params.project,
       expressRequest.params.branch,
-      this.getApi(expressResponse)
+      this.getApi(expressResponse),
+      {
+        owner: expressRequest.params.organization,
+        repo: expressRequest.params.project,
+        branch: expandWorkspaceBranch(expressRequest.params.branch),
+      }
     );
   }
 

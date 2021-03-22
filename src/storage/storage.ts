@@ -18,7 +18,11 @@ export interface ConnectorApiStorageComponent
 }
 
 export interface ConnectorStorageConstructor {
-  new (root: string, api?: ConnectorApiComponent): ConnectorStorageComponent;
+  new (
+    root: string,
+    api?: ConnectorApiComponent,
+    meta?: Record<string, any>
+  ): ConnectorStorageComponent;
 }
 
 export interface StorageManagerConfig {
@@ -37,14 +41,15 @@ export class StorageManager {
     organization: string,
     project: string,
     branch: string,
-    api?: ConnectorApiComponent
+    api?: ConnectorApiComponent,
+    meta?: Record<string, any>
   ): ConnectorStorageComponent {
     organization = cleanDirectory(organization);
     project = cleanDirectory(project);
     branch = cleanDirectory(branch);
     const branchPath = `${organization}/${project}/${branch}/`;
     const fullPath = path.join(this.config.rootDir, branchPath);
-    return new this.config.storageCls(fullPath, api);
+    return new this.config.storageCls(fullPath, api, meta);
   }
 }
 
