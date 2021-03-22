@@ -31,7 +31,7 @@
     "clean": "gts clean",
     "compile": "npx tsc",
     "coverage": "codecov",
-    "dev": "concurrently \"npx ava --watch\" \"tsc --watch\"",
+    "dev": "concurrently \"npx ava --watch\" \"npx tsc --watch\"",
     "docs": "npx typedoc",
     "fix": "npx eslint --fix src/**/*.ts",
     "hosted": "nodemon ./src/server/server.ts",
@@ -68,8 +68,7 @@
     "nodemon": "^2.0.7",
     "nyc": "^15.1.0",
     "ts-node": "^9.1.1",
-    "typedoc": "^0.20.33",
-    "typescript": "^4.2.2"
+    "typedoc": "^0.20.33"
   },
   "dependencies": {
     "@blinkk/editor": "^1.0.9",
@@ -81,6 +80,7 @@
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "isomorphic-git": "^1.8.1",
-    "js-yaml": "^4.0.0"
+    "js-yaml": "^4.0.0",
+    "typescript": "^4.2.2"
   }
 }
