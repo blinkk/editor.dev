@@ -29,7 +29,9 @@ import {
   ProjectData,
   PublishResult,
   RepoCommit,
+  UrlConfig,
   WorkspaceData,
+  WorkspacePublishConfig,
 } from '@blinkk/editor/dist/src/editor/api';
 import {ConnectorComponent} from '../connector/connector';
 import {GrowConnector} from '../connector/growConnector';
@@ -389,6 +391,9 @@ export class GithubApi implements ApiComponent {
       {
         site: editorConfig.site,
         title: editorConfig.title,
+        publish: {
+          fields: [],
+        },
       },
       connectorResult
     );
@@ -423,15 +428,22 @@ export class GithubApi implements ApiComponent {
     request: GetWorkspaceRequest
   ): Promise<WorkspaceData> {
     const api = this.getApi(expressResponse);
+    const fullBranch = expandWorkspaceBranch(expressRequest.params.branch);
+    const publishMeta: WorkspacePublishConfig = {
+      status: 'NotStarted',
+      urls: [],
+    };
+
     const branchResponse = await api.request(
       'GET /repos/{owner}/{repo}/branches/{branch}',
       {
         owner: expressRequest.params.organization,
         repo: expressRequest.params.project,
-        branch: expandWorkspaceBranch(expressRequest.params.branch),
+        branch: fullBranch,
       }
     );
 
+    // Get the commit details.
     const commitResponse = await api.request(
       'GET /repos/{owner}/{repo}/commits/{commit}',
       {
@@ -440,6 +452,25 @@ export class GithubApi implements ApiComponent {
         commit: branchResponse.data.commit.sha,
       }
     );
+
+    // Check for open pull requests for the branch.
+    const prsResponse = await api.request('GET /repos/{owner}/{repo}/pulls', {
+      owner: expressRequest.params.organization,
+      repo: expressRequest.params.project,
+      state: 'open',
+    });
+
+    for (const pullRequest of prsResponse.data) {
+      if (pullRequest.head.ref === fullBranch) {
+        publishMeta.status = 'Pending';
+        (publishMeta.urls as Array<UrlConfig>).push({
+          url: pullRequest.html_url,
+          label: 'Pull request',
+          level: 'Private',
+        });
+        break;
+      }
+    }
 
     return {
       branch: {
@@ -455,6 +486,7 @@ export class GithubApi implements ApiComponent {
         },
       },
       name: shortenWorkspaceName(branchResponse.data.name || ''),
+      publish: publishMeta,
     };
   }
 
@@ -519,8 +551,60 @@ export class GithubApi implements ApiComponent {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: PublishRequest
   ): Promise<PublishResult> {
-    // TODO: Publish process.
-    throw new Error('Publish workflow not available for local.');
+    const api = this.getApi(expressResponse);
+    const fullBranch = expandWorkspaceBranch(expressRequest.params.branch);
+
+    // Check for already open pull request.
+    const prsResponse = await api.request('GET /repos/{owner}/{repo}/pulls', {
+      owner: expressRequest.params.organization,
+      repo: expressRequest.params.project,
+      state: 'open',
+    });
+
+    for (const pullRequest of prsResponse.data) {
+      if (pullRequest.head.ref === fullBranch) {
+        return {
+          status: 'Pending',
+          urls: [
+            {
+              url: pullRequest.html_url,
+              label: 'Pull request',
+              level: 'Private',
+            },
+          ],
+        };
+      }
+    }
+
+    // Find the default branch and use as a base for the publish.
+    const repoResponse = await api.request('GET /repos/{owner}/{repo}', {
+      owner: expressRequest.params.organization,
+      repo: expressRequest.params.project,
+    });
+
+    // Create a new pull request.
+    const createPrResponse = await api.request(
+      'POST /repos/{owner}/{repo}/pulls',
+      {
+        owner: expressRequest.params.organization,
+        repo: expressRequest.params.project,
+        title: `Publish ${expressRequest.params.branch} workspace.`,
+        head: fullBranch,
+        base: repoResponse.data.default_branch,
+        body: `Please review and publish the ${expressRequest.params.branch} workspace.\n\nInitiated from editor.dev.`,
+      }
+    );
+
+    return {
+      status: 'Pending',
+      urls: [
+        {
+          url: createPrResponse.data.html_url,
+          label: 'Pull request',
+          level: 'Private',
+        },
+      ],
+    };
   }
 
   async saveFile(
