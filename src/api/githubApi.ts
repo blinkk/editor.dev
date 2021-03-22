@@ -114,7 +114,62 @@ export class GithubApi implements ApiComponent {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: CreateWorkspaceRequest
   ): Promise<WorkspaceData> {
-    throw new Error('Unable to create new workspace yet.');
+    const api = this.getApi(expressResponse);
+
+    console.log(expandWorkspaceBranch(request.base.branch.name));
+
+    // Find the information from the original branch.
+    const branchResponse = await api.request(
+      'GET /repos/{owner}/{repo}/branches/{branch}',
+      {
+        owner: expressRequest.params.organization,
+        repo: expressRequest.params.project,
+        branch: expandWorkspaceBranch(request.base.branch.name),
+      }
+    );
+
+    const commitResponse = await api.request(
+      'GET /repos/{owner}/{repo}/commits/{commit}',
+      {
+        owner: expressRequest.params.organization,
+        repo: expressRequest.params.project,
+        commit: branchResponse.data.commit.sha,
+      }
+    );
+
+    // Create the new branch ref.
+    await api.request('POST /repos/{owner}/{repo}/git/refs', {
+      owner: expressRequest.params.organization,
+      repo: expressRequest.params.project,
+      ref: `refs/heads/${expandWorkspaceBranch(request.workspace)}`,
+      sha: branchResponse.data.commit.sha,
+    });
+
+    // Retrieve the information for the new branch.
+    const newBranchResponse = await api.request(
+      'GET /repos/{owner}/{repo}/branches/{branch}',
+      {
+        owner: expressRequest.params.organization,
+        repo: expressRequest.params.project,
+        branch: expandWorkspaceBranch(request.workspace),
+      }
+    );
+
+    return {
+      branch: {
+        name: newBranchResponse.data.name,
+        commit: {
+          hash: newBranchResponse.data.commit.sha,
+          url: newBranchResponse.data.commit.url,
+          author: {
+            name: commitResponse.data.commit.author.name,
+            email: commitResponse.data.commit.author.email,
+          },
+          timestamp: commitResponse.data.commit.author.date,
+        },
+      },
+      name: shortenWorkspaceName(newBranchResponse.data.name || ''),
+    };
   }
 
   async deleteFile(
@@ -122,8 +177,34 @@ export class GithubApi implements ApiComponent {
     expressResponse: express.Response,
     request: DeleteFileRequest
   ): Promise<void> {
-    const storage = await this.getStorage(expressRequest, expressResponse);
-    return storage.deleteFile(request.file.path);
+    const api = this.getApi(expressResponse);
+    const remotePath = request.file.path.replace(/^\/*/, '');
+    const user = await this.getUser(api);
+
+    // Retrieve the existing file information.
+    const fileResponse = await api.request(
+      'GET /repos/{owner}/{repo}/contents/{path}',
+      {
+        owner: expressRequest.params.organization,
+        repo: expressRequest.params.project,
+        path: remotePath,
+        ref: expandWorkspaceBranch(expressRequest.params.branch),
+      }
+    );
+
+    // Request for delete of the file.
+    await api.request('DELETE /repos/{owner}/{repo}/contents/{path}', {
+      owner: expressRequest.params.organization,
+      repo: expressRequest.params.project,
+      message: 'Deleting file from editor.dev.',
+      branch: expandWorkspaceBranch(expressRequest.params.branch),
+      sha: (fileResponse.data as any).sha,
+      path: remotePath,
+      author: {
+        name: user.data.name || 'editor.dev',
+        email: user.data.email || 'hello@blinkk.com',
+      },
+    });
   }
 
   getApi(expressResponse: express.Response): Octokit {
@@ -354,6 +435,10 @@ export class GithubApi implements ApiComponent {
       expressRequest.params.branch,
       this.getApi(expressResponse)
     );
+  }
+
+  async getUser(api: Octokit) {
+    return api.request('GET /user');
   }
 
   async getWorkspace(
