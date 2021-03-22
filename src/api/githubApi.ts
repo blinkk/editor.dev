@@ -434,6 +434,13 @@ export class GithubApi implements ApiComponent {
       urls: [],
     };
 
+    // Find the default branch for the repo.
+    // Start the request before the sequential requests.
+    const repoPromise = api.request('GET /repos/{owner}/{repo}', {
+      owner: expressRequest.params.organization,
+      repo: expressRequest.params.project,
+    });
+
     const branchResponse = await api.request(
       'GET /repos/{owner}/{repo}/branches/{branch}',
       {
@@ -453,11 +460,7 @@ export class GithubApi implements ApiComponent {
       }
     );
 
-    // Find the default branch for the repo.
-    const repoResponse = await api.request('GET /repos/{owner}/{repo}', {
-      owner: expressRequest.params.organization,
-      repo: expressRequest.params.project,
-    });
+    const repoResponse = await repoPromise;
 
     // Do not allow publishing on default branch.
     if (fullBranch === repoResponse.data.default_branch) {
@@ -565,6 +568,13 @@ export class GithubApi implements ApiComponent {
     const api = this.getApi(expressResponse);
     const fullBranch = expandWorkspaceBranch(expressRequest.params.branch);
 
+    // Find the default branch and use as a base for the publish.
+    // Start the request before the sequential requests.
+    const repoPromise = api.request('GET /repos/{owner}/{repo}', {
+      owner: expressRequest.params.organization,
+      repo: expressRequest.params.project,
+    });
+
     // Check for already open pull request.
     const prsResponse = await api.request('GET /repos/{owner}/{repo}/pulls', {
       owner: expressRequest.params.organization,
@@ -588,10 +598,14 @@ export class GithubApi implements ApiComponent {
     }
 
     // Find the default branch and use as a base for the publish.
-    const repoResponse = await api.request('GET /repos/{owner}/{repo}', {
-      owner: expressRequest.params.organization,
-      repo: expressRequest.params.project,
-    });
+    const repoResponse = await repoPromise;
+
+    // Do not allow publishing to the default branch.
+    if (fullBranch === repoResponse.data.default_branch) {
+      return {
+        status: 'NotAllowed',
+      };
+    }
 
     // Create a new pull request.
     const createPrResponse = await api.request(
