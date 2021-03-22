@@ -24,6 +24,7 @@ import {
   DeviceData,
   EditorFileData,
   EditorFileSettings,
+  EmptyData,
   FileData,
   ProjectData,
   PublishResult,
@@ -36,6 +37,9 @@ import {Octokit} from '@octokit/core';
 import express from 'express';
 import {githubAuthMiddleware} from '../auth/githubAuth';
 import yaml from 'js-yaml';
+
+const DEFAULT_AUTHOR_NAME = 'editor.dev';
+const DEFAULT_AUTHOR_EMAIL = 'hello@blinkk.com';
 
 export class GithubApi implements ApiComponent {
   protected _connector?: ConnectorComponent;
@@ -84,11 +88,33 @@ export class GithubApi implements ApiComponent {
     expressResponse: express.Response,
     request: CopyFileRequest
   ): Promise<FileData> {
-    const storage = await this.getStorage(expressRequest, expressResponse);
-    await storage.writeFile(
-      request.path,
-      await storage.readFile(request.originalPath)
+    const api = this.getApi(expressResponse);
+    const remoteOriginalPath = request.originalPath.replace(/^\/*/, '');
+    const remotePath = request.path.replace(/^\/*/, '');
+    const fileResponse = await api.request(
+      'GET /repos/{owner}/{repo}/contents/{path}',
+      {
+        owner: expressRequest.params.organization,
+        repo: expressRequest.params.project,
+        ref: expandWorkspaceBranch(expressRequest.params.branch),
+        path: remoteOriginalPath,
+      }
     );
+
+    const user = await this.getUser(api);
+    await api.request('PUT /repos/{owner}/{repo}/contents/{path}', {
+      owner: expressRequest.params.organization,
+      repo: expressRequest.params.project,
+      branch: expandWorkspaceBranch(expressRequest.params.branch),
+      path: remotePath,
+      message: `Copied file on editor.dev.\n\nCopied from \`${request.originalPath}\``,
+      content: (fileResponse.data as any).content || '',
+      author: {
+        name: user.data.name || DEFAULT_AUTHOR_NAME,
+        email: user.data.email || DEFAULT_AUTHOR_EMAIL,
+      },
+    });
+
     return {
       path: request.path,
     };
@@ -99,8 +125,24 @@ export class GithubApi implements ApiComponent {
     expressResponse: express.Response,
     request: CreateFileRequest
   ): Promise<FileData> {
-    const storage = await this.getStorage(expressRequest, expressResponse);
-    await storage.writeFile(request.path, request.content || '');
+    const api = this.getApi(expressResponse);
+    const user = await this.getUser(api);
+    const remotePath = request.path.replace(/^\/*/, '');
+    const fileContents = Buffer.from(request.content || '');
+
+    await api.request('PUT /repos/{owner}/{repo}/contents/{path}', {
+      owner: expressRequest.params.organization,
+      repo: expressRequest.params.project,
+      branch: expandWorkspaceBranch(expressRequest.params.branch),
+      path: remotePath,
+      message: 'New file from editor.dev.',
+      content: fileContents.toString('base64'),
+      author: {
+        name: user.data.name || DEFAULT_AUTHOR_NAME,
+        email: user.data.email || DEFAULT_AUTHOR_EMAIL,
+      },
+    });
+
     return {
       path: request.path,
     };
@@ -115,8 +157,6 @@ export class GithubApi implements ApiComponent {
     request: CreateWorkspaceRequest
   ): Promise<WorkspaceData> {
     const api = this.getApi(expressResponse);
-
-    console.log(expandWorkspaceBranch(request.base.branch.name));
 
     // Find the information from the original branch.
     const branchResponse = await api.request(
@@ -176,7 +216,7 @@ export class GithubApi implements ApiComponent {
     expressRequest: express.Request,
     expressResponse: express.Response,
     request: DeleteFileRequest
-  ): Promise<void> {
+  ): Promise<EmptyData> {
     const api = this.getApi(expressResponse);
     const remotePath = request.file.path.replace(/^\/*/, '');
     const user = await this.getUser(api);
@@ -201,10 +241,12 @@ export class GithubApi implements ApiComponent {
       sha: (fileResponse.data as any).sha,
       path: remotePath,
       author: {
-        name: user.data.name || 'editor.dev',
-        email: user.data.email || 'hello@blinkk.com',
+        name: user.data.name || DEFAULT_AUTHOR_NAME,
+        email: user.data.email || DEFAULT_AUTHOR_EMAIL,
       },
     });
+
+    return {};
   }
 
   getApi(expressResponse: express.Response): Octokit {

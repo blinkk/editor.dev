@@ -2,6 +2,7 @@ import {
   ApiError,
   DeviceData,
   EditorFileData,
+  EmptyData,
   FileData,
   ProjectData,
   PublishResult,
@@ -39,7 +40,7 @@ export interface ApiComponent {
     expressRequest: express.Request,
     expressResponse: express.Response,
     request: DeleteFileRequest
-  ): Promise<void>;
+  ): Promise<EmptyData>;
 
   getDevices(
     expressRequest: express.Request,

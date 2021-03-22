@@ -21,6 +21,7 @@ import {
   DeviceData,
   EditorFileData,
   EditorFileSettings,
+  EmptyData,
   FileData,
   ProjectData,
   PublishResult,
@@ -119,8 +120,9 @@ export class LocalApi implements ApiComponent {
     expressRequest: express.Request,
     expressResponse: express.Response,
     request: DeleteFileRequest
-  ): Promise<void> {
-    return this.storage.deleteFile(request.file.path);
+  ): Promise<EmptyData> {
+    await this.storage.deleteFile(request.file.path);
+    return {};
   }
 
   /**
