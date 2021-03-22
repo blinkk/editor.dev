@@ -9,7 +9,7 @@ import {
   SaveFileRequest,
   UploadFileRequest,
 } from '../api/api';
-import {ConnectorStorage} from '../storage/storage';
+import {ConnectorStorageComponent} from '../storage/storage';
 import {FilterComponent} from '@blinkk/editor/dist/src/utility/filter';
 import express from 'express';
 
@@ -38,5 +38,5 @@ export interface ConnectorComponent {
 }
 
 export interface ConnectorConstructor {
-  new (storage: ConnectorStorage): ConnectorComponent;
+  new (storage: ConnectorStorageComponent): ConnectorComponent;
 }
