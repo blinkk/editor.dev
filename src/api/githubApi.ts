@@ -27,6 +27,7 @@ import {
   FileData,
   ProjectData,
   PublishResult,
+  RepoCommit,
   WorkspaceData,
 } from '@blinkk/editor/dist/src/editor/api';
 import {ConnectorComponent} from '../connector/connector';
@@ -167,14 +168,54 @@ export class GithubApi implements ApiComponent {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: GetFileRequest
   ): Promise<EditorFileData> {
+    const api = this.getApi(expressResponse);
     const connector = await this.getConnector(expressRequest, expressResponse);
     const connectorResult = await connector.getFile(expressRequest, request);
 
-    // TODO: Git history for file.
-
+    // Add git history for file.
     return Object.assign({}, connectorResult, {
-      history: [],
+      history: await this.getFileHistory(
+        api,
+        expressRequest.params.organization,
+        expressRequest.params.project,
+        expressRequest.params.branch,
+        request.file.path
+      ),
     });
+  }
+
+  async getFileHistory(
+    api: Octokit,
+    owner: string,
+    repo: string,
+    branch: string,
+    path: string
+  ): Promise<Array<RepoCommit>> {
+    const fileHistory: Array<RepoCommit> = [];
+    const commitsResponse = await api.request(
+      'GET /repos/{owner}/{repo}/commits',
+      {
+        owner: owner,
+        repo: repo,
+        sha: branch,
+        path: path,
+        per_page: 10,
+      }
+    );
+
+    for (const commit of commitsResponse.data) {
+      fileHistory.push({
+        hash: commit.sha,
+        url: commit.url,
+        author: {
+          name: commit.commit.author?.name || 'Unknown',
+          email: commit.commit.author?.email || 'unknown',
+        },
+        timestamp: commit.commit.author?.date,
+      });
+    }
+
+    return fileHistory;
   }
 
   async getFiles(
