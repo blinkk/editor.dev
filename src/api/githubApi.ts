@@ -347,81 +347,8 @@ export class GithubApi implements ApiComponent {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: GetFilesRequest
   ): Promise<Array<FileData>> {
-    const api = this.getApi(expressResponse);
-
-    const branchResponse = await api.request(
-      'GET /repos/{owner}/{repo}/branches/{branch}',
-      {
-        owner: expressRequest.params.organization,
-        repo: expressRequest.params.project,
-        branch: expandWorkspaceBranch(expressRequest.params.branch),
-      }
-    );
-
-    // Find the tree for the the last commit on branch.
-    const commitResponse = await api.request(
-      'GET /repos/{owner}/{repo}/git/commits/{commitSha}',
-      {
-        owner: expressRequest.params.organization,
-        repo: expressRequest.params.project,
-        commitSha: branchResponse.data.commit.sha,
-      }
-    );
-
-    return await this.getFilesRecursive(
-      api,
-      expressRequest.params.organization,
-      expressRequest.params.project,
-      commitResponse.data.tree.sha
-    );
-  }
-
-  protected async getFilesRecursive(
-    api: Octokit,
-    owner: string,
-    repo: string,
-    treeSha: string,
-    root?: string
-  ): Promise<Array<FileData>> {
-    root = root || '';
-    const treeResponse = await api.request(
-      'GET /repos/{owner}/{repo}/git/trees/{treeSha}',
-      {
-        owner: owner,
-        repo: repo,
-        treeSha: treeSha,
-      }
-    );
-
-    let files: Array<FileData> = [];
-    const folderPromises: Array<Promise<any>> = [];
-
-    for (const treeObj of treeResponse.data.tree) {
-      if (treeObj.type === 'blob') {
-        files.push({
-          path: `${root}/${treeObj.path}`,
-        });
-      } else if (treeObj.type === 'tree') {
-        // Collect the promises so they can be done async.
-        folderPromises.push(
-          this.getFilesRecursive(
-            api,
-            owner,
-            repo,
-            treeObj.sha,
-            `${root}/${treeObj.path}`
-          )
-        );
-      }
-    }
-
-    // Wait for all of the sub folder promises before adding to files.
-    const subFolderResults = await Promise.all(folderPromises);
-    for (const subFolderResult of subFolderResults) {
-      files = [...files, ...subFolderResult];
-    }
-
-    return files;
+    const storage = await this.getStorage(expressRequest, expressResponse);
+    return (await storage.readDir('/')) as Array<FileData>;
   }
 
   async getProject(
