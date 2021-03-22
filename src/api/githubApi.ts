@@ -453,7 +453,14 @@ export class GithubApi implements ApiComponent {
       }
     );
 
-    if (['master', 'main'].includes(fullBranch)) {
+    // Find the default branch for the repo.
+    const repoResponse = await api.request('GET /repos/{owner}/{repo}', {
+      owner: expressRequest.params.organization,
+      repo: expressRequest.params.project,
+    });
+
+    // Do not allow publishing on default branch.
+    if (fullBranch === repoResponse.data.default_branch) {
       publishMeta.status = 'NotAllowed';
     } else {
       // Check for open pull requests for the branch.
