@@ -453,22 +453,26 @@ export class GithubApi implements ApiComponent {
       }
     );
 
-    // Check for open pull requests for the branch.
-    const prsResponse = await api.request('GET /repos/{owner}/{repo}/pulls', {
-      owner: expressRequest.params.organization,
-      repo: expressRequest.params.project,
-      state: 'open',
-    });
+    if (['master', 'main'].includes(fullBranch)) {
+      publishMeta.status = 'NotAllowed';
+    } else {
+      // Check for open pull requests for the branch.
+      const prsResponse = await api.request('GET /repos/{owner}/{repo}/pulls', {
+        owner: expressRequest.params.organization,
+        repo: expressRequest.params.project,
+        state: 'open',
+      });
 
-    for (const pullRequest of prsResponse.data) {
-      if (pullRequest.head.ref === fullBranch) {
-        publishMeta.status = 'Pending';
-        (publishMeta.urls as Array<UrlConfig>).push({
-          url: pullRequest.html_url,
-          label: 'Pull request',
-          level: 'Private',
-        });
-        break;
+      for (const pullRequest of prsResponse.data) {
+        if (pullRequest.head.ref === fullBranch) {
+          publishMeta.status = 'Pending';
+          (publishMeta.urls as Array<UrlConfig>).push({
+            url: pullRequest.html_url,
+            label: 'Pull request',
+            level: 'Private',
+          });
+          break;
+        }
       }
     }
 
