@@ -462,9 +462,23 @@ export class GithubApi implements ApiComponent {
 
     const repoResponse = await repoPromise;
 
+    // Check for no changes between default and branch.
+    const baseBranchResponse = await api.request(
+      'GET /repos/{owner}/{repo}/branches/{branch}',
+      {
+        owner: expressRequest.params.organization,
+        repo: expressRequest.params.project,
+        branch: repoResponse.data.default_branch,
+      }
+    );
+
     // Do not allow publishing on default branch.
     if (fullBranch === repoResponse.data.default_branch) {
       publishMeta.status = 'NotAllowed';
+    } else if (
+      branchResponse.data.commit.sha === baseBranchResponse.data.commit.sha
+    ) {
+      publishMeta.status = 'NoChanges';
     } else {
       // Check for open pull requests for the branch.
       const prsResponse = await api.request('GET /repos/{owner}/{repo}/pulls', {
@@ -575,6 +589,15 @@ export class GithubApi implements ApiComponent {
       repo: expressRequest.params.project,
     });
 
+    const branchPromise = api.request(
+      'GET /repos/{owner}/{repo}/branches/{branch}',
+      {
+        owner: expressRequest.params.organization,
+        repo: expressRequest.params.project,
+        branch: fullBranch,
+      }
+    );
+
     // Check for already open pull request.
     const prsResponse = await api.request('GET /repos/{owner}/{repo}/pulls', {
       owner: expressRequest.params.organization,
@@ -604,6 +627,23 @@ export class GithubApi implements ApiComponent {
     if (fullBranch === repoResponse.data.default_branch) {
       return {
         status: 'NotAllowed',
+      };
+    }
+
+    // Check for no changes between default and branch.
+    const baseBranchResponse = await api.request(
+      'GET /repos/{owner}/{repo}/branches/{branch}',
+      {
+        owner: expressRequest.params.organization,
+        repo: expressRequest.params.project,
+        branch: repoResponse.data.default_branch,
+      }
+    );
+    const branchResponse = await branchPromise;
+
+    if (branchResponse.data.commit.sha === baseBranchResponse.data.commit.sha) {
+      return {
+        status: 'NoChanges',
       };
     }
 
