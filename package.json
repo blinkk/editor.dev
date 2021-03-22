@@ -29,10 +29,10 @@
   "scripts": {
     "check": "gts check",
     "clean": "gts clean",
-    "compile": "tsc",
+    "compile": "npx tsc",
     "coverage": "codecov",
     "dev": "concurrently \"npx ava --watch\" \"tsc --watch\"",
-    "docs": "typedoc",
+    "docs": "npx typedoc",
     "fix": "npx eslint --fix src/**/*.ts",
     "hosted": "nodemon ./src/server/server.ts",
     "prepublishOnly": "yarn run compile",
