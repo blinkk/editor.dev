@@ -1,9 +1,9 @@
-import {ConnectorStorage} from './storage';
+import {ConnectorStorageComponent, expandPath} from './storage';
 import {promises as fs} from 'fs';
 import {constants as fsConstants} from 'fs';
 import path from 'path';
 
-export class LocalStorage implements ConnectorStorage {
+export class LocalStorage implements ConnectorStorageComponent {
   root: string;
 
   constructor(root?: string) {
@@ -11,12 +11,12 @@ export class LocalStorage implements ConnectorStorage {
   }
 
   async deleteFile(filePath: string): Promise<void> {
-    const fullPath = this.expandPath(filePath);
+    const fullPath = expandPath(this.root, filePath);
     await fs.rm(fullPath);
   }
 
   async existsFile(filePath: string): Promise<boolean> {
-    const fullPath = this.expandPath(filePath);
+    const fullPath = expandPath(this.root, filePath);
 
     try {
       await fs.access(fullPath, fsConstants.F_OK);
@@ -26,22 +26,8 @@ export class LocalStorage implements ConnectorStorage {
     }
   }
 
-  expandPath(filePath: string): string {
-    // TODO: More security around file access?
-    filePath = path.join(this.root, filePath);
-    const fullPath = path.resolve(this.root, filePath);
-
-    if (!fullPath.startsWith(this.root)) {
-      throw new Error(
-        `Cannot work with files outside of '${this.root}'. '${filePath}' resolved to '${fullPath}'`
-      );
-    }
-
-    return fullPath;
-  }
-
   async readDir(filePath: string): Promise<Array<any>> {
-    const fullPath = this.expandPath(filePath);
+    const fullPath = expandPath(this.root, filePath);
     return this.readDirRecursive(fullPath);
   }
 
@@ -68,12 +54,12 @@ export class LocalStorage implements ConnectorStorage {
   }
 
   async readFile(filePath: string): Promise<any> {
-    const fullPath = this.expandPath(filePath);
+    const fullPath = expandPath(this.root, filePath);
     return fs.readFile(fullPath);
   }
 
   async writeFile(filePath: string, content: string): Promise<void> {
-    const fullPath = this.expandPath(filePath);
+    const fullPath = expandPath(this.root, filePath);
     return fs.writeFile(fullPath, content);
   }
 }

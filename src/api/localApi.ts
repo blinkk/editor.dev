@@ -14,12 +14,14 @@ import {
   SaveFileRequest,
   UploadFileRequest,
   addApiRoute,
+  apiErrorHandler,
+  shortenWorkspaceName,
 } from './api';
-import {ConnectorStorage, StorageManager} from '../storage/storage';
 import {
   DeviceData,
   EditorFileData,
   EditorFileSettings,
+  EmptyData,
   FileData,
   ProjectData,
   PublishResult,
@@ -28,7 +30,8 @@ import {
 } from '@blinkk/editor/dist/src/editor/api';
 import {ConnectorComponent} from '../connector/connector';
 import {FeatureFlags} from '@blinkk/editor/dist/src/editor/features';
-import {GrowConnector} from '../connector/grow';
+import {GrowConnector} from '../connector/growConnector';
+import {LocalStorage} from '../storage/localStorage';
 import {ReadCommitResult} from 'isomorphic-git';
 import express from 'express';
 // TODO: FS promises does not work with isomorphic-git?
@@ -36,24 +39,19 @@ import fs from 'fs';
 import git from 'isomorphic-git';
 import yaml from 'js-yaml';
 
-export class GithubApi implements ApiComponent {
+export class LocalApi implements ApiComponent {
   protected _connector?: ConnectorComponent;
   protected _apiRouter?: express.Router;
-  storageManager: StorageManager;
+  storage: LocalStorage;
 
-  constructor(storageManager: StorageManager) {
-    this.storageManager = storageManager;
+  constructor(storage: LocalStorage) {
+    this.storage = storage;
   }
 
   get apiRouter() {
     if (!this._apiRouter) {
-      const router = express.Router({
-        mergeParams: true,
-      });
+      const router = express.Router();
       router.use(express.json());
-
-      // TODO: Use auth middleware for non-local apis.
-      // router.use(...);
 
       addApiRoute(router, '/devices.get', this.getDevices.bind(this));
       addApiRoute(router, '/file.copy', this.copyFile.bind(this));
@@ -69,6 +67,8 @@ export class GithubApi implements ApiComponent {
       addApiRoute(router, '/workspace.get', this.getWorkspace.bind(this));
       addApiRoute(router, '/workspaces.get', this.getWorkspaces.bind(this));
 
+      router.use(apiErrorHandler);
+
       this._apiRouter = router;
     }
 
@@ -76,13 +76,15 @@ export class GithubApi implements ApiComponent {
   }
 
   async copyFile(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    expressResponse: express.Response,
     request: CopyFileRequest
   ): Promise<FileData> {
-    const storage = await this.getStorage(expressRequest);
-    await storage.writeFile(
+    await this.storage.writeFile(
       request.path,
-      await storage.readFile(request.originalPath)
+      await this.storage.readFile(request.originalPath)
     );
     return {
       path: request.path,
@@ -90,11 +92,13 @@ export class GithubApi implements ApiComponent {
   }
 
   async createFile(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    expressResponse: express.Response,
     request: CreateFileRequest
   ): Promise<FileData> {
-    const storage = await this.getStorage(expressRequest);
-    await storage.writeFile(request.path, request.content || '');
+    await this.storage.writeFile(request.path, request.content || '');
     return {
       path: request.path,
     };
@@ -104,17 +108,21 @@ export class GithubApi implements ApiComponent {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    expressResponse: express.Response,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: CreateWorkspaceRequest
   ): Promise<WorkspaceData> {
     throw new Error('Unable to create new workspace locally.');
   }
 
   async deleteFile(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
+    expressResponse: express.Response,
     request: DeleteFileRequest
-  ): Promise<void> {
-    const storage = await this.getStorage(expressRequest);
-    return storage.deleteFile(request.file.path);
+  ): Promise<EmptyData> {
+    await this.storage.deleteFile(request.file.path);
+    return {};
   }
 
   /**
@@ -129,7 +137,6 @@ export class GithubApi implements ApiComponent {
    * @returns Array of commits that match the file.
    */
   async fileHistory(
-    repoDir: string,
     filePath: string,
     depth = 10
   ): Promise<Array<ReadCommitResult>> {
@@ -138,7 +145,7 @@ export class GithubApi implements ApiComponent {
 
     const commits = await git.log({
       fs: fs,
-      dir: repoDir,
+      dir: this.storage.root,
     });
     let lastSHA = null;
     let lastCommit = null;
@@ -151,7 +158,7 @@ export class GithubApi implements ApiComponent {
       try {
         const o = await git.readObject({
           fs: fs,
-          dir: repoDir,
+          dir: this.storage.root,
           oid: commit.oid,
           filepath: filePath,
         });
@@ -173,14 +180,11 @@ export class GithubApi implements ApiComponent {
     return commitsThatMatter;
   }
 
-  async getConnector(
-    expressRequest: express.Request
-  ): Promise<ConnectorComponent> {
-    const storage = await this.getStorage(expressRequest);
+  async getConnector(): Promise<ConnectorComponent> {
     if (!this._connector) {
       // Check for specific features of the supported connectors.
-      if (await GrowConnector.canApply(storage)) {
-        this._connector = new GrowConnector(storage);
+      if (await GrowConnector.canApply(this.storage)) {
+        this._connector = new GrowConnector(this.storage);
       } else {
         // TODO: use generic connector.
         throw new Error('Unable to determine connector.');
@@ -191,27 +195,27 @@ export class GithubApi implements ApiComponent {
   }
 
   async getDevices(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    expressResponse: express.Response,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: GetDevicesRequest
   ): Promise<Array<DeviceData>> {
-    const editorConfig = (await this.readEditorConfig(
-      expressRequest
-    )) as EditorFileSettings;
+    const editorConfig = (await this.readEditorConfig()) as EditorFileSettings;
     return Promise.resolve(editorConfig.devices || []);
   }
 
   async getFile(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    expressResponse: express.Response,
     request: GetFileRequest
   ): Promise<EditorFileData> {
-    const storage = await this.getStorage(expressRequest);
-    const connector = await this.getConnector(expressRequest);
+    const connector = await this.getConnector();
     const connectorResult = await connector.getFile(expressRequest, request);
 
-    const history = await this.fileHistory(storage.root, request.file.path);
+    const history = await this.fileHistory(request.file.path);
     const commitHistory: Array<RepoCommit> = [];
     for (const commit of history) {
       commitHistory.push({
@@ -238,11 +242,12 @@ export class GithubApi implements ApiComponent {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    expressResponse: express.Response,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: GetFilesRequest
   ): Promise<Array<FileData>> {
-    const storage = await this.getStorage(expressRequest);
-    const connector = await this.getConnector(expressRequest);
-    const files = await storage.readDir('/');
+    const connector = await this.getConnector();
+    const files = await this.storage.readDir('/');
     let filteredFiles = files;
     if (connector.fileFilter) {
       filteredFiles = files.filter(file =>
@@ -264,11 +269,13 @@ export class GithubApi implements ApiComponent {
 
   async getProject(
     expressRequest: express.Request,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    expressResponse: express.Response,
     request: GetProjectRequest
   ): Promise<ProjectData> {
-    const connector = await this.getConnector(expressRequest);
+    const connector = await this.getConnector();
     const connectorResult = await connector.getProject(expressRequest, request);
-    const editorConfig = await this.readEditorConfig(expressRequest);
+    const editorConfig = await this.readEditorConfig();
     connectorResult.experiments = connectorResult.experiments || {};
     connectorResult.features = connectorResult.features || {};
 
@@ -304,28 +311,22 @@ export class GithubApi implements ApiComponent {
     );
   }
 
-  async getStorage(expressRequest: express.Request): Promise<ConnectorStorage> {
-    return this.storageManager.storageForBranch(
-      expressRequest.params.organization,
-      expressRequest.params.project,
-      expressRequest.params.branch
-    );
-  }
-
   async getWorkspace(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    expressResponse: express.Response,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: GetWorkspaceRequest
   ): Promise<WorkspaceData> {
-    const storage = await this.getStorage(expressRequest);
     const currentBranch = await git.currentBranch({
       fs: fs,
-      dir: storage.root,
+      dir: this.storage.root,
     });
 
     const commits = await git.log({
       fs: fs,
-      dir: storage.root,
+      dir: this.storage.root,
       depth: 1,
     });
 
@@ -347,26 +348,27 @@ export class GithubApi implements ApiComponent {
           ).toISOString(),
         },
       },
-      name: (currentBranch || '').replace(/^workspace\//, ''),
+      name: shortenWorkspaceName(currentBranch || ''),
     };
   }
 
   async getWorkspaces(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    expressResponse: express.Response,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: GetWorkspacesRequest
   ): Promise<Array<WorkspaceData>> {
-    const storage = await this.getStorage(expressRequest);
-
     // Only list the current branch as a workspace for local.
     const currentBranch = await git.currentBranch({
       fs: fs,
-      dir: storage.root,
+      dir: this.storage.root,
     });
 
     const commits = await git.log({
       fs: fs,
-      dir: storage.root,
+      dir: this.storage.root,
       depth: 1,
     });
 
@@ -389,18 +391,15 @@ export class GithubApi implements ApiComponent {
             ).toISOString(),
           },
         },
-        name: (currentBranch || '').replace(/^workspace\//, ''),
+        name: shortenWorkspaceName(currentBranch || ''),
       },
     ];
   }
 
-  async readEditorConfig(
-    expressRequest: express.Request
-  ): Promise<EditorFileSettings> {
-    const storage = await this.getStorage(expressRequest);
+  async readEditorConfig(): Promise<EditorFileSettings> {
     let rawFile = null;
     try {
-      rawFile = await storage.readFile('editor.yaml');
+      rawFile = await this.storage.readFile('editor.yaml');
     } catch (error) {
       if (error.code === 'ENOENT') {
         rawFile = Promise.resolve('');
@@ -415,6 +414,8 @@ export class GithubApi implements ApiComponent {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    expressResponse: express.Response,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: PublishRequest
   ): Promise<PublishResult> {
     // TODO: Publish process.
@@ -422,26 +423,20 @@ export class GithubApi implements ApiComponent {
   }
 
   async saveFile(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    expressResponse: express.Response,
     request: SaveFileRequest
   ): Promise<EditorFileData> {
-    return (await this.getConnector(expressRequest)).saveFile(
-      expressRequest,
-      request
-    );
+    return (await this.getConnector()).saveFile(expressRequest, request);
   }
 
   async uploadFile(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    expressResponse: express.Response,
     request: UploadFileRequest
   ): Promise<FileData> {
-    return (await this.getConnector(expressRequest)).uploadFile(
-      expressRequest,
-      request
-    );
+    return (await this.getConnector()).uploadFile(expressRequest, request);
   }
 }

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-import {LocalApi} from './api/local';
-import {LocalStorage} from './storage/local';
+import {LocalApi} from './api/localApi';
+import {LocalStorage} from './storage/localStorage';
 import cors from 'cors';
 import express from 'express';
 

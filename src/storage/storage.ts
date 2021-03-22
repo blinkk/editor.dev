@@ -1,6 +1,9 @@
 import path from 'path';
 
-export interface ConnectorStorage {
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface ConnectorApiComponent {}
+
+export interface ConnectorStorageComponent {
   root: string;
   deleteFile(path: string): Promise<void>;
   existsFile(path: string): Promise<boolean>;
@@ -9,58 +12,68 @@ export interface ConnectorStorage {
   writeFile(path: string, content: string): Promise<void>;
 }
 
-export interface ConnectorStorageConstructor {
-  new (root?: string): ConnectorStorage;
+export interface ConnectorApiStorageComponent
+  extends ConnectorStorageComponent {
+  api: ConnectorApiComponent;
 }
 
-export interface StorageManagerDevConfig {
-  useSingleDirectory?: boolean;
+export interface ConnectorStorageConstructor {
+  new (
+    root: string,
+    api?: ConnectorApiComponent,
+    meta?: Record<string, any>
+  ): ConnectorStorageComponent;
 }
 
 export interface StorageManagerConfig {
-  dev?: StorageManagerDevConfig;
   rootDir: string;
   storageCls: ConnectorStorageConstructor;
 }
 
 export class StorageManager {
   config: StorageManagerConfig;
-  storages: Record<string, ConnectorStorage>;
 
   constructor(config: StorageManagerConfig) {
     this.config = config;
-    this.storages = {};
   }
 
   storageForBranch(
     organization: string,
     project: string,
-    branch: string
-  ): ConnectorStorage {
-    const branchPath = `${cleanDirectory(organization)}/${cleanDirectory(
-      project
-    )}/${cleanDirectory(branch)}/`;
-    let fullPath = path.join(this.config.rootDir, branchPath);
-
-    // When developing, all branches should be the same local directory.
-    if (this.config.dev?.useSingleDirectory) {
-      fullPath = this.config.rootDir;
-    }
-
-    if (!this.storages[branchPath]) {
-      this.storages[branchPath] = new this.config.storageCls(fullPath);
-    }
-    return this.storages[branchPath];
+    branch: string,
+    api?: ConnectorApiComponent,
+    meta?: Record<string, any>
+  ): ConnectorStorageComponent {
+    organization = cleanDirectory(organization);
+    project = cleanDirectory(project);
+    branch = cleanDirectory(branch);
+    const branchPath = `${organization}/${project}/${branch}/`;
+    const fullPath = path.join(this.config.rootDir, branchPath);
+    return new this.config.storageCls(fullPath, api, meta);
   }
 }
 
 function cleanDirectory(dirName: string): string {
   // TODO: More security around valid directory names.
 
-  // Disallow all slashes from directory name.
-  if (dirName.search(/[\/\\]/) >= 0) {
+  // Disallow slashes in a directory name.
+  if (dirName.search(/[/\\]/) >= 0) {
     throw new Error(`Unable to have directory name with slashes: ${dirName}`);
   }
 
   return dirName;
+}
+
+export function expandPath(root: string, filePath: string): string {
+  // TODO: More security around file access?
+  filePath = path.join(root, filePath);
+  const fullPath = path.resolve(filePath);
+
+  if (!fullPath.startsWith(root)) {
+    throw new Error(
+      `Cannot work with files outside of '${root}'. '${filePath}' resolved to '${fullPath}'`
+    );
+  }
+
+  return fullPath;
 }

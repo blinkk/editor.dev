@@ -3,5 +3,8 @@
 dist/
 docs/
 node_modules/
+*.pem
+*.secret
+sites/
 .nyc_output/
 yarn-error.log
