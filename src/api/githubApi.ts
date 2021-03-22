@@ -202,7 +202,7 @@ export class GithubApi implements ApiComponent {
         name: newBranchResponse.data.name,
         commit: {
           hash: newBranchResponse.data.commit.sha,
-          url: newBranchResponse.data.commit.url,
+          url: newBranchResponse.data.commit.html_url,
           author: {
             name: commitResponse.data.commit.author.name,
             email: commitResponse.data.commit.author.email,
@@ -331,7 +331,7 @@ export class GithubApi implements ApiComponent {
     for (const commit of commitsResponse.data) {
       fileHistory.push({
         hash: commit.sha,
-        url: commit.url,
+        url: commit.html_url,
         author: {
           name: commit.commit.author?.name || 'Unknown',
           email: commit.commit.author?.email || 'unknown',
@@ -505,13 +505,14 @@ export class GithubApi implements ApiComponent {
         name: branchResponse.data.name,
         commit: {
           hash: branchResponse.data.commit.sha,
-          url: branchResponse.data.commit.url,
+          url: branchResponse.data.commit.html_url,
           author: {
             name: commitResponse.data.commit.author.name,
             email: commitResponse.data.commit.author.email,
           },
           timestamp: commitResponse.data.commit.author.date,
         },
+        url: branchResponse.data._links.html,
       },
       name: shortenWorkspaceName(branchResponse.data.name || ''),
       publish: publishMeta,
