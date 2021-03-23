@@ -1,4 +1,5 @@
 import path from 'path';
+import {GenericApiError} from '../api/api';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface ConnectorApiComponent {}
@@ -77,3 +78,8 @@ export function expandPath(root: string, filePath: string): string {
 
   return fullPath;
 }
+
+/**
+ * Normalized error for missing files in the storage classes.
+ */
+export class FileNotFoundError extends GenericApiError {}

@@ -1,6 +1,7 @@
 import {
   ConnectorApiComponent,
   ConnectorApiStorageComponent,
+  FileNotFoundError,
   expandPath,
 } from './storage';
 import {Octokit} from '@octokit/core';
@@ -228,10 +229,10 @@ export class GithubStorage implements ConnectorApiStorageComponent {
 
       // Check for missing file.
       if (err.status === 404) {
-        const err = new Error('File not found.');
-        // Hack for not found error.
-        (err as any).code = 'ENOENT';
-        throw err;
+        throw new FileNotFoundError('File not found', {
+          message: 'File was not found.',
+          description: `Unable to find ${filePath}`,
+        });
       }
 
       throw err;
