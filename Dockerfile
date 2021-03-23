@@ -20,7 +20,7 @@ COPY ./package.json ./
 COPY ./yarn.lock ./
 
 # Install from the lock file.
-RUN yarn install --frozen-lockfile
+RUN yarn install
 
 # Copy files needed for compilation.
 COPY ./tsconfig.json ./
