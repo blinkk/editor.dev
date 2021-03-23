@@ -1,4 +1,8 @@
-import {ConnectorStorageComponent, expandPath} from './storage';
+import {
+  ConnectorStorageComponent,
+  FileNotFoundError,
+  expandPath,
+} from './storage';
 import {promises as fs} from 'fs';
 import {constants as fsConstants} from 'fs';
 import path from 'path';
@@ -55,7 +59,17 @@ export class LocalStorage implements ConnectorStorageComponent {
 
   async readFile(filePath: string): Promise<any> {
     const fullPath = expandPath(this.root, filePath);
-    return fs.readFile(fullPath);
+    try {
+      return fs.readFile(fullPath);
+    } catch (err) {
+      if (err.code === 'ENOENT') {
+        throw new FileNotFoundError('File not found', {
+          message: 'File was not found.',
+          description: `Unable to find ${filePath}`,
+        });
+      }
+      throw err;
+    }
   }
 
   async writeFile(filePath: string, content: string): Promise<void> {

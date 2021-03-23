@@ -19,7 +19,11 @@ import {
   isWorkspaceBranch,
   shortenWorkspaceName,
 } from './api';
-import {ConnectorStorageComponent, StorageManager} from '../storage/storage';
+import {
+  ConnectorStorageComponent,
+  FileNotFoundError,
+  StorageManager,
+} from '../storage/storage';
 import {
   DeviceData,
   EditorFileData,
@@ -563,7 +567,7 @@ export class GithubApi implements ApiComponent {
     try {
       rawFile = await storage.readFile('editor.yaml');
     } catch (error) {
-      if (error.code === 'ENOENT') {
+      if (error instanceof FileNotFoundError) {
         rawFile = Promise.resolve('');
       } else {
         throw error;
