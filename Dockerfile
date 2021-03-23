@@ -34,9 +34,9 @@ COPY ./secrets/* ./secrets/
 # Write the secret from the arg if it does not exist.
 RUN if [ ! -f ./secrets/client-secret.secret ]; then \
       echo "Missing secret file, using GH_CLIENT_SECRET."; \
-      printf '%s\n' "$GH_CLIENT_SECRET" > ./secrets/client-secret.secret; \
+      printf '%s' "$GH_CLIENT_SECRET" > ./secrets/client-secret.secret; \
     fi \
-    && if [ -f ./secrets/client-secret.secret ]; then echo "Secret file exists."; fi
+    && if [ -f ./secrets/client-secret.secret ]; then sha1sum ./secrets/client-secret.secret; fi
 
 EXPOSE 8080
 

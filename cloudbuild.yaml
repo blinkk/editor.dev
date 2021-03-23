@@ -5,6 +5,10 @@ steps:
   args:
   - "-c"
   - docker build --network cloudbuild --no-cache --build-arg GH_CLIENT_SECRET="$$GH_CLIENT_SECRET" -t gcr.io/$PROJECT_ID/live-edit-server:main .
+
+images:
+- gcr.io/$PROJECT_ID/live-edit-server
+
 availableSecrets:
   secretManager:
   - versionName: projects/$PROJECT_ID/secrets/github_app_client_secret/versions/latest
