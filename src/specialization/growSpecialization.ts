@@ -18,6 +18,8 @@ import {SpecializationStorageComponent} from '../storage/storage';
 import express from 'express';
 import yaml from 'js-yaml';
 
+export const GROW_TYPE = 'grow';
+
 /**
  * Specialization for working with a Grow website.
  *
@@ -146,6 +148,10 @@ export class GrowSpecialization implements SpecializationComponent {
         ],
       },
     };
+  }
+
+  get type(): string {
+    return GROW_TYPE;
   }
 
   async uploadFile(

@@ -311,6 +311,7 @@ export class LocalApi implements ApiComponent {
       {},
       {
         site: editorConfig.site,
+        specialization: specialization.type,
         title: editorConfig.title,
       },
       specializationResult

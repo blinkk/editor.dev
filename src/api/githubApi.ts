@@ -259,24 +259,6 @@ export class GithubApi implements ApiComponent {
     return new Octokit({auth: expressResponse.locals.access.access_token});
   }
 
-  async getSpecialization(
-    expressRequest: express.Request,
-    expressResponse: express.Response
-  ): Promise<SpecializationComponent> {
-    const storage = await this.getStorage(expressRequest, expressResponse);
-    if (!this._specialization) {
-      // Check for specific features of the supported specializations.
-      if (await GrowSpecialization.canApply(storage)) {
-        this._specialization = new GrowSpecialization(storage);
-      } else {
-        // TODO: use generic specialization.
-        throw new Error('Unable to determine specialization.');
-      }
-    }
-
-    return Promise.resolve(this._specialization as SpecializationComponent);
-  }
-
   async getDevices(
     expressRequest: express.Request,
     expressResponse: express.Response,
@@ -406,6 +388,7 @@ export class GithubApi implements ApiComponent {
       {},
       {
         site: editorConfig.site,
+        specialization: specialization.type,
         title: editorConfig.title,
         publish: {
           fields: [],
@@ -413,6 +396,24 @@ export class GithubApi implements ApiComponent {
       },
       specializationResult
     );
+  }
+
+  async getSpecialization(
+    expressRequest: express.Request,
+    expressResponse: express.Response
+  ): Promise<SpecializationComponent> {
+    const storage = await this.getStorage(expressRequest, expressResponse);
+    if (!this._specialization) {
+      // Check for specific features of the supported specializations.
+      if (await GrowSpecialization.canApply(storage)) {
+        this._specialization = new GrowSpecialization(storage);
+      } else {
+        // TODO: use generic specialization.
+        throw new Error('Unable to determine specialization.');
+      }
+    }
+
+    return Promise.resolve(this._specialization as SpecializationComponent);
   }
 
   async getStorage(

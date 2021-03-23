@@ -9,12 +9,13 @@ import {
   SaveFileRequest,
   UploadFileRequest,
 } from '../api/api';
-import {SpecializationStorageComponent} from '../storage/storage';
 import {FilterComponent} from '@blinkk/editor/dist/src/utility/filter';
+import {SpecializationStorageComponent} from '../storage/storage';
 import express from 'express';
 
 export interface SpecializationComponent {
   fileFilter?: FilterComponent;
+  type: string;
 
   getFile(
     expressRequest: express.Request,
