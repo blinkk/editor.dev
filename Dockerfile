@@ -36,7 +36,7 @@ RUN if [ ! -f ./secrets/client-secret.secret ]; then \
       echo "Missing secret file, using GH_CLIENT_SECRET."; \
       printf '%s' "$GH_CLIENT_SECRET" > ./secrets/client-secret.secret; \
     fi \
-    && if [ -f ./secrets/client-secret.secret ]; then sha1sum ./secrets/client-secret.secret; fi
+    && if [ -f ./secrets/client-secret.secret ]; then echo "Secret file exists."; fi
 
 EXPOSE 8080
 

@@ -12,8 +12,15 @@ build-prod:
 		--project=$(project) \
 		--config=cloudbuild-prod.yaml
 
-deploy:
+build-and-deploy:
 	$(MAKE) build
+	$(MAKE) deploy
+
+build-and-deploy-prod:
+	$(MAKE) build-prod
+	$(MAKE) deploy-prod
+
+deploy:
 	gcloud run deploy ${service} \
 		--project=$(project) \
 		--platform managed \
@@ -23,7 +30,6 @@ deploy:
 		--image gcr.io/${project}/live-edit-server:main
 
 deploy-prod:
-	$(MAKE) build-prod
 	gcloud run deploy ${service}-prod \
 		--project=$(project) \
 		--platform managed \
