@@ -5,7 +5,6 @@ WORKDIR /usr/src/app
 ARG GH_CLIENT_SECRET
 
 ENV MODE=prod
-ENV NODE_ENV=production
 
 # Upgrade base image and cleanup.
 RUN apt-get update \
@@ -20,7 +19,7 @@ COPY ./package.json ./
 COPY ./yarn.lock ./
 
 # Install from the lock file.
-RUN yarn install
+RUN yarn install --frozen-lockfile
 
 # Copy files needed for compilation.
 COPY ./tsconfig.json ./
