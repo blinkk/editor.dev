@@ -10,6 +10,7 @@ build:
 build-prod:
 	gcloud builds submit \
 		--project=$(project) \
+		--substitutions _GITHUB_REF=${GITHUB_REF} \
 		--config=cloudbuild-prod.yaml
 
 build-and-deploy:
