@@ -19,7 +19,8 @@ npx @blinkk/editor-server
 ## Deployment
 
 The live editor server is built for production using a Docker image and Google Cloud Run.
-Every commit to master builds the docker image with a `:main` tag and updates the cloud run image for `api.beta.editor.dev`.
+
+Every commit to `main` builds the docker image with a `:main` tag and updates the cloud run image for `api.beta.editor.dev`.
 Every tag builds the docker image with a version tag (ex: `v1.0.5`) and the `:latest` tag then updates the cloud run image for `api.editor.dev`.
 
 If there is an issue with the latest release for the prod api you can roll back to an earlier version.
