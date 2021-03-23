@@ -1,26 +1,26 @@
 import {
-  ConnectorApiComponent,
-  ConnectorApiStorageComponent,
   FileNotFoundError,
+  SpecializationApiComponent,
+  SpecializationApiStorageComponent,
   expandPath,
 } from './storage';
+import {FileData} from '@blinkk/editor/dist/src/editor/api';
 import {Octokit} from '@octokit/core';
 import {promises as fs} from 'fs';
 import path from 'path';
-import {FileData} from '@blinkk/editor/dist/src/editor/api';
 
 /**
  * Github storage uses a local cache for the files.
  * Pulls from the github service when the cache is out of date.
  */
-export class GithubStorage implements ConnectorApiStorageComponent {
+export class GithubStorage implements SpecializationApiStorageComponent {
   api: Octokit;
   meta?: Record<string, any>;
   root: string;
 
   constructor(
     root: string,
-    api?: ConnectorApiComponent,
+    api?: SpecializationApiComponent,
     meta?: Record<string, any>
   ) {
     this.root = path.resolve(root);

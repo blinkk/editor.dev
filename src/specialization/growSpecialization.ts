@@ -13,21 +13,21 @@ import {
   SaveFileRequest,
   UploadFileRequest,
 } from '../api/api';
-import {ConnectorComponent} from './connector';
-import {ConnectorStorageComponent} from '../storage/storage';
+import {SpecializationComponent} from './specialization';
+import {SpecializationStorageComponent} from '../storage/storage';
 import express from 'express';
 import yaml from 'js-yaml';
 
 /**
- * Connector for working with a Grow website.
+ * Specialization for working with a Grow website.
  *
  * @see https://grow.dev
  */
-export class GrowConnector implements ConnectorComponent {
-  storage: ConnectorStorageComponent;
+export class GrowSpecialization implements SpecializationComponent {
+  storage: SpecializationStorageComponent;
   fileFilter?: FilterComponent;
 
-  constructor(storage: ConnectorStorageComponent) {
+  constructor(storage: SpecializationStorageComponent) {
     this.storage = storage;
 
     // TODO: Make the file filter configurable for grow projects.
@@ -37,7 +37,9 @@ export class GrowConnector implements ConnectorComponent {
     });
   }
 
-  static async canApply(storage: ConnectorStorageComponent): Promise<boolean> {
+  static async canApply(
+    storage: SpecializationStorageComponent
+  ): Promise<boolean> {
     return storage.existsFile('podspec.yaml');
   }
 

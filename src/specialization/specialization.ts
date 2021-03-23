@@ -9,11 +9,11 @@ import {
   SaveFileRequest,
   UploadFileRequest,
 } from '../api/api';
-import {ConnectorStorageComponent} from '../storage/storage';
+import {SpecializationStorageComponent} from '../storage/storage';
 import {FilterComponent} from '@blinkk/editor/dist/src/utility/filter';
 import express from 'express';
 
-export interface ConnectorComponent {
+export interface SpecializationComponent {
   fileFilter?: FilterComponent;
 
   getFile(
@@ -37,6 +37,6 @@ export interface ConnectorComponent {
   ): Promise<FileData>;
 }
 
-export interface ConnectorConstructor {
-  new (storage: ConnectorStorageComponent): ConnectorComponent;
+export interface SpecializationConstructor {
+  new (storage: SpecializationStorageComponent): SpecializationComponent;
 }

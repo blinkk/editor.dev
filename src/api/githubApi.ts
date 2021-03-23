@@ -20,11 +20,6 @@ import {
   shortenWorkspaceName,
 } from './api';
 import {
-  ConnectorStorageComponent,
-  FileNotFoundError,
-  StorageManager,
-} from '../storage/storage';
-import {
   DeviceData,
   EditorFileData,
   EditorFileSettings,
@@ -37,9 +32,14 @@ import {
   WorkspaceData,
   WorkspacePublishConfig,
 } from '@blinkk/editor/dist/src/editor/api';
-import {ConnectorComponent} from '../connector/connector';
-import {GrowConnector} from '../connector/growConnector';
+import {
+  FileNotFoundError,
+  SpecializationStorageComponent,
+  StorageManager,
+} from '../storage/storage';
+import {GrowSpecialization} from '../specialization/growSpecialization';
 import {Octokit} from '@octokit/core';
+import {SpecializationComponent} from '../specialization/specialization';
 import express from 'express';
 import {githubAuthMiddleware} from '../auth/githubAuth';
 import yaml from 'js-yaml';
@@ -48,7 +48,7 @@ const DEFAULT_AUTHOR_NAME = 'editor.dev';
 const DEFAULT_AUTHOR_EMAIL = 'hello@blinkk.com';
 
 export class GithubApi implements ApiComponent {
-  protected _connector?: ConnectorComponent;
+  protected _specialization?: SpecializationComponent;
   protected _apiRouter?: express.Router;
   storageManager: StorageManager;
 
@@ -259,22 +259,22 @@ export class GithubApi implements ApiComponent {
     return new Octokit({auth: expressResponse.locals.access.access_token});
   }
 
-  async getConnector(
+  async getSpecialization(
     expressRequest: express.Request,
     expressResponse: express.Response
-  ): Promise<ConnectorComponent> {
+  ): Promise<SpecializationComponent> {
     const storage = await this.getStorage(expressRequest, expressResponse);
-    if (!this._connector) {
-      // Check for specific features of the supported connectors.
-      if (await GrowConnector.canApply(storage)) {
-        this._connector = new GrowConnector(storage);
+    if (!this._specialization) {
+      // Check for specific features of the supported specializations.
+      if (await GrowSpecialization.canApply(storage)) {
+        this._specialization = new GrowSpecialization(storage);
       } else {
-        // TODO: use generic connector.
-        throw new Error('Unable to determine connector.');
+        // TODO: use generic specialization.
+        throw new Error('Unable to determine specialization.');
       }
     }
 
-    return Promise.resolve(this._connector as ConnectorComponent);
+    return Promise.resolve(this._specialization as SpecializationComponent);
   }
 
   async getDevices(
@@ -298,11 +298,17 @@ export class GithubApi implements ApiComponent {
     request: GetFileRequest
   ): Promise<EditorFileData> {
     const api = this.getApi(expressResponse);
-    const connector = await this.getConnector(expressRequest, expressResponse);
-    const connectorResult = await connector.getFile(expressRequest, request);
+    const specialization = await this.getSpecialization(
+      expressRequest,
+      expressResponse
+    );
+    const specializationResult = await specialization.getFile(
+      expressRequest,
+      request
+    );
 
     // Add git history for file.
-    return Object.assign({}, connectorResult, {
+    return Object.assign({}, specializationResult, {
       history: await this.getFileHistory(
         api,
         expressRequest.params.organization,
@@ -362,34 +368,40 @@ export class GithubApi implements ApiComponent {
     expressResponse: express.Response,
     request: GetProjectRequest
   ): Promise<ProjectData> {
-    const connector = await this.getConnector(expressRequest, expressResponse);
-    const connectorResult = await connector.getProject(expressRequest, request);
+    const specialization = await this.getSpecialization(
+      expressRequest,
+      expressResponse
+    );
+    const specializationResult = await specialization.getProject(
+      expressRequest,
+      request
+    );
     const editorConfig = await this.readEditorConfig(
       expressRequest,
       expressResponse
     );
-    connectorResult.experiments = connectorResult.experiments || {};
-    connectorResult.features = connectorResult.features || {};
+    specializationResult.experiments = specializationResult.experiments || {};
+    specializationResult.features = specializationResult.features || {};
 
     // Pull in editor configuration for experiments.
     if (editorConfig.experiments) {
-      connectorResult.experiments = Object.assign(
+      specializationResult.experiments = Object.assign(
         {},
         editorConfig.experiments,
-        connectorResult.experiments
+        specializationResult.experiments
       );
     }
 
     // Pull in editor configuration for features.
     if (editorConfig.features) {
-      connectorResult.features = Object.assign(
+      specializationResult.features = Object.assign(
         {},
         editorConfig.features,
-        connectorResult.features
+        specializationResult.features
       );
     }
 
-    // Connector config take precedence over editor config.
+    // Specialization config take precedence over editor config.
     return Object.assign(
       {},
       {
@@ -399,14 +411,14 @@ export class GithubApi implements ApiComponent {
           fields: [],
         },
       },
-      connectorResult
+      specializationResult
     );
   }
 
   async getStorage(
     expressRequest: express.Request,
     expressResponse: express.Response
-  ): Promise<ConnectorStorageComponent> {
+  ): Promise<SpecializationStorageComponent> {
     return this.storageManager.storageForBranch(
       expressRequest.params.organization,
       expressRequest.params.project,
@@ -684,10 +696,9 @@ export class GithubApi implements ApiComponent {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: SaveFileRequest
   ): Promise<EditorFileData> {
-    return (await this.getConnector(expressRequest, expressResponse)).saveFile(
-      expressRequest,
-      request
-    );
+    return (
+      await this.getSpecialization(expressRequest, expressResponse)
+    ).saveFile(expressRequest, request);
   }
 
   async uploadFile(
@@ -697,7 +708,7 @@ export class GithubApi implements ApiComponent {
     request: UploadFileRequest
   ): Promise<FileData> {
     return (
-      await this.getConnector(expressRequest, expressResponse)
+      await this.getSpecialization(expressRequest, expressResponse)
     ).uploadFile(expressRequest, request);
   }
 }
