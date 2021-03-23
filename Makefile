@@ -10,8 +10,13 @@ build:
 build-prod:
 	gcloud builds submit \
 		--project=$(project) \
-		--substitutions _GITHUB_REF=${GITHUB_REF} \
 		--config=cloudbuild-prod.yaml
+
+build-prod-tag:
+	gcloud builds submit \
+		--project=$(project) \
+		--substitutions _GITHUB_REF=${GITHUB_REF} \
+		--config=cloudbuild-prod-tag.yaml
 
 build-and-deploy:
 	$(MAKE) build
@@ -19,6 +24,10 @@ build-and-deploy:
 
 build-and-deploy-prod:
 	$(MAKE) build-prod
+	$(MAKE) deploy-prod
+
+build-and-deploy-prod-tag:
+	$(MAKE) build-prod-tag
 	$(MAKE) deploy-prod
 
 deploy:
