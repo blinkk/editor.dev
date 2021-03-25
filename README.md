@@ -13,7 +13,7 @@ Supports generic editor fields and ability to use specialized editor fields for 
 To use `editor.dev` with your local project run the following in your project directory (does not need to be added to your node dependencies):
 
 ```sh
-npx @blinkk/editor-server
+npx @blinkk/editor.dev
 ```
 
 ## Deployment
