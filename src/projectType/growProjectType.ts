@@ -13,23 +13,23 @@ import {
   SaveFileRequest,
   UploadFileRequest,
 } from '../api/api';
-import {SpecializationComponent} from './specialization';
-import {SpecializationStorageComponent} from '../storage/storage';
+import {ProjectTypeComponent} from './projectType';
+import {ProjectTypeStorageComponent} from '../storage/storage';
 import express from 'express';
 import yaml from 'js-yaml';
 
 export const GROW_TYPE = 'grow';
 
 /**
- * Specialization for working with a Grow website.
+ * ProjectType for working with a Grow website.
  *
  * @see https://grow.dev
  */
-export class GrowSpecialization implements SpecializationComponent {
-  storage: SpecializationStorageComponent;
+export class GrowProjectType implements ProjectTypeComponent {
+  storage: ProjectTypeStorageComponent;
   fileFilter?: FilterComponent;
 
-  constructor(storage: SpecializationStorageComponent) {
+  constructor(storage: ProjectTypeStorageComponent) {
     this.storage = storage;
 
     // TODO: Make the file filter configurable for grow projects.
@@ -40,7 +40,7 @@ export class GrowSpecialization implements SpecializationComponent {
   }
 
   static async canApply(
-    storage: SpecializationStorageComponent
+    storage: ProjectTypeStorageComponent
   ): Promise<boolean> {
     return storage.existsFile('podspec.yaml');
   }

@@ -29,10 +29,10 @@ import {
   WorkspaceData,
 } from '@blinkk/editor/dist/src/editor/api';
 import {FeatureFlags} from '@blinkk/editor/dist/src/editor/features';
-import {GrowSpecialization} from '../specialization/growSpecialization';
+import {GrowProjectType} from '../projectType/growProjectType';
 import {LocalStorage} from '../storage/localStorage';
 import {ReadCommitResult} from 'isomorphic-git';
-import {SpecializationComponent} from '../specialization/specialization';
+import {ProjectTypeComponent} from '../projectType/projectType';
 import express from 'express';
 // TODO: FS promises does not work with isomorphic-git?
 import fs from 'fs';
@@ -40,7 +40,7 @@ import git from 'isomorphic-git';
 import yaml from 'js-yaml';
 
 export class LocalApi implements ApiComponent {
-  protected _specialization?: SpecializationComponent;
+  protected _projectType?: ProjectTypeComponent;
   protected _apiRouter?: express.Router;
   storage: LocalStorage;
 
@@ -180,18 +180,18 @@ export class LocalApi implements ApiComponent {
     return commitsThatMatter;
   }
 
-  async getSpecialization(): Promise<SpecializationComponent> {
-    if (!this._specialization) {
-      // Check for specific features of the supported specializations.
-      if (await GrowSpecialization.canApply(this.storage)) {
-        this._specialization = new GrowSpecialization(this.storage);
+  async getProjectType(): Promise<ProjectTypeComponent> {
+    if (!this._projectType) {
+      // Check for specific features of the supported projectTypes.
+      if (await GrowProjectType.canApply(this.storage)) {
+        this._projectType = new GrowProjectType(this.storage);
       } else {
-        // TODO: use generic specialization.
-        throw new Error('Unable to determine specialization.');
+        // TODO: use generic projectType.
+        throw new Error('Unable to determine projectType.');
       }
     }
 
-    return Promise.resolve(this._specialization as SpecializationComponent);
+    return Promise.resolve(this._projectType as ProjectTypeComponent);
   }
 
   async getDevices(
@@ -212,8 +212,8 @@ export class LocalApi implements ApiComponent {
     expressResponse: express.Response,
     request: GetFileRequest
   ): Promise<EditorFileData> {
-    const specialization = await this.getSpecialization();
-    const specializationResult = await specialization.getFile(
+    const projectType = await this.getProjectType();
+    const projectTypeResult = await projectType.getFile(
       expressRequest,
       request
     );
@@ -235,8 +235,8 @@ export class LocalApi implements ApiComponent {
       });
     }
 
-    // TODO: Pull the git history for the file to enrich the specialization result.
-    return Object.assign({}, specializationResult, {
+    // TODO: Pull the git history for the file to enrich the projectType result.
+    return Object.assign({}, projectTypeResult, {
       history: commitHistory,
     });
   }
@@ -249,12 +249,12 @@ export class LocalApi implements ApiComponent {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: GetFilesRequest
   ): Promise<Array<FileData>> {
-    const specialization = await this.getSpecialization();
+    const projectType = await this.getProjectType();
     const files = await this.storage.readDir('/');
     let filteredFiles = files;
-    if (specialization.fileFilter) {
+    if (projectType.fileFilter) {
       filteredFiles = files.filter(file =>
-        specialization.fileFilter?.matches(file.path)
+        projectType.fileFilter?.matches(file.path)
       );
     } else {
       // TODO: Default file filter for api.
@@ -276,45 +276,45 @@ export class LocalApi implements ApiComponent {
     expressResponse: express.Response,
     request: GetProjectRequest
   ): Promise<ProjectData> {
-    const specialization = await this.getSpecialization();
-    const specializationResult = await specialization.getProject(
+    const projectType = await this.getProjectType();
+    const projectTypeResult = await projectType.getProject(
       expressRequest,
       request
     );
     const editorConfig = await this.readEditorConfig();
-    specializationResult.experiments = specializationResult.experiments || {};
-    specializationResult.features = specializationResult.features || {};
+    projectTypeResult.experiments = projectTypeResult.experiments || {};
+    projectTypeResult.features = projectTypeResult.features || {};
 
     // Pull in editor configuration for experiments.
     if (editorConfig.experiments) {
-      specializationResult.experiments = Object.assign(
+      projectTypeResult.experiments = Object.assign(
         {},
         editorConfig.experiments,
-        specializationResult.experiments
+        projectTypeResult.experiments
       );
     }
 
     // Pull in editor configuration for features.
     if (editorConfig.features) {
-      specializationResult.features = Object.assign(
+      projectTypeResult.features = Object.assign(
         {},
         editorConfig.features,
-        specializationResult.features
+        projectTypeResult.features
       );
     }
 
     // Local api does not currently allow creating workspaces.
-    specializationResult.features[FeatureFlags.WorkspaceCreate] = false;
+    projectTypeResult.features[FeatureFlags.WorkspaceCreate] = false;
 
-    // Specialization config take precedence over editor config.
+    // ProjectType config take precedence over editor config.
     return Object.assign(
       {},
       {
         site: editorConfig.site,
-        specialization: specialization.type,
+        projectType: projectType.type,
         title: editorConfig.title,
       },
-      specializationResult
+      projectTypeResult
     );
   }
 
@@ -435,7 +435,7 @@ export class LocalApi implements ApiComponent {
     expressResponse: express.Response,
     request: SaveFileRequest
   ): Promise<EditorFileData> {
-    return (await this.getSpecialization()).saveFile(expressRequest, request);
+    return (await this.getProjectType()).saveFile(expressRequest, request);
   }
 
   async uploadFile(
@@ -444,6 +444,6 @@ export class LocalApi implements ApiComponent {
     expressResponse: express.Response,
     request: UploadFileRequest
   ): Promise<FileData> {
-    return (await this.getSpecialization()).uploadFile(expressRequest, request);
+    return (await this.getProjectType()).uploadFile(expressRequest, request);
   }
 }

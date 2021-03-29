@@ -34,12 +34,12 @@ import {
 } from '@blinkk/editor/dist/src/editor/api';
 import {
   FileNotFoundError,
-  SpecializationStorageComponent,
+  ProjectTypeStorageComponent,
   StorageManager,
 } from '../storage/storage';
-import {GrowSpecialization} from '../specialization/growSpecialization';
+import {GrowProjectType} from '../projectType/growProjectType';
 import {Octokit} from '@octokit/core';
-import {SpecializationComponent} from '../specialization/specialization';
+import {ProjectTypeComponent} from '../projectType/projectType';
 import express from 'express';
 import {githubAuthMiddleware} from '../auth/githubAuth';
 import yaml from 'js-yaml';
@@ -48,7 +48,7 @@ const DEFAULT_AUTHOR_NAME = 'editor.dev';
 const DEFAULT_AUTHOR_EMAIL = 'hello@blinkk.com';
 
 export class GithubApi implements ApiComponent {
-  protected _specialization?: SpecializationComponent;
+  protected _projectType?: ProjectTypeComponent;
   protected _apiRouter?: express.Router;
   storageManager: StorageManager;
 
@@ -280,17 +280,17 @@ export class GithubApi implements ApiComponent {
     request: GetFileRequest
   ): Promise<EditorFileData> {
     const api = this.getApi(expressResponse);
-    const specialization = await this.getSpecialization(
+    const projectType = await this.getProjectType(
       expressRequest,
       expressResponse
     );
-    const specializationResult = await specialization.getFile(
+    const projectTypeResult = await projectType.getFile(
       expressRequest,
       request
     );
 
     // Add git history for file.
-    return Object.assign({}, specializationResult, {
+    return Object.assign({}, projectTypeResult, {
       history: await this.getFileHistory(
         api,
         expressRequest.params.organization,
@@ -350,11 +350,11 @@ export class GithubApi implements ApiComponent {
     expressResponse: express.Response,
     request: GetProjectRequest
   ): Promise<ProjectData> {
-    const specialization = await this.getSpecialization(
+    const projectType = await this.getProjectType(
       expressRequest,
       expressResponse
     );
-    const specializationResult = await specialization.getProject(
+    const projectTypeResult = await projectType.getProject(
       expressRequest,
       request
     );
@@ -362,64 +362,64 @@ export class GithubApi implements ApiComponent {
       expressRequest,
       expressResponse
     );
-    specializationResult.experiments = specializationResult.experiments || {};
-    specializationResult.features = specializationResult.features || {};
+    projectTypeResult.experiments = projectTypeResult.experiments || {};
+    projectTypeResult.features = projectTypeResult.features || {};
 
     // Pull in editor configuration for experiments.
     if (editorConfig.experiments) {
-      specializationResult.experiments = Object.assign(
+      projectTypeResult.experiments = Object.assign(
         {},
         editorConfig.experiments,
-        specializationResult.experiments
+        projectTypeResult.experiments
       );
     }
 
     // Pull in editor configuration for features.
     if (editorConfig.features) {
-      specializationResult.features = Object.assign(
+      projectTypeResult.features = Object.assign(
         {},
         editorConfig.features,
-        specializationResult.features
+        projectTypeResult.features
       );
     }
 
-    // Specialization config take precedence over editor config.
+    // ProjectType config take precedence over editor config.
     return Object.assign(
       {},
       {
         site: editorConfig.site,
-        specialization: specialization.type,
+        type: projectType.type,
         title: editorConfig.title,
         publish: {
           fields: [],
         },
       },
-      specializationResult
+      projectTypeResult
     );
   }
 
-  async getSpecialization(
+  async getProjectType(
     expressRequest: express.Request,
     expressResponse: express.Response
-  ): Promise<SpecializationComponent> {
+  ): Promise<ProjectTypeComponent> {
     const storage = await this.getStorage(expressRequest, expressResponse);
-    if (!this._specialization) {
-      // Check for specific features of the supported specializations.
-      if (await GrowSpecialization.canApply(storage)) {
-        this._specialization = new GrowSpecialization(storage);
+    if (!this._projectType) {
+      // Check for specific features of the supported projectTypes.
+      if (await GrowProjectType.canApply(storage)) {
+        this._projectType = new GrowProjectType(storage);
       } else {
-        // TODO: use generic specialization.
-        throw new Error('Unable to determine specialization.');
+        // TODO: use generic projectType.
+        throw new Error('Unable to determine projectType.');
       }
     }
 
-    return Promise.resolve(this._specialization as SpecializationComponent);
+    return Promise.resolve(this._projectType as ProjectTypeComponent);
   }
 
   async getStorage(
     expressRequest: express.Request,
     expressResponse: express.Response
-  ): Promise<SpecializationStorageComponent> {
+  ): Promise<ProjectTypeStorageComponent> {
     return this.storageManager.storageForBranch(
       expressRequest.params.organization,
       expressRequest.params.project,
@@ -698,7 +698,7 @@ export class GithubApi implements ApiComponent {
     request: SaveFileRequest
   ): Promise<EditorFileData> {
     return (
-      await this.getSpecialization(expressRequest, expressResponse)
+      await this.getProjectType(expressRequest, expressResponse)
     ).saveFile(expressRequest, request);
   }
 
@@ -709,7 +709,7 @@ export class GithubApi implements ApiComponent {
     request: UploadFileRequest
   ): Promise<FileData> {
     return (
-      await this.getSpecialization(expressRequest, expressResponse)
+      await this.getProjectType(expressRequest, expressResponse)
     ).uploadFile(expressRequest, request);
   }
 }

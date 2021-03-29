@@ -10,10 +10,10 @@ import {
   UploadFileRequest,
 } from '../api/api';
 import {FilterComponent} from '@blinkk/editor/dist/src/utility/filter';
-import {SpecializationStorageComponent} from '../storage/storage';
+import {ProjectTypeStorageComponent} from '../storage/storage';
 import express from 'express';
 
-export interface SpecializationComponent {
+export interface ProjectTypeComponent {
   fileFilter?: FilterComponent;
   type: string;
 
@@ -38,6 +38,6 @@ export interface SpecializationComponent {
   ): Promise<FileData>;
 }
 
-export interface SpecializationConstructor {
-  new (storage: SpecializationStorageComponent): SpecializationComponent;
+export interface ProjectTypeConstructor {
+  new (storage: ProjectTypeStorageComponent): ProjectTypeComponent;
 }

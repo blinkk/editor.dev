@@ -1,7 +1,7 @@
 import {
   FileNotFoundError,
-  SpecializationApiComponent,
-  SpecializationApiStorageComponent,
+  ProjectTypeApiComponent,
+  ProjectTypeApiStorageComponent,
   expandPath,
 } from './storage';
 import {FileData} from '@blinkk/editor/dist/src/editor/api';
@@ -13,14 +13,14 @@ import path from 'path';
  * Github storage uses a local cache for the files.
  * Pulls from the github service when the cache is out of date.
  */
-export class GithubStorage implements SpecializationApiStorageComponent {
+export class GithubStorage implements ProjectTypeApiStorageComponent {
   api: Octokit;
   meta?: Record<string, any>;
   root: string;
 
   constructor(
     root: string,
-    api?: SpecializationApiComponent,
+    api?: ProjectTypeApiComponent,
     meta?: Record<string, any>
   ) {
     this.root = path.resolve(root);

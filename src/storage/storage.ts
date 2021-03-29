@@ -2,9 +2,9 @@ import {GenericApiError} from '../api/api';
 import path from 'path';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface SpecializationApiComponent {}
+export interface ProjectTypeApiComponent {}
 
-export interface SpecializationStorageComponent {
+export interface ProjectTypeStorageComponent {
   root: string;
   deleteFile(path: string): Promise<void>;
   existsFile(path: string): Promise<boolean>;
@@ -13,22 +13,22 @@ export interface SpecializationStorageComponent {
   writeFile(path: string, content: string): Promise<void>;
 }
 
-export interface SpecializationApiStorageComponent
-  extends SpecializationStorageComponent {
-  api: SpecializationApiComponent;
+export interface ProjectTypeApiStorageComponent
+  extends ProjectTypeStorageComponent {
+  api: ProjectTypeApiComponent;
 }
 
-export interface SpecializationStorageConstructor {
+export interface ProjectTypeStorageConstructor {
   new (
     root: string,
-    api?: SpecializationApiComponent,
+    api?: ProjectTypeApiComponent,
     meta?: Record<string, any>
-  ): SpecializationStorageComponent;
+  ): ProjectTypeStorageComponent;
 }
 
 export interface StorageManagerConfig {
   rootDir: string;
-  storageCls: SpecializationStorageConstructor;
+  storageCls: ProjectTypeStorageConstructor;
 }
 
 export class StorageManager {
@@ -42,9 +42,9 @@ export class StorageManager {
     organization: string,
     project: string,
     branch: string,
-    api?: SpecializationApiComponent,
+    api?: ProjectTypeApiComponent,
     meta?: Record<string, any>
-  ): SpecializationStorageComponent {
+  ): ProjectTypeStorageComponent {
     organization = cleanDirectory(organization);
     project = cleanDirectory(project);
     branch = cleanDirectory(branch);
