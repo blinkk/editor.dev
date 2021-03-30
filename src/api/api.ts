@@ -11,7 +11,11 @@ import {
 import {ErrorReporting} from '@google-cloud/error-reporting';
 import express from 'express';
 
-const errorReporting = new ErrorReporting();
+const MODE = process.env.MODE || 'dev';
+
+const errorReporting = new ErrorReporting({
+  reportMode: MODE === 'prod' ? 'always' : 'never',
+});
 
 export const SPECIAL_BRANCHES = ['main', 'master', 'staging'];
 

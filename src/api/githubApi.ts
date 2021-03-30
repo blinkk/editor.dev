@@ -20,11 +20,6 @@ import {
   shortenWorkspaceName,
 } from './api';
 import {
-  ConnectorStorageComponent,
-  FileNotFoundError,
-  StorageManager,
-} from '../storage/storage';
-import {
   DeviceData,
   EditorFileData,
   EditorFileSettings,
@@ -37,9 +32,14 @@ import {
   WorkspaceData,
   WorkspacePublishConfig,
 } from '@blinkk/editor/dist/src/editor/api';
-import {ConnectorComponent} from '../connector/connector';
-import {GrowConnector} from '../connector/growConnector';
+import {
+  FileNotFoundError,
+  ProjectTypeStorageComponent,
+  StorageManager,
+} from '../storage/storage';
+import {GrowProjectType} from '../projectType/growProjectType';
 import {Octokit} from '@octokit/core';
+import {ProjectTypeComponent} from '../projectType/projectType';
 import express from 'express';
 import {githubAuthMiddleware} from '../auth/githubAuth';
 import yaml from 'js-yaml';
@@ -48,7 +48,7 @@ const DEFAULT_AUTHOR_NAME = 'editor.dev';
 const DEFAULT_AUTHOR_EMAIL = 'hello@blinkk.com';
 
 export class GithubApi implements ApiComponent {
-  protected _connector?: ConnectorComponent;
+  protected _projectType?: ProjectTypeComponent;
   protected _apiRouter?: express.Router;
   storageManager: StorageManager;
 
@@ -259,24 +259,6 @@ export class GithubApi implements ApiComponent {
     return new Octokit({auth: expressResponse.locals.access.access_token});
   }
 
-  async getConnector(
-    expressRequest: express.Request,
-    expressResponse: express.Response
-  ): Promise<ConnectorComponent> {
-    const storage = await this.getStorage(expressRequest, expressResponse);
-    if (!this._connector) {
-      // Check for specific features of the supported connectors.
-      if (await GrowConnector.canApply(storage)) {
-        this._connector = new GrowConnector(storage);
-      } else {
-        // TODO: use generic connector.
-        throw new Error('Unable to determine connector.');
-      }
-    }
-
-    return Promise.resolve(this._connector as ConnectorComponent);
-  }
-
   async getDevices(
     expressRequest: express.Request,
     expressResponse: express.Response,
@@ -298,11 +280,17 @@ export class GithubApi implements ApiComponent {
     request: GetFileRequest
   ): Promise<EditorFileData> {
     const api = this.getApi(expressResponse);
-    const connector = await this.getConnector(expressRequest, expressResponse);
-    const connectorResult = await connector.getFile(expressRequest, request);
+    const projectType = await this.getProjectType(
+      expressRequest,
+      expressResponse
+    );
+    const projectTypeResult = await projectType.getFile(
+      expressRequest,
+      request
+    );
 
     // Add git history for file.
-    return Object.assign({}, connectorResult, {
+    return Object.assign({}, projectTypeResult, {
       history: await this.getFileHistory(
         api,
         expressRequest.params.organization,
@@ -362,51 +350,76 @@ export class GithubApi implements ApiComponent {
     expressResponse: express.Response,
     request: GetProjectRequest
   ): Promise<ProjectData> {
-    const connector = await this.getConnector(expressRequest, expressResponse);
-    const connectorResult = await connector.getProject(expressRequest, request);
+    const projectType = await this.getProjectType(
+      expressRequest,
+      expressResponse
+    );
+    const projectTypeResult = await projectType.getProject(
+      expressRequest,
+      request
+    );
     const editorConfig = await this.readEditorConfig(
       expressRequest,
       expressResponse
     );
-    connectorResult.experiments = connectorResult.experiments || {};
-    connectorResult.features = connectorResult.features || {};
+    projectTypeResult.experiments = projectTypeResult.experiments || {};
+    projectTypeResult.features = projectTypeResult.features || {};
 
     // Pull in editor configuration for experiments.
     if (editorConfig.experiments) {
-      connectorResult.experiments = Object.assign(
+      projectTypeResult.experiments = Object.assign(
         {},
         editorConfig.experiments,
-        connectorResult.experiments
+        projectTypeResult.experiments
       );
     }
 
     // Pull in editor configuration for features.
     if (editorConfig.features) {
-      connectorResult.features = Object.assign(
+      projectTypeResult.features = Object.assign(
         {},
         editorConfig.features,
-        connectorResult.features
+        projectTypeResult.features
       );
     }
 
-    // Connector config take precedence over editor config.
+    // ProjectType config take precedence over editor config.
     return Object.assign(
       {},
       {
         site: editorConfig.site,
+        type: projectType.type,
         title: editorConfig.title,
         publish: {
           fields: [],
         },
       },
-      connectorResult
+      projectTypeResult
     );
+  }
+
+  async getProjectType(
+    expressRequest: express.Request,
+    expressResponse: express.Response
+  ): Promise<ProjectTypeComponent> {
+    const storage = await this.getStorage(expressRequest, expressResponse);
+    if (!this._projectType) {
+      // Check for specific features of the supported projectTypes.
+      if (await GrowProjectType.canApply(storage)) {
+        this._projectType = new GrowProjectType(storage);
+      } else {
+        // TODO: use generic projectType.
+        throw new Error('Unable to determine projectType.');
+      }
+    }
+
+    return Promise.resolve(this._projectType as ProjectTypeComponent);
   }
 
   async getStorage(
     expressRequest: express.Request,
     expressResponse: express.Response
-  ): Promise<ConnectorStorageComponent> {
+  ): Promise<ProjectTypeStorageComponent> {
     return this.storageManager.storageForBranch(
       expressRequest.params.organization,
       expressRequest.params.project,
@@ -684,10 +697,9 @@ export class GithubApi implements ApiComponent {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: SaveFileRequest
   ): Promise<EditorFileData> {
-    return (await this.getConnector(expressRequest, expressResponse)).saveFile(
-      expressRequest,
-      request
-    );
+    return (
+      await this.getProjectType(expressRequest, expressResponse)
+    ).saveFile(expressRequest, request);
   }
 
   async uploadFile(
@@ -697,7 +709,7 @@ export class GithubApi implements ApiComponent {
     request: UploadFileRequest
   ): Promise<FileData> {
     return (
-      await this.getConnector(expressRequest, expressResponse)
+      await this.getProjectType(expressRequest, expressResponse)
     ).uploadFile(expressRequest, request);
   }
 }

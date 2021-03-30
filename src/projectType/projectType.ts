@@ -9,12 +9,13 @@ import {
   SaveFileRequest,
   UploadFileRequest,
 } from '../api/api';
-import {ConnectorStorageComponent} from '../storage/storage';
 import {FilterComponent} from '@blinkk/editor/dist/src/utility/filter';
+import {ProjectTypeStorageComponent} from '../storage/storage';
 import express from 'express';
 
-export interface ConnectorComponent {
+export interface ProjectTypeComponent {
   fileFilter?: FilterComponent;
+  type: string;
 
   getFile(
     expressRequest: express.Request,
@@ -37,6 +38,6 @@ export interface ConnectorComponent {
   ): Promise<FileData>;
 }
 
-export interface ConnectorConstructor {
-  new (storage: ConnectorStorageComponent): ConnectorComponent;
+export interface ProjectTypeConstructor {
+  new (storage: ProjectTypeStorageComponent): ProjectTypeComponent;
 }

@@ -1,13 +1,13 @@
 import {
-  ConnectorStorageComponent,
   FileNotFoundError,
+  ProjectTypeStorageComponent,
   expandPath,
 } from './storage';
 import {promises as fs} from 'fs';
 import {constants as fsConstants} from 'fs';
 import path from 'path';
 
-export class LocalStorage implements ConnectorStorageComponent {
+export class LocalStorage implements ProjectTypeStorageComponent {
   root: string;
 
   constructor(root?: string) {

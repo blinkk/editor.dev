@@ -28,11 +28,11 @@ import {
   RepoCommit,
   WorkspaceData,
 } from '@blinkk/editor/dist/src/editor/api';
-import {ConnectorComponent} from '../connector/connector';
 import {FeatureFlags} from '@blinkk/editor/dist/src/editor/features';
-import {GrowConnector} from '../connector/growConnector';
+import {GrowProjectType} from '../projectType/growProjectType';
 import {LocalStorage} from '../storage/localStorage';
 import {ReadCommitResult} from 'isomorphic-git';
+import {ProjectTypeComponent} from '../projectType/projectType';
 import express from 'express';
 // TODO: FS promises does not work with isomorphic-git?
 import fs from 'fs';
@@ -40,7 +40,7 @@ import git from 'isomorphic-git';
 import yaml from 'js-yaml';
 
 export class LocalApi implements ApiComponent {
-  protected _connector?: ConnectorComponent;
+  protected _projectType?: ProjectTypeComponent;
   protected _apiRouter?: express.Router;
   storage: LocalStorage;
 
@@ -180,18 +180,18 @@ export class LocalApi implements ApiComponent {
     return commitsThatMatter;
   }
 
-  async getConnector(): Promise<ConnectorComponent> {
-    if (!this._connector) {
-      // Check for specific features of the supported connectors.
-      if (await GrowConnector.canApply(this.storage)) {
-        this._connector = new GrowConnector(this.storage);
+  async getProjectType(): Promise<ProjectTypeComponent> {
+    if (!this._projectType) {
+      // Check for specific features of the supported projectTypes.
+      if (await GrowProjectType.canApply(this.storage)) {
+        this._projectType = new GrowProjectType(this.storage);
       } else {
-        // TODO: use generic connector.
-        throw new Error('Unable to determine connector.');
+        // TODO: use generic projectType.
+        throw new Error('Unable to determine projectType.');
       }
     }
 
-    return Promise.resolve(this._connector as ConnectorComponent);
+    return Promise.resolve(this._projectType as ProjectTypeComponent);
   }
 
   async getDevices(
@@ -212,8 +212,11 @@ export class LocalApi implements ApiComponent {
     expressResponse: express.Response,
     request: GetFileRequest
   ): Promise<EditorFileData> {
-    const connector = await this.getConnector();
-    const connectorResult = await connector.getFile(expressRequest, request);
+    const projectType = await this.getProjectType();
+    const projectTypeResult = await projectType.getFile(
+      expressRequest,
+      request
+    );
 
     const history = await this.fileHistory(request.file.path);
     const commitHistory: Array<RepoCommit> = [];
@@ -232,8 +235,8 @@ export class LocalApi implements ApiComponent {
       });
     }
 
-    // TODO: Pull the git history for the file to enrich the connector result.
-    return Object.assign({}, connectorResult, {
+    // TODO: Pull the git history for the file to enrich the projectType result.
+    return Object.assign({}, projectTypeResult, {
       history: commitHistory,
     });
   }
@@ -246,12 +249,12 @@ export class LocalApi implements ApiComponent {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: GetFilesRequest
   ): Promise<Array<FileData>> {
-    const connector = await this.getConnector();
+    const projectType = await this.getProjectType();
     const files = await this.storage.readDir('/');
     let filteredFiles = files;
-    if (connector.fileFilter) {
+    if (projectType.fileFilter) {
       filteredFiles = files.filter(file =>
-        connector.fileFilter?.matches(file.path)
+        projectType.fileFilter?.matches(file.path)
       );
     } else {
       // TODO: Default file filter for api.
@@ -273,41 +276,45 @@ export class LocalApi implements ApiComponent {
     expressResponse: express.Response,
     request: GetProjectRequest
   ): Promise<ProjectData> {
-    const connector = await this.getConnector();
-    const connectorResult = await connector.getProject(expressRequest, request);
+    const projectType = await this.getProjectType();
+    const projectTypeResult = await projectType.getProject(
+      expressRequest,
+      request
+    );
     const editorConfig = await this.readEditorConfig();
-    connectorResult.experiments = connectorResult.experiments || {};
-    connectorResult.features = connectorResult.features || {};
+    projectTypeResult.experiments = projectTypeResult.experiments || {};
+    projectTypeResult.features = projectTypeResult.features || {};
 
     // Pull in editor configuration for experiments.
     if (editorConfig.experiments) {
-      connectorResult.experiments = Object.assign(
+      projectTypeResult.experiments = Object.assign(
         {},
         editorConfig.experiments,
-        connectorResult.experiments
+        projectTypeResult.experiments
       );
     }
 
     // Pull in editor configuration for features.
     if (editorConfig.features) {
-      connectorResult.features = Object.assign(
+      projectTypeResult.features = Object.assign(
         {},
         editorConfig.features,
-        connectorResult.features
+        projectTypeResult.features
       );
     }
 
     // Local api does not currently allow creating workspaces.
-    connectorResult.features[FeatureFlags.WorkspaceCreate] = false;
+    projectTypeResult.features[FeatureFlags.WorkspaceCreate] = false;
 
-    // Connector config take precedence over editor config.
+    // ProjectType config take precedence over editor config.
     return Object.assign(
       {},
       {
         site: editorConfig.site,
+        projectType: projectType.type,
         title: editorConfig.title,
       },
-      connectorResult
+      projectTypeResult
     );
   }
 
@@ -428,7 +435,7 @@ export class LocalApi implements ApiComponent {
     expressResponse: express.Response,
     request: SaveFileRequest
   ): Promise<EditorFileData> {
-    return (await this.getConnector()).saveFile(expressRequest, request);
+    return (await this.getProjectType()).saveFile(expressRequest, request);
   }
 
   async uploadFile(
@@ -437,6 +444,6 @@ export class LocalApi implements ApiComponent {
     expressResponse: express.Response,
     request: UploadFileRequest
   ): Promise<FileData> {
-    return (await this.getConnector()).uploadFile(expressRequest, request);
+    return (await this.getProjectType()).uploadFile(expressRequest, request);
   }
 }
