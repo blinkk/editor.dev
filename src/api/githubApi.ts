@@ -223,35 +223,8 @@ export class GithubApi implements ApiComponent {
     expressResponse: express.Response,
     request: DeleteFileRequest
   ): Promise<EmptyData> {
-    const api = this.getApi(expressResponse);
-    const remotePath = request.file.path.replace(/^\/*/, '');
-    const user = await this.getUser(api);
-
-    // Retrieve the existing file information.
-    const fileResponse = await api.request(
-      'GET /repos/{owner}/{repo}/contents/{path}',
-      {
-        owner: expressRequest.params.organization,
-        repo: expressRequest.params.project,
-        path: remotePath,
-        ref: expandWorkspaceBranch(expressRequest.params.branch),
-      }
-    );
-
-    // Request for delete of the file.
-    await api.request('DELETE /repos/{owner}/{repo}/contents/{path}', {
-      owner: expressRequest.params.organization,
-      repo: expressRequest.params.project,
-      message: 'Deleting file from editor.dev.',
-      branch: expandWorkspaceBranch(expressRequest.params.branch),
-      sha: (fileResponse.data as any).sha,
-      path: remotePath,
-      author: {
-        name: user.data.name || DEFAULT_AUTHOR_NAME,
-        email: user.data.email || DEFAULT_AUTHOR_EMAIL,
-      },
-    });
-
+    const storage = await this.getStorage(expressRequest, expressResponse);
+    await storage.deleteFile(request.file.path);
     return {};
   }
 
@@ -429,6 +402,7 @@ export class GithubApi implements ApiComponent {
         owner: expressRequest.params.organization,
         repo: expressRequest.params.project,
         branch: expandWorkspaceBranch(expressRequest.params.branch),
+        getUser: this.getUser.bind(this),
       }
     );
   }
