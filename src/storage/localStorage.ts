@@ -60,7 +60,7 @@ export class LocalStorage implements ProjectTypeStorageComponent {
   async readFile(filePath: string): Promise<any> {
     const fullPath = expandPath(this.root, filePath);
     try {
-      return fs.readFile(fullPath);
+      return (await fs.readFile(fullPath)).toString('utf-8');
     } catch (err) {
       if (err.code === 'ENOENT') {
         throw new FileNotFoundError('File not found', {

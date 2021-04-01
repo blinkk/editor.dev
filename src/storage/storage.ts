@@ -6,11 +6,11 @@ export interface ProjectTypeApiComponent {}
 
 export interface ProjectTypeStorageComponent {
   root: string;
-  deleteFile(path: string): Promise<void>;
+  deleteFile(path: string, sha?: string): Promise<void>;
   existsFile(path: string): Promise<boolean>;
   readDir(path: string): Promise<Array<any>>;
   readFile(path: string): Promise<any>;
-  writeFile(path: string, content: string): Promise<void>;
+  writeFile(path: string, content: string, sha?: string): Promise<void>;
 }
 
 export interface ProjectTypeApiStorageComponent
@@ -83,3 +83,8 @@ export function expandPath(root: string, filePath: string): string {
  * Normalized error for missing files in the storage classes.
  */
 export class FileNotFoundError extends GenericApiError {}
+
+/**
+ * Normalized error for missing sha in the storage classes.
+ */
+export class ShaNotFoundError extends GenericApiError {}

@@ -1,4 +1,5 @@
 import {
+  EditorFileConfig,
   EditorFileData,
   FileData,
   ProjectData,
@@ -13,15 +14,25 @@ import {
   SaveFileRequest,
   UploadFileRequest,
 } from '../api/api';
+import {FrontMatter} from '../utility/frontMatter';
 import {ProjectTypeComponent} from './projectType';
 import {ProjectTypeStorageComponent} from '../storage/storage';
 import express from 'express';
+import path from 'path';
 import yaml from 'js-yaml';
 
 export const GROW_TYPE = 'grow';
+export const MIXED_FRONT_MATTER_EXTS = ['.md'];
+export const ONLY_FRONT_MATTER_EXTS = ['.yaml', '.yml'];
+
+interface DocumentParts {
+  body?: string | null;
+  fields?: Record<string, any>;
+  frontMatter?: string | null;
+}
 
 /**
- * ProjectType for working with a Grow website.
+ * Project type for working with a Grow website.
  *
  * @see https://grow.dev
  */
@@ -51,41 +62,23 @@ export class GrowProjectType implements ProjectTypeComponent {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: GetFileRequest
   ): Promise<EditorFileData> {
+    let editorConfig: EditorFileConfig | undefined = undefined;
+    const parts = await this.readAndSplitFile(request.file.path);
+
+    if (parts.fields?.$editor) {
+      editorConfig = parts.fields.$editor;
+    }
+
+    // TODO: Find the editor config from the collection.
+
     return {
-      content: 'Example content.',
-      data: {
-        title: 'Testing',
-      },
-      dataRaw: 'title: Testing',
+      content: parts.body || undefined,
+      data: parts.fields,
+      dataRaw: parts.frontMatter || undefined,
       file: {
-        path: '/content/pages/index.yaml',
+        path: request.file.path,
       },
-      editor: {
-        fields: [
-          {
-            type: 'text',
-            key: 'title',
-            label: 'Title',
-            validation: [
-              {
-                type: 'require',
-                message: 'Title is required.',
-              },
-            ],
-          },
-          {
-            type: 'text',
-            key: 'desc',
-            label: 'Title',
-            validation: [
-              {
-                type: 'require',
-                message: 'Title is required.',
-              },
-            ],
-          },
-        ],
-      },
+      editor: editorConfig,
     };
   }
 
@@ -101,6 +94,32 @@ export class GrowProjectType implements ProjectTypeComponent {
     };
   }
 
+  async readAndSplitFile(filePath: string): Promise<DocumentParts> {
+    const rawFile = await this.storage.readFile(filePath);
+    const ext = path.extname(filePath);
+    const parts: DocumentParts = {
+      body: null,
+      frontMatter: null,
+    };
+
+    if (MIXED_FRONT_MATTER_EXTS.includes(ext)) {
+      const splitParts = FrontMatter.split(rawFile);
+      parts.body = splitParts.body;
+      parts.frontMatter = splitParts.frontMatter;
+    } else if (ONLY_FRONT_MATTER_EXTS.includes(ext)) {
+      parts.frontMatter = rawFile;
+    } else {
+      parts.body = rawFile;
+    }
+
+    if (parts.frontMatter) {
+      parts.fields = yaml.load(parts.frontMatter as string, {
+        schema: yaml.FAILSAFE_SCHEMA,
+      }) as Record<string, any>;
+    }
+    return parts;
+  }
+
   async readPodspecConfig(): Promise<PodspecConfig> {
     const rawFile = await this.storage.readFile('podspec.yaml');
     return yaml.load(rawFile) as PodspecConfig;
@@ -112,42 +131,37 @@ export class GrowProjectType implements ProjectTypeComponent {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: SaveFileRequest
   ): Promise<EditorFileData> {
-    return {
-      content: 'Example content.',
-      data: {
-        title: 'Testing',
-      },
-      dataRaw: 'title: Testing',
-      file: {
-        path: '/content/pages/index.yaml',
-      },
-      editor: {
-        fields: [
+    if (request.isRawEdit) {
+      const ext = path.extname(request.file.file.path);
+      if (ONLY_FRONT_MATTER_EXTS.includes(ext)) {
+        await this.storage.writeFile(
+          request.file.file.path,
+          request.file.dataRaw as string,
+          request.file.sha
+        );
+      } else {
+        const combinedContents = FrontMatter.combine(
           {
-            type: 'text',
-            key: 'title',
-            label: 'Title',
-            validation: [
-              {
-                type: 'require',
-                message: 'Title is required.',
-              },
-            ],
+            frontMatter: request.file.dataRaw,
+            body: request.file.content,
           },
           {
-            type: 'text',
-            key: 'desc',
-            label: 'Title',
-            validation: [
-              {
-                type: 'require',
-                message: 'Title is required.',
-              },
-            ],
-          },
-        ],
-      },
-    };
+            trailingNewline: true,
+          }
+        );
+        await this.storage.writeFile(
+          request.file.file.path,
+          combinedContents,
+          request.file.sha
+        );
+      }
+    } else {
+      // TODO: Convert json into correct yaml constructors.
+    }
+
+    return this.getFile(expressRequest, {
+      file: request.file.file,
+    });
   }
 
   get type(): string {

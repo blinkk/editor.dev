@@ -29,10 +29,11 @@ import {
   WorkspaceData,
 } from '@blinkk/editor/dist/src/editor/api';
 import {FeatureFlags} from '@blinkk/editor/dist/src/editor/features';
+import {FileNotFoundError} from '../storage/storage';
 import {GrowProjectType} from '../projectType/growProjectType';
 import {LocalStorage} from '../storage/localStorage';
-import {ReadCommitResult} from 'isomorphic-git';
 import {ProjectTypeComponent} from '../projectType/projectType';
+import {ReadCommitResult} from 'isomorphic-git';
 import express from 'express';
 // TODO: FS promises does not work with isomorphic-git?
 import fs from 'fs';
@@ -408,7 +409,7 @@ export class LocalApi implements ApiComponent {
     try {
       rawFile = await this.storage.readFile('editor.yaml');
     } catch (error) {
-      if (error.code === 'ENOENT') {
+      if (error instanceof FileNotFoundError) {
         rawFile = Promise.resolve('');
       } else {
         throw error;
