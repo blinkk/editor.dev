@@ -29,6 +29,7 @@ import {
   WorkspaceData,
 } from '@blinkk/editor/dist/src/editor/api';
 import {FeatureFlags} from '@blinkk/editor/dist/src/editor/features';
+import {FileNotFoundError} from '../storage/storage';
 import {GrowProjectType} from '../projectType/growProjectType';
 import {LocalStorage} from '../storage/localStorage';
 import {ProjectTypeComponent} from '../projectType/projectType';
@@ -38,7 +39,6 @@ import express from 'express';
 import fs from 'fs';
 import git from 'isomorphic-git';
 import yaml from 'js-yaml';
-import {FileNotFoundError} from '../storage/storage';
 
 export class LocalApi implements ApiComponent {
   protected _projectType?: ProjectTypeComponent;
