@@ -70,6 +70,8 @@ export function githubAuthMiddleware(
   res: express.Response,
   next: express.NextFunction
 ) {
+  // Reset the access in case the response is reused in memory.
+  res.locals.access = undefined;
   authenticateGithub(req.body as GHAuthRequest)
     .then(accessInfo => {
       res.locals.access = accessInfo;
