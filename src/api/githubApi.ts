@@ -396,6 +396,12 @@ export class GithubApi implements ApiComponent {
         publish: {
           fields: [],
         },
+        ui: {
+          labels: {
+            publishNotStarted: 'Create PR',
+            publishPending: 'Pending PR',
+          },
+        },
       },
       projectTypeResult
     );
