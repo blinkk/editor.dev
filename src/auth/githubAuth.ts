@@ -88,16 +88,13 @@ async function authenticateGithub(
     throw new Error('No authentication information provided.');
   }
 
-  const cacheKey = `${request.githubCode}-${request.githubState}`;
+  const cacheKey = `${request.githubCode}---${request.githubState}`;
   const key = datastore.key([AUTH_KIND, cacheKey]);
-
-  const entities = await datastore.get(key);
-  const entity = entities[0];
+  const [entity] = await datastore.get(key);
 
   if (entity === undefined) {
     // Check for in-process authentication.
     let authMeta = authCache[cacheKey];
-
     if (!authMeta) {
       // No in-progress authentication, authenticate!
       authMeta = {
@@ -137,14 +134,14 @@ async function authenticateGithub(
       return response;
     }
 
-    let response: GHAuthAccessMeta | GHAuthError = await authMeta.promise;
+    const response: GHAuthAccessMeta | GHAuthError = await authMeta.promise;
+
     verifyAuthResponse(
       response,
       'Unable to confirm authentication with GitHub.'
     );
 
-    response = response as GHAuthAccessMeta;
-    return response;
+    return response as GHAuthAccessMeta;
   }
 
   // Refresh a token that is expired.
