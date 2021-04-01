@@ -17,13 +17,13 @@ import {
 import {FrontMatter} from '../utility/frontMatter';
 import {ProjectTypeComponent} from './projectType';
 import {ProjectTypeStorageComponent} from '../storage/storage';
-import express, {response} from 'express';
+import express from 'express';
 import path from 'path';
 import yaml from 'js-yaml';
 
 export const GROW_TYPE = 'grow';
-export const MIXED_FRONT_MATTER_EXTS = ['md'];
-export const ONLY_FRONT_MATTER_EXTS = ['yaml', 'yml'];
+export const MIXED_FRONT_MATTER_EXTS = ['.md'];
+export const ONLY_FRONT_MATTER_EXTS = ['.yaml', '.yml'];
 
 interface DocumentParts {
   body?: string | null;
@@ -101,6 +101,7 @@ export class GrowProjectType implements ProjectTypeComponent {
       body: null,
       frontMatter: null,
     };
+
     if (MIXED_FRONT_MATTER_EXTS.includes(ext)) {
       const splitParts = FrontMatter.split(rawFile);
       parts.body = splitParts.body;
@@ -131,20 +132,29 @@ export class GrowProjectType implements ProjectTypeComponent {
     request: SaveFileRequest
   ): Promise<EditorFileData> {
     if (request.isRawEdit) {
-      const combinedContents = FrontMatter.combine(
-        {
-          frontMatter: request.file.dataRaw,
-          body: request.file.content,
-        },
-        {
-          trailingNewline: true,
-        }
-      );
-      await this.storage.writeFile(
-        request.file.file.path,
-        combinedContents,
-        request.file.sha
-      );
+      const ext = path.extname(request.file.file.path);
+      if (ONLY_FRONT_MATTER_EXTS.includes(ext)) {
+        await this.storage.writeFile(
+          request.file.file.path,
+          request.file.dataRaw as string,
+          request.file.sha
+        );
+      } else {
+        const combinedContents = FrontMatter.combine(
+          {
+            frontMatter: request.file.dataRaw,
+            body: request.file.content,
+          },
+          {
+            trailingNewline: true,
+          }
+        );
+        await this.storage.writeFile(
+          request.file.file.path,
+          combinedContents,
+          request.file.sha
+        );
+      }
     } else {
       // TODO: Convert json into correct yaml constructors.
     }

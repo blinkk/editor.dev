@@ -141,7 +141,7 @@ export class GithubApi implements ApiComponent {
       repo: expressRequest.params.project,
       branch: expandWorkspaceBranch(expressRequest.params.branch),
       path: remotePath,
-      message: 'New file from editor.dev.',
+      message: 'New file on editor.dev.',
       content: fileContents.toString('base64'),
       author: {
         name: user.name || DEFAULT_AUTHOR_NAME,
