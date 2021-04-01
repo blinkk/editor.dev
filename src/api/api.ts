@@ -146,6 +146,7 @@ export interface PublishRequest {
 
 export interface SaveFileRequest {
   file: EditorFileData;
+  isRawEdit: boolean;
 }
 
 export interface UploadFileRequest {

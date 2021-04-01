@@ -116,8 +116,8 @@ export class GithubApi implements ApiComponent {
       message: `Copied file on editor.dev.\n\nCopied from \`${request.originalPath}\``,
       content: (fileResponse.data as any).content || '',
       author: {
-        name: user.data.name || DEFAULT_AUTHOR_NAME,
-        email: user.data.email || DEFAULT_AUTHOR_EMAIL,
+        name: user.name || DEFAULT_AUTHOR_NAME,
+        email: user.email || DEFAULT_AUTHOR_EMAIL,
       },
     });
 
@@ -144,8 +144,8 @@ export class GithubApi implements ApiComponent {
       message: 'New file from editor.dev.',
       content: fileContents.toString('base64'),
       author: {
-        name: user.data.name || DEFAULT_AUTHOR_NAME,
-        email: user.data.email || DEFAULT_AUTHOR_EMAIL,
+        name: user.name || DEFAULT_AUTHOR_NAME,
+        email: user.email || DEFAULT_AUTHOR_EMAIL,
       },
     });
 
@@ -268,7 +268,14 @@ export class GithubApi implements ApiComponent {
         api,
         expressRequest.params.organization,
         expressRequest.params.project,
-        expressRequest.params.branch,
+        expandWorkspaceBranch(expressRequest.params.branch),
+        request.file.path
+      ),
+      sha: await this.getFileSha(
+        api,
+        expressRequest.params.organization,
+        expressRequest.params.project,
+        expandWorkspaceBranch(expressRequest.params.branch),
         request.file.path
       ),
     });
@@ -306,6 +313,29 @@ export class GithubApi implements ApiComponent {
     }
 
     return fileHistory;
+  }
+
+  async getFileSha(
+    api: Octokit,
+    owner: string,
+    repo: string,
+    branch: string,
+    path: string
+  ): Promise<String> {
+    const remotePath = path.replace(/^\/*/, '');
+
+    // Retrieve the existing file information.
+    const fileResponse = await api.request(
+      'GET /repos/{owner}/{repo}/contents/{path}',
+      {
+        owner: owner,
+        repo: repo,
+        path: remotePath,
+        ref: branch,
+      }
+    );
+
+    return (fileResponse.data as any).sha;
   }
 
   async getFiles(
@@ -408,7 +438,7 @@ export class GithubApi implements ApiComponent {
   }
 
   async getUser(api: Octokit) {
-    return api.request('GET /user');
+    return (await api.request('GET /user')).data;
   }
 
   async getWorkspace(
@@ -671,9 +701,33 @@ export class GithubApi implements ApiComponent {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: SaveFileRequest
   ): Promise<EditorFileData> {
-    return (
-      await this.getProjectType(expressRequest, expressResponse)
-    ).saveFile(expressRequest, request);
+    const api = this.getApi(expressResponse);
+    const projectType = await this.getProjectType(
+      expressRequest,
+      expressResponse
+    );
+    const projectTypeResult = await projectType.saveFile(
+      expressRequest,
+      request
+    );
+
+    // Add git history for file.
+    return Object.assign({}, projectTypeResult, {
+      history: await this.getFileHistory(
+        api,
+        expressRequest.params.organization,
+        expressRequest.params.project,
+        expandWorkspaceBranch(expressRequest.params.branch),
+        request.file.file.path
+      ),
+      sha: await this.getFileSha(
+        api,
+        expressRequest.params.organization,
+        expressRequest.params.project,
+        expandWorkspaceBranch(expressRequest.params.branch),
+        request.file.file.path
+      ),
+    });
   }
 
   async uploadFile(

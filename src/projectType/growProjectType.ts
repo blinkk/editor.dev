@@ -17,7 +17,7 @@ import {
 import {FrontMatter} from '../utility/frontMatter';
 import {ProjectTypeComponent} from './projectType';
 import {ProjectTypeStorageComponent} from '../storage/storage';
-import express from 'express';
+import express, {response} from 'express';
 import path from 'path';
 import yaml from 'js-yaml';
 
@@ -62,29 +62,8 @@ export class GrowProjectType implements ProjectTypeComponent {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: GetFileRequest
   ): Promise<EditorFileData> {
-    const rawFile = await this.storage.readFile(request.file.path);
-
-    const ext = path.extname(request.file.path);
-    const parts: DocumentParts = {
-      body: null,
-      frontMatter: null,
-    };
     let editorConfig: EditorFileConfig | undefined = undefined;
-    if (MIXED_FRONT_MATTER_EXTS.includes(ext)) {
-      const splitParts = FrontMatter.split(rawFile);
-      parts.body = splitParts.body;
-      parts.frontMatter = splitParts.frontMatter;
-    } else if (ONLY_FRONT_MATTER_EXTS.includes(ext)) {
-      parts.frontMatter = rawFile;
-    } else {
-      parts.body = rawFile;
-    }
-
-    if (parts.frontMatter) {
-      parts.fields = yaml.load(parts.frontMatter as string, {
-        schema: yaml.FAILSAFE_SCHEMA,
-      }) as Record<string, any>;
-    }
+    const parts = await this.readAndSplitFile(request.file.path);
 
     if (parts.fields?.$editor) {
       editorConfig = parts.fields.$editor;
@@ -115,6 +94,31 @@ export class GrowProjectType implements ProjectTypeComponent {
     };
   }
 
+  async readAndSplitFile(filePath: string): Promise<DocumentParts> {
+    const rawFile = await this.storage.readFile(filePath);
+    const ext = path.extname(filePath);
+    const parts: DocumentParts = {
+      body: null,
+      frontMatter: null,
+    };
+    if (MIXED_FRONT_MATTER_EXTS.includes(ext)) {
+      const splitParts = FrontMatter.split(rawFile);
+      parts.body = splitParts.body;
+      parts.frontMatter = splitParts.frontMatter;
+    } else if (ONLY_FRONT_MATTER_EXTS.includes(ext)) {
+      parts.frontMatter = rawFile;
+    } else {
+      parts.body = rawFile;
+    }
+
+    if (parts.frontMatter) {
+      parts.fields = yaml.load(parts.frontMatter as string, {
+        schema: yaml.FAILSAFE_SCHEMA,
+      }) as Record<string, any>;
+    }
+    return parts;
+  }
+
   async readPodspecConfig(): Promise<PodspecConfig> {
     const rawFile = await this.storage.readFile('podspec.yaml');
     return yaml.load(rawFile) as PodspecConfig;
@@ -126,42 +130,28 @@ export class GrowProjectType implements ProjectTypeComponent {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: SaveFileRequest
   ): Promise<EditorFileData> {
-    return {
-      content: 'Example content.',
-      data: {
-        title: 'Testing',
-      },
-      dataRaw: 'title: Testing',
-      file: {
-        path: '/content/pages/index.yaml',
-      },
-      editor: {
-        fields: [
-          {
-            type: 'text',
-            key: 'title',
-            label: 'Title',
-            validation: [
-              {
-                type: 'require',
-                message: 'Title is required.',
-              },
-            ],
-          },
-          {
-            type: 'text',
-            key: 'desc',
-            label: 'Title',
-            validation: [
-              {
-                type: 'require',
-                message: 'Title is required.',
-              },
-            ],
-          },
-        ],
-      },
-    };
+    if (request.isRawEdit) {
+      const combinedContents = FrontMatter.combine(
+        {
+          frontMatter: request.file.dataRaw,
+          body: request.file.content,
+        },
+        {
+          trailingNewline: true,
+        }
+      );
+      await this.storage.writeFile(
+        request.file.file.path,
+        combinedContents,
+        request.file.sha
+      );
+    } else {
+      // TODO: Convert json into correct yaml constructors.
+    }
+
+    return this.getFile(expressRequest, {
+      file: request.file.file,
+    });
   }
 
   get type(): string {

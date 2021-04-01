@@ -9,9 +9,6 @@ import {Octokit} from '@octokit/core';
 import {promises as fs} from 'fs';
 import path from 'path';
 
-const DEFAULT_AUTHOR_NAME = 'editor.dev';
-const DEFAULT_AUTHOR_EMAIL = 'hello@blinkk.com';
-
 /**
  * Github storage uses a local cache for the files.
  * Pulls from the github service when the cache is out of date.
@@ -37,33 +34,40 @@ export class GithubStorage implements ProjectTypeApiStorageComponent {
       });
   }
 
-  async deleteFile(filePath: string): Promise<void> {
+  async deleteFile(filePath: string, sha?: string): Promise<void> {
     const remotePath = filePath.replace(/^\/*/, '');
 
-    // Retrieve the existing file information.
-    const fileResponse = await this.api.request(
-      'GET /repos/{owner}/{repo}/contents/{path}',
-      {
-        owner: this.meta?.owner,
-        repo: this.meta?.repo,
-        path: remotePath,
-        ref: this.meta?.branch,
-      }
-    );
+    if (!sha) {
+      // Retrieve the existing file information.
+      const fileResponse = await this.api.request(
+        'GET /repos/{owner}/{repo}/contents/{path}',
+        {
+          owner: this.meta?.owner,
+          repo: this.meta?.repo,
+          path: remotePath,
+          ref: this.meta?.branch,
+        }
+      );
+      sha = (fileResponse.data as any).sha;
+
+      // TODO: Throw an error in the future when we start passing the sha.
+      // throw new ShaNotFoundError(
+      //   'Sha was not provided and is required for deleting.',
+      //   {
+      //     message: 'Sha was not provided when deleting a file.',
+      //     description: `Unable to find the sha for ${filePath} which is required to delete a file on github.`,
+      //   }
+      // );
+    }
 
     // Request for delete of the file.
-    const user = await this.meta?.getUser(this.api);
     await this.api.request('DELETE /repos/{owner}/{repo}/contents/{path}', {
       owner: this.meta?.owner,
       repo: this.meta?.repo,
-      message: 'Deleting file from editor.dev.',
-      ref: this.meta?.branch,
-      sha: (fileResponse.data as any).sha,
+      message: 'Deleted file on editor.dev.',
+      branch: this.meta?.branch,
+      sha: sha as string,
       path: remotePath,
-      author: {
-        name: user.name || DEFAULT_AUTHOR_NAME,
-        email: user.email || DEFAULT_AUTHOR_EMAIL,
-      },
     });
 
     const fullPath = expandPath(this.root, filePath);
@@ -114,7 +118,7 @@ export class GithubStorage implements ProjectTypeApiStorageComponent {
       );
 
       await this.ensureFileDir(fullPath);
-      await fs.writeFile(fullPath, fileContents.toString());
+      await fs.writeFile(fullPath, fileContents.toString('utf-8'));
 
       // Etag uses the commit sha, so store it for use in etag.
       await fs.writeFile(`${fullPath}.etag`, response.headers.etag || '');
@@ -275,7 +279,7 @@ export class GithubStorage implements ProjectTypeApiStorageComponent {
     } catch (err) {
       // Check for unmodified file.
       if (err.status === 304) {
-        return fs.readFile(fullPath);
+        return (await fs.readFile(fullPath)).toString('utf-8');
       }
 
       // Check for missing file.
@@ -290,9 +294,36 @@ export class GithubStorage implements ProjectTypeApiStorageComponent {
     }
   }
 
-  async writeFile(filePath: string, content: string): Promise<void> {
+  async writeFile(
+    filePath: string,
+    content: string,
+    sha?: string
+  ): Promise<void> {
+    const remotePath = filePath.replace(/^\/*/, '');
     const fullPath = expandPath(this.root, filePath);
-    await this.ensureFileDir(fullPath);
-    return fs.writeFile(fullPath, content);
+    const contentBuffer = Buffer.from(content);
+
+    try {
+      await this.api.request('PUT /repos/{owner}/{repo}/contents/{path}', {
+        owner: this.meta?.owner,
+        repo: this.meta?.repo,
+        path: remotePath,
+        content: contentBuffer.toString('base64'),
+        message: 'Update file on editor.dev.',
+        branch: this.meta?.branch,
+        sha: sha,
+      });
+
+      // Write the file contents to the local cache.
+      await this.ensureFileDir(fullPath);
+      await fs.writeFile(fullPath, content);
+    } catch (err) {
+      // File was created.
+      if (err.status === 201) {
+        return;
+      }
+
+      throw err;
+    }
   }
 }
