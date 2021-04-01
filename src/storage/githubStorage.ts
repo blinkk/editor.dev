@@ -211,6 +211,7 @@ export class GithubStorage implements ProjectTypeApiStorageComponent {
     return files;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async readDir(filePath: string): Promise<Array<any>> {
     // TODO: Use the filePath to just return files from
     // a specific directory.
@@ -286,7 +287,7 @@ export class GithubStorage implements ProjectTypeApiStorageComponent {
       if (err.status === 404) {
         throw new FileNotFoundError('File not found', {
           message: 'File was not found.',
-          description: `Unable to find ${filePath}`,
+          description: `Unable to find ${filePath} in the ${this.meta?.branch} branch.`,
         });
       }
 
