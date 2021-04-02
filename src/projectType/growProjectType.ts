@@ -5,6 +5,10 @@ import {
   ProjectData,
 } from '@blinkk/editor/dist/src/editor/api';
 import {
+  FileNotFoundError,
+  ProjectTypeStorageComponent,
+} from '../storage/storage';
+import {
   FilterComponent,
   IncludeExcludeFilter,
 } from '@blinkk/editor/dist/src/utility/filter';
@@ -14,9 +18,9 @@ import {
   SaveFileRequest,
   UploadFileRequest,
 } from '../api/api';
+import {DeepClean} from '@blinkk/editor/dist/src/utility/deepClean';
 import {FrontMatter} from '../utility/frontMatter';
 import {ProjectTypeComponent} from './projectType';
-import {ProjectTypeStorageComponent} from '../storage/storage';
 import express from 'express';
 import path from 'path';
 import yaml from 'js-yaml';
@@ -25,11 +29,21 @@ export const GROW_TYPE = 'grow';
 export const MIXED_FRONT_MATTER_EXTS = ['.md'];
 export const ONLY_FRONT_MATTER_EXTS = ['.yaml', '.yml'];
 
+const CONFIG_FILE = '_editor.yaml';
+
 interface DocumentParts {
   body?: string | null;
   fields?: Record<string, any>;
   frontMatter?: string | null;
 }
+
+const deepCleaner = new DeepClean({
+  removeEmptyArrays: true,
+  removeEmptyObjects: true,
+  removeEmptyStrings: true,
+  removeNulls: true,
+  removeUndefineds: true,
+});
 
 /**
  * Project type for working with a Grow website.
@@ -56,21 +70,50 @@ export class GrowProjectType implements ProjectTypeComponent {
     return storage.existsFile('podspec.yaml');
   }
 
+  async getEditorConfigForDirectory(
+    directory: string
+  ): Promise<EditorFileConfig | undefined> {
+    if (!directory) {
+      return undefined;
+    }
+
+    try {
+      const configFileName = path.join(directory, CONFIG_FILE);
+      const configFile = await this.storage.readFile(configFileName);
+      // TODO: Parse the fields to use the limited constructors.
+      return yaml.load(configFile as string, {
+        schema: yaml.FAILSAFE_SCHEMA,
+      }) as EditorFileConfig;
+    } catch (err) {
+      if (err instanceof FileNotFoundError) {
+        if (directory === '/') {
+          return undefined;
+        }
+        return this.getEditorConfigForDirectory(path.dirname(directory));
+      }
+    }
+    return undefined;
+  }
+
+  async getEditorConfigForFile(
+    filePath: string,
+    parts: DocumentParts
+  ): Promise<EditorFileConfig | undefined> {
+    if (parts.fields?.$editor) {
+      // TODO: Reparse the fields to use the limited constructors.
+      return parts.fields.$editor as EditorFileConfig;
+    }
+
+    // Look for the directory configuration.
+    return this.getEditorConfigForDirectory(path.dirname(filePath));
+  }
+
   async getFile(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: GetFileRequest
   ): Promise<EditorFileData> {
-    let editorConfig: EditorFileConfig | undefined = undefined;
     const parts = await this.readAndSplitFile(request.file.path);
-
-    if (parts.fields?.$editor) {
-      editorConfig = parts.fields.$editor;
-    }
-
-    // TODO: Find the editor config from the collection.
-
     return {
       content: parts.body || undefined,
       data: parts.fields,
@@ -78,7 +121,7 @@ export class GrowProjectType implements ProjectTypeComponent {
       file: {
         path: request.file.path,
       },
-      editor: editorConfig,
+      editor: await this.getEditorConfigForFile(request.file.path, parts),
     };
   }
 
@@ -156,7 +199,18 @@ export class GrowProjectType implements ProjectTypeComponent {
         );
       }
     } else {
+      const cleanedFields = deepCleaner.clean(request.file.data);
+
       // TODO: Convert json into correct yaml constructors.
+      await this.storage.writeFile(
+        request.file.file.path,
+        yaml.dump(cleanedFields, {
+          noArrayIndent: true,
+          noCompatMode: true,
+          sortKeys: true,
+        }),
+        request.file.sha
+      );
     }
 
     return this.getFile(expressRequest, {
