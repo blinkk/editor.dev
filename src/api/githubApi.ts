@@ -44,8 +44,10 @@ import express from 'express';
 import {githubAuthMiddleware} from '../auth/githubAuth';
 import yaml from 'js-yaml';
 
-const DEFAULT_AUTHOR_NAME = 'editor.dev';
-const DEFAULT_AUTHOR_EMAIL = 'hello@blinkk.com';
+export const COMMITTER_EMAIL = 'bot@editor.dev';
+export const COMMITTER_NAME = 'editor.dev bot';
+export const DEFAULT_AUTHOR_EMAIL = 'hello@blinkk.com';
+export const DEFAULT_AUTHOR_NAME = 'editor.dev';
 
 export class GithubApi implements ApiComponent {
   protected _projectType?: ProjectTypeComponent;
@@ -119,6 +121,10 @@ export class GithubApi implements ApiComponent {
         name: user.name || DEFAULT_AUTHOR_NAME,
         email: user.email || DEFAULT_AUTHOR_EMAIL,
       },
+      committer: {
+        name: COMMITTER_NAME,
+        email: COMMITTER_EMAIL,
+      },
     });
 
     return {
@@ -146,6 +152,10 @@ export class GithubApi implements ApiComponent {
       author: {
         name: user.name || DEFAULT_AUTHOR_NAME,
         email: user.email || DEFAULT_AUTHOR_EMAIL,
+      },
+      committer: {
+        name: COMMITTER_NAME,
+        email: COMMITTER_EMAIL,
       },
     });
 

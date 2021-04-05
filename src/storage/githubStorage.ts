@@ -1,4 +1,10 @@
 import {
+  COMMITTER_EMAIL,
+  COMMITTER_NAME,
+  DEFAULT_AUTHOR_EMAIL,
+  DEFAULT_AUTHOR_NAME,
+} from '../api/githubApi';
+import {
   FileNotFoundError,
   ProjectTypeApiComponent,
   ProjectTypeApiStorageComponent,
@@ -61,6 +67,7 @@ export class GithubStorage implements ProjectTypeApiStorageComponent {
     }
 
     // Request for delete of the file.
+    const user = await this.meta?.getUser(this.api);
     await this.api.request('DELETE /repos/{owner}/{repo}/contents/{path}', {
       owner: this.meta?.owner,
       repo: this.meta?.repo,
@@ -68,6 +75,14 @@ export class GithubStorage implements ProjectTypeApiStorageComponent {
       branch: this.meta?.branch,
       sha: sha as string,
       path: remotePath,
+      author: {
+        name: user.name || DEFAULT_AUTHOR_NAME,
+        email: user.email || DEFAULT_AUTHOR_EMAIL,
+      },
+      committer: {
+        name: COMMITTER_NAME,
+        email: COMMITTER_EMAIL,
+      },
     });
 
     const fullPath = expandPath(this.root, filePath);
