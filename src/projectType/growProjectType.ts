@@ -18,6 +18,7 @@ import {
   SaveFileRequest,
   UploadFileRequest,
 } from '../api/api';
+import {ANY_SCHEMA} from '../utility/yamlSchemas';
 import {DeepClean} from '@blinkk/editor/dist/src/utility/deepClean';
 import {FrontMatter} from '../utility/frontMatter';
 import {ProjectTypeComponent} from './projectType';
@@ -82,7 +83,7 @@ export class GrowProjectType implements ProjectTypeComponent {
       const configFile = await this.storage.readFile(configFileName);
       // TODO: Parse the fields to use the limited constructors.
       return yaml.load(configFile as string, {
-        schema: yaml.FAILSAFE_SCHEMA,
+        schema: ANY_SCHEMA,
       }) as EditorFileConfig;
     } catch (err) {
       if (err instanceof FileNotFoundError) {
@@ -157,7 +158,7 @@ export class GrowProjectType implements ProjectTypeComponent {
 
     if (parts.frontMatter) {
       parts.fields = yaml.load(parts.frontMatter as string, {
-        schema: yaml.FAILSAFE_SCHEMA,
+        schema: ANY_SCHEMA,
       }) as Record<string, any>;
     }
     return parts;
@@ -165,7 +166,9 @@ export class GrowProjectType implements ProjectTypeComponent {
 
   async readPodspecConfig(): Promise<PodspecConfig> {
     const rawFile = await this.storage.readFile('podspec.yaml');
-    return yaml.load(rawFile) as PodspecConfig;
+    return yaml.load(rawFile, {
+      schema: ANY_SCHEMA,
+    }) as PodspecConfig;
   }
 
   async saveFile(
