@@ -1,4 +1,10 @@
 import {
+  ANY_SCHEMA,
+  ImportYaml,
+  asyncYamlLoad,
+  createImportSchema,
+} from '../utility/yamlSchemas';
+import {
   EditorFileConfig,
   EditorFileData,
   FileData,
@@ -18,7 +24,6 @@ import {
   SaveFileRequest,
   UploadFileRequest,
 } from '../api/api';
-import {ANY_SCHEMA} from '../utility/yamlSchemas';
 import {DeepClean} from '@blinkk/editor/dist/src/utility/deepClean';
 import {FrontMatter} from '../utility/frontMatter';
 import {ProjectTypeComponent} from './projectType';
@@ -78,13 +83,19 @@ export class GrowProjectType implements ProjectTypeComponent {
       return undefined;
     }
 
+    const importSchema = createImportSchema(this.storage);
+
     try {
       const configFileName = path.join(directory, CONFIG_FILE);
       const configFile = await this.storage.readFile(configFileName);
-      // TODO: Parse the fields to use the limited constructors.
-      return yaml.load(configFile as string, {
-        schema: ANY_SCHEMA,
+      const configData = yaml.load(configFile as string, {
+        schema: importSchema,
       }) as EditorFileConfig;
+
+      // Async yaml operations (like file loading) cannot be done natively in
+      // js-yaml, instead uses placeholders that can handle the async operations
+      // to resolve the value.
+      return await asyncYamlLoad(configData, importSchema, [ImportYaml]);
     } catch (err) {
       if (err instanceof FileNotFoundError) {
         if (directory === '/') {
