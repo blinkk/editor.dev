@@ -112,8 +112,16 @@ export class GrowProjectType implements ProjectTypeComponent {
     parts: DocumentParts
   ): Promise<EditorFileConfig | undefined> {
     if (parts.fields?.$editor) {
-      // TODO: Reparse the fields to use the limited constructors.
-      return parts.fields.$editor as EditorFileConfig;
+      // Reparse the fields to use the limited constructors.
+      const importSchema = createImportSchema(this.storage);
+      const configData = yaml.load(parts.frontMatter as string, {
+        schema: importSchema,
+      }) as EditorFileConfig;
+
+      // Async yaml operations (like file loading) cannot be done natively in
+      // js-yaml, instead uses placeholders that can handle the async operations
+      // to resolve the value.
+      return await asyncYamlLoad(configData, importSchema, [ImportYaml]);
     }
 
     // Look for the directory configuration.
