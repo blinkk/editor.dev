@@ -3,8 +3,7 @@ import {
   ProjectTypeStorageComponent,
   expandPath,
 } from './storage';
-import {promises as fs} from 'fs';
-import {constants as fsConstants} from 'fs';
+import {promises as fs, constants as fsConstants} from 'fs';
 import path from 'path';
 
 export class LocalStorage implements ProjectTypeStorageComponent {
