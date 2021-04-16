@@ -7,11 +7,37 @@ type TagKinds = 'scalar' | 'sequence' | 'mapping';
 
 const deepWalker = new DeepWalk();
 
+/**
+ * Some yaml constructors (ex: `!g.yaml`) need to perform async
+ * operations, such as reading files or calling apis. But the js-yaml
+ * does not support async operations during the yaml loading. Instead
+ * we need to put placeholder classes that can temporarily store
+ * the information and post-load perform the async operations.
+ */
 export interface AsyncYamlTagComponent {
+  /**
+   * The async yaml tag needs to be resolved after the normal yaml
+   * processing. The `resolve` allows for triggering the async
+   * processing of the yaml constructor.
+   *
+   * The promise returned is stored in the `resolvePromise` property
+   * and a followup walk of the object will await the promise to allow
+   * for async starting of all of the async yaml tags.
+   *
+   * @param schema Yaml schema to use for any nested yaml documents.
+   * @param asyncTagClasses Async tag classes to handle with the
+   * async processing.
+   */
   resolve(
     schema: yaml.Schema,
     asyncTagClasses: Array<AsyncYamlTagConstructor>
   ): Promise<any>;
+  /**
+   * The promise from the resolve is stored so that all async tag
+   * operations can be started without having to do sync waiting for
+   * the async operations to complete.
+   */
+  resolvePromise?: Promise<any>;
 }
 
 export interface AsyncYamlTagConstructor {
@@ -94,6 +120,13 @@ const anyTags = ['scalar', 'sequence', 'mapping'].map(kind => {
 
 export const ANY_SCHEMA = yaml.DEFAULT_SCHEMA.extend(anyTags);
 
+/**
+ * Create an import schema based off a storage object to allow access
+ * to files based on the current storage.
+ *
+ * @param storage Storage object for accessing files.
+ * @returns Yaml schema that can handle imports.
+ */
 export function createImportSchema(
   storage: ProjectTypeStorageComponent
 ): yaml.Schema {
@@ -128,15 +161,25 @@ export async function asyncYamlLoad(
   schema: yaml.Schema,
   asyncTagClasses: Array<AsyncYamlTagConstructor>
 ): Promise<any> {
-  // TODO: Figure out a way to do all tags async since the await would make
-  // it a syncronous to process.
+  // Walk the data looking for instances of the async tag placeholders.
+  // First walk starts the async resolve but does not wait for the
+  // promise to resolve before continuing. This allows the async functions
+  // to be run in tandem.
+  data = await deepWalker.walk(data, async (value: any) => {
+    for (const asyncTagClass of asyncTagClasses) {
+      if (value instanceof asyncTagClass) {
+        value.resolvePromise = value.resolve(schema, asyncTagClasses);
+        return value;
+      }
+    }
+    return value;
+  });
 
-  // Walk the data looking for instances of the async tag placeholders
-  // with the replaced async values.
+  // Second walk waits for the promises to resolve and replaces the value.
   return deepWalker.walk(data, async (value: any) => {
     for (const asyncTagClass of asyncTagClasses) {
       if (value instanceof asyncTagClass) {
-        return await value.resolve(schema, asyncTagClasses);
+        return await value.resolvePromise;
       }
     }
     return value;
