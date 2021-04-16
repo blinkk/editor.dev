@@ -10,6 +10,7 @@ import {
   GetProjectRequest,
   GetWorkspaceRequest,
   GetWorkspacesRequest,
+  PingRequest,
   PublishRequest,
   SaveFileRequest,
   UploadFileRequest,
@@ -23,6 +24,7 @@ import {
   EditorFileSettings,
   EmptyData,
   FileData,
+  PingResult,
   ProjectData,
   PublishResult,
   RepoCommit,
@@ -67,6 +69,7 @@ export class LocalApi implements ApiComponent {
       addApiRoute(router, '/workspace.create', this.createWorkspace.bind(this));
       addApiRoute(router, '/workspace.get', this.getWorkspace.bind(this));
       addApiRoute(router, '/workspaces.get', this.getWorkspaces.bind(this));
+      addApiRoute(router, '/ping', this.ping.bind(this));
 
       router.use(apiErrorHandler);
 
@@ -404,18 +407,17 @@ export class LocalApi implements ApiComponent {
     ];
   }
 
-  async readEditorConfig(): Promise<EditorFileSettings> {
-    let rawFile = null;
-    try {
-      rawFile = await this.storage.readFile('editor.yaml');
-    } catch (error) {
-      if (error instanceof FileNotFoundError) {
-        rawFile = Promise.resolve('');
-      } else {
-        throw error;
-      }
-    }
-    return (yaml.load(rawFile) || {}) as EditorFileSettings;
+  async ping(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    expressRequest: express.Request,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    expressResponse: express.Response,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    request: PingRequest
+  ): Promise<PingResult> {
+    return {
+      status: 'Ok',
+    };
   }
 
   async publish(
@@ -428,6 +430,20 @@ export class LocalApi implements ApiComponent {
   ): Promise<PublishResult> {
     // TODO: Publish process.
     throw new Error('Publish workflow not available for local.');
+  }
+
+  async readEditorConfig(): Promise<EditorFileSettings> {
+    let rawFile = null;
+    try {
+      rawFile = await this.storage.readFile('editor.yaml');
+    } catch (error) {
+      if (error instanceof FileNotFoundError) {
+        rawFile = Promise.resolve('');
+      } else {
+        throw error;
+      }
+    }
+    return (yaml.load(rawFile) || {}) as EditorFileSettings;
   }
 
   async saveFile(

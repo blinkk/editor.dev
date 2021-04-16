@@ -139,6 +139,9 @@ export interface GetWorkspaceRequest {}
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface GetWorkspacesRequest {}
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface PingRequest {}
+
 export interface PublishRequest {
   workspace: WorkspaceData;
   data?: Record<string, any>;
