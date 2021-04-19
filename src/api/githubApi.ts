@@ -37,13 +37,13 @@ import {
   ProjectTypeStorageComponent,
   StorageManager,
 } from '../storage/storage';
+import {GrowApi} from './projectType/growApi';
 import {GrowProjectType} from '../projectType/growProjectType';
 import {Octokit} from '@octokit/core';
 import {ProjectTypeComponent} from '../projectType/projectType';
 import express from 'express';
 import {githubAuthMiddleware} from '../auth/githubAuth';
 import yaml from 'js-yaml';
-import {GrowApi} from './projectType/growApi';
 
 export const COMMITTER_EMAIL = 'bot@editor.dev';
 export const COMMITTER_NAME = 'editor.dev bot';
