@@ -201,10 +201,10 @@
     lodash "^4.17.19"
     to-fast-properties "^2.0.0"
 
-"@blinkk/editor@^1.0.12":
-  version "1.0.12"
-  resolved "https://registry.yarnpkg.com/@blinkk/editor/-/editor-1.0.12.tgz#c1d7c579fc0dbc8a933c92fa6b99e00e579c67e5"
-  integrity sha512-5h34LTUtLyjZRohlP2YxLT6DD/Nzm3O0a8Ex3nGsjaKZmNYD6oNJuImY22OW4eIcNKbes5OfB/9gx16POg1Sig==
+"@blinkk/editor@^1.0.13":
+  version "1.0.13"
+  resolved "https://registry.yarnpkg.com/@blinkk/editor/-/editor-1.0.13.tgz#a5e375b4dac9289a9904bffe5a2a6b1c45829cc4"
+  integrity sha512-OuFHy4cU7PgxWJwMJHA2xjZUsUwhFy4PcOlX5nJ50GlN8ZOlzLLMDKb1m6UOhF8zCV0ISL0EGugF6iX428hgTg==
   dependencies:
     "@blinkk/selective-edit" "^1.0.24"
     "@types/bent" "^7.3.2"
@@ -214,7 +214,7 @@
     "@types/marked" "^2.0.2"
     bent "^7.3.12"
     javascript-time-ago "^2.3.4"
-    js-yaml "^4.0.0"
+    js-yaml "^4.1.0"
     lodash.merge "^4.6.2"
     marked "^2.0.3"
     stackdriver-errors-js "^0.8.0"
@@ -2971,7 +2971,7 @@ js-yaml@^3.13.1, js-yaml@^3.14.0:
     argparse "^1.0.7"
     esprima "^4.0.0"
 
-js-yaml@^4.0.0, js-yaml@^4.1.0:
+js-yaml@^4.1.0:
   version "4.1.0"
   resolved "https://registry.yarnpkg.com/js-yaml/-/js-yaml-4.1.0.tgz#c1fb65f8f5017901cdd2c951864ba18458a10602"
   integrity sha512-wpxZs9NoxZaJESJGIZTyDEaYpl0FKSA+FB9aJiyemKhMwkxQg63h4T1KJgUGHpTqPDNRcmmYLugrRjJlBtWvRA==
