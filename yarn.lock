@@ -201,10 +201,10 @@
     lodash "^4.17.19"
     to-fast-properties "^2.0.0"
 
-"@blinkk/editor@^1.0.11":
-  version "1.0.11"
-  resolved "https://registry.yarnpkg.com/@blinkk/editor/-/editor-1.0.11.tgz#696d1122c6f4bdeeddecf887f2d5d7de8fbd98d5"
-  integrity sha512-wN7AXHK14iQ3qSGLbqM/UXdb/rgD0p0LtnK3xsBcCBQzopDSHCJ6zRPAL7Tu17iC3VhM9s4fL97aHPFf83mXHw==
+"@blinkk/editor@^1.0.12":
+  version "1.0.12"
+  resolved "https://registry.yarnpkg.com/@blinkk/editor/-/editor-1.0.12.tgz#c1d7c579fc0dbc8a933c92fa6b99e00e579c67e5"
+  integrity sha512-5h34LTUtLyjZRohlP2YxLT6DD/Nzm3O0a8Ex3nGsjaKZmNYD6oNJuImY22OW4eIcNKbes5OfB/9gx16POg1Sig==
   dependencies:
     "@blinkk/selective-edit" "^1.0.24"
     "@types/bent" "^7.3.2"
@@ -1170,9 +1170,9 @@ camelcase@^6.2.0:
   integrity sha512-c7wVvbw3f37nuobQNtgsgG9POC9qMbNuMQmTCqZv23b6MIz0fcYpBiOlv9gEN/hdLdnZTDQhg6e9Dq5M1vKvfg==
 
 caniuse-lite@^1.0.30001208:
-  version "1.0.30001208"
-  resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001208.tgz#a999014a35cebd4f98c405930a057a0d75352eb9"
-  integrity sha512-OE5UE4+nBOro8Dyvv0lfx+SRtfVIOM9uhKqFmJeUbGriqhhStgp1A0OyBpgy3OUF8AhYCT+PVwPC1gMl2ZcQMA==
+  version "1.0.30001211"
+  resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001211.tgz#be40d528bb10272eba0037a88adc40054810f8e2"
+  integrity sha512-v3GXWKofIkN3PkSidLI5d1oqeKNsam9nQkqieoMhP87nxOY0RPDC8X2+jcv8pjV4dRozPLSoMqNii9sDViOlIg==
 
 caseless@~0.12.0:
   version "0.12.0"
@@ -4541,9 +4541,9 @@ supports-color@^8.1.0:
     has-flag "^4.0.0"
 
 table@^6.0.4:
-  version "6.1.0"
-  resolved "https://registry.yarnpkg.com/table/-/table-6.1.0.tgz#676a0cfb206008b59e783fcd94ef8ba7d67d966c"
-  integrity sha512-T4G5KMmqIk6X87gLKWyU5exPpTjLjY5KyrFWaIjv3SvgaIUGXV7UEzGEnZJdTA38/yUS6f9PlKezQ0bYXG3iIQ==
+  version "6.3.0"
+  resolved "https://registry.yarnpkg.com/table/-/table-6.3.0.tgz#b88c2be1ae7d318638cc064b2c0604baffec79f1"
+  integrity sha512-gM9kB7aNIuSagW89Fh+SdL49uhKnVSORxMcV72u/dfptFdqExInNn5M21wgq/Uf5UdJpsboFhNe/0SoNKjaxzg==
   dependencies:
     ajv "^8.0.1"
     is-boolean-object "^1.1.0"
