@@ -43,6 +43,7 @@ import {ProjectTypeComponent} from '../projectType/projectType';
 import express from 'express';
 import {githubAuthMiddleware} from '../auth/githubAuth';
 import yaml from 'js-yaml';
+import {GrowApi} from './projectType/growApi';
 
 export const COMMITTER_EMAIL = 'bot@editor.dev';
 export const COMMITTER_NAME = 'editor.dev bot';
@@ -81,6 +82,10 @@ export class GithubApi implements ApiComponent {
       addApiRoute(router, '/workspace.create', this.createWorkspace.bind(this));
       addApiRoute(router, '/workspace.get', this.getWorkspace.bind(this));
       addApiRoute(router, '/workspaces.get', this.getWorkspaces.bind(this));
+
+      // Add project type specific routes.
+      const growApi = new GrowApi(this.storageManager);
+      router.use('/grow', growApi.apiRouter);
 
       // Error handler needs to be last.
       router.use(apiErrorHandler);

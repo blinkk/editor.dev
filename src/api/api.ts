@@ -19,9 +19,11 @@ const errorReporting = new ErrorReporting({
 
 export const SPECIAL_BRANCHES = ['main', 'master', 'staging'];
 
-export interface ApiComponent {
+export interface ApiBaseComponent {
   apiRouter: express.Router;
+}
 
+export interface ApiComponent extends ApiBaseComponent {
   copyFile(
     expressRequest: express.Request,
     expressResponse: express.Response,
