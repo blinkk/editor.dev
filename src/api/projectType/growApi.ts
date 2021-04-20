@@ -1,26 +1,18 @@
-import {ApiBaseComponent, addApiRoute, apiErrorHandler} from '../api';
+import {
+  ApiBaseComponent,
+  GetStorage,
+  addApiRoute,
+  apiErrorHandler,
+} from '../api';
 import {
   EditorFileConfig,
   GrowPartialData,
 } from '@blinkk/editor/dist/src/editor/api';
 import {FrontMatter} from '../../utility/frontMatter';
-import {ProjectTypeStorageComponent} from '../../storage/storage';
 import {createImportSchema} from '../../utility/yamlSchemas';
 import express from 'express';
 import path from 'path';
 import yaml from 'js-yaml';
-
-/**
- * Method for retrieving the storage component.
- *
- * Different services require different ways to manage the storage component.
- * To keep things consistent, allow the service to determine the best way
- * to retrieve the service component.
- */
-export type GetStorage = (
-  expressRequest: express.Request,
-  expressResponse: express.Response
-) => Promise<ProjectTypeStorageComponent>;
 
 export class GrowApi implements ApiBaseComponent {
   protected _apiRouter?: express.Router;
