@@ -32,6 +32,7 @@ import {
 } from '@blinkk/editor/dist/src/editor/api';
 import {FeatureFlags} from '@blinkk/editor/dist/src/editor/features';
 import {FileNotFoundError} from '../storage/storage';
+import {GrowApi} from './projectType/growApi';
 import {GrowProjectType} from '../projectType/growProjectType';
 import {LocalStorage} from '../storage/localStorage';
 import {ProjectTypeComponent} from '../projectType/projectType';
@@ -70,6 +71,19 @@ export class LocalApi implements ApiComponent {
       addApiRoute(router, '/workspace.get', this.getWorkspace.bind(this));
       addApiRoute(router, '/workspaces.get', this.getWorkspaces.bind(this));
       addApiRoute(router, '/ping', this.ping.bind(this));
+
+      // Add project type specific routes.
+      const growApi = new GrowApi(
+        async (
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          expressRequest: express.Request,
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          expressResponse: express.Response
+        ) => {
+          return this.storage;
+        }
+      );
+      router.use('/grow', growApi.apiRouter);
 
       router.use(apiErrorHandler);
 
@@ -315,7 +329,7 @@ export class LocalApi implements ApiComponent {
       {},
       {
         site: editorConfig.site,
-        projectType: projectType.type,
+        type: projectType.type,
         title: editorConfig.title,
       },
       projectTypeResult

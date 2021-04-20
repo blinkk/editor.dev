@@ -9,6 +9,7 @@ import {
   WorkspaceData,
 } from '@blinkk/editor/dist/src/editor/api';
 import {ErrorReporting} from '@google-cloud/error-reporting';
+import {ProjectTypeStorageComponent} from '../storage/storage';
 import express from 'express';
 
 const MODE = process.env.MODE || 'dev';
@@ -19,9 +20,11 @@ const errorReporting = new ErrorReporting({
 
 export const SPECIAL_BRANCHES = ['main', 'master', 'staging'];
 
-export interface ApiComponent {
+export interface ApiBaseComponent {
   apiRouter: express.Router;
+}
 
+export interface ApiComponent extends ApiBaseComponent {
   copyFile(
     expressRequest: express.Request,
     expressResponse: express.Response,
@@ -100,6 +103,18 @@ export interface ApiComponent {
     request: UploadFileRequest
   ): Promise<FileData>;
 }
+
+/**
+ * Method for retrieving the storage component.
+ *
+ * Different services require different ways to manage the storage component.
+ * To keep things consistent, allow the service to determine the best way
+ * to retrieve the service component.
+ */
+export type GetStorage = (
+  expressRequest: express.Request,
+  expressResponse: express.Response
+) => Promise<ProjectTypeStorageComponent>;
 
 export interface CopyFileRequest {
   originalPath: string;

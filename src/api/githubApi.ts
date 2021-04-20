@@ -37,6 +37,7 @@ import {
   ProjectTypeStorageComponent,
   StorageManager,
 } from '../storage/storage';
+import {GrowApi} from './projectType/growApi';
 import {GrowProjectType} from '../projectType/growProjectType';
 import {Octokit} from '@octokit/core';
 import {ProjectTypeComponent} from '../projectType/projectType';
@@ -81,6 +82,10 @@ export class GithubApi implements ApiComponent {
       addApiRoute(router, '/workspace.create', this.createWorkspace.bind(this));
       addApiRoute(router, '/workspace.get', this.getWorkspace.bind(this));
       addApiRoute(router, '/workspaces.get', this.getWorkspaces.bind(this));
+
+      // Add project type specific routes.
+      const growApi = new GrowApi(this.getStorage.bind(this));
+      router.use('/grow', growApi.apiRouter);
 
       // Error handler needs to be last.
       router.use(apiErrorHandler);
