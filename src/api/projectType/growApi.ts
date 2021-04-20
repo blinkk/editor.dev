@@ -47,10 +47,10 @@ export class GrowApi implements ApiBaseComponent {
     expressResponse: express.Response,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: GetPartialsRequest
-  ): Promise<Array<GrowPartialData>> {
+  ): Promise<Record<string, GrowPartialData>> {
     const storage = await this.getStorage(expressRequest, expressResponse);
     const importSchema = createImportSchema(storage);
-    const partials: Array<GrowPartialData> = [];
+    const partials: Record<string, GrowPartialData> = {};
     const viewFiles = await storage.readDir('/views/partials/');
 
     const partialInfos: Array<PendingPartialInfo> = [];
@@ -71,11 +71,19 @@ export class GrowApi implements ApiBaseComponent {
         }) as Record<string, any>;
 
         if (fields.editor) {
-          partials.push({
+          partials[partialInfo.partial] = {
             partial: partialInfo.partial,
             editor: fields.editor as EditorFileConfig,
-          });
+          };
+        } else {
+          partials[partialInfo.partial] = {
+            partial: partialInfo.partial,
+          };
         }
+      } else {
+        partials[partialInfo.partial] = {
+          partial: partialInfo.partial,
+        };
       }
     }
 
