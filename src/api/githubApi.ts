@@ -84,7 +84,7 @@ export class GithubApi implements ApiComponent {
       addApiRoute(router, '/workspaces.get', this.getWorkspaces.bind(this));
 
       // Add project type specific routes.
-      const growApi = new GrowApi(this.storageManager);
+      const growApi = new GrowApi(this.getStorage.bind(this));
       router.use('/grow', growApi.apiRouter);
 
       // Error handler needs to be last.

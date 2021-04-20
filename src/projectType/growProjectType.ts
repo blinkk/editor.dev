@@ -31,7 +31,7 @@ import express from 'express';
 import path from 'path';
 import yaml from 'js-yaml';
 
-export const GROW_TYPE = 'grow';
+export const GROW_TYPE = 'Grow';
 export const MIXED_FRONT_MATTER_EXTS = ['.md'];
 export const ONLY_FRONT_MATTER_EXTS = ['.yaml', '.yml'];
 

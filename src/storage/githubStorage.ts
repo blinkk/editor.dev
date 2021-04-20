@@ -181,6 +181,7 @@ export class GithubStorage implements ProjectTypeApiStorageComponent {
   }
 
   protected async getFilesRecursive(
+    filePath: string,
     owner: string,
     repo: string,
     treeSha: string,
@@ -200,20 +201,23 @@ export class GithubStorage implements ProjectTypeApiStorageComponent {
     const folderPromises: Array<Promise<any>> = [];
 
     for (const treeObj of treeResponse.data.tree) {
+      const fullPath = `${root}/${treeObj.path}`;
       if (treeObj.type === 'blob') {
-        files.push({
-          path: `${root}/${treeObj.path}`,
-        });
+        if (fullPath.startsWith(filePath || '/')) {
+          files.push({
+            path: fullPath,
+          });
+        }
       } else if (treeObj.type === 'tree') {
-        // Collect the promises so they can be done async.
-        folderPromises.push(
-          this.getFilesRecursive(
-            owner,
-            repo,
-            treeObj.sha,
-            `${root}/${treeObj.path}`
-          )
-        );
+        if (
+          fullPath.startsWith(filePath || '/') ||
+          filePath.startsWith(fullPath)
+        ) {
+          // Collect the promises so they can be done async.
+          folderPromises.push(
+            this.getFilesRecursive(filePath, owner, repo, treeObj.sha, fullPath)
+          );
+        }
       }
     }
 
@@ -228,9 +232,6 @@ export class GithubStorage implements ProjectTypeApiStorageComponent {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async readDir(filePath: string): Promise<Array<any>> {
-    // TODO: Use the filePath to just return files from
-    // a specific directory.
-
     // Pull the branch information.
     const branchResponse = await this.api.request(
       'GET /repos/{owner}/{repo}/branches/{branch}',
@@ -252,6 +253,7 @@ export class GithubStorage implements ProjectTypeApiStorageComponent {
     );
 
     return await this.getFilesRecursive(
+      filePath,
       this.meta?.owner,
       this.meta?.repo,
       commitResponse.data.tree.sha

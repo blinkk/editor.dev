@@ -1,19 +1,33 @@
 import {ApiBaseComponent, addApiRoute, apiErrorHandler} from '../api';
-import {GrowPartialData} from '@blinkk/editor/dist/src/editor/api';
-import {StorageManager} from '../../storage/storage';
+import {
+  EditorFileConfig,
+  GrowPartialData,
+} from '@blinkk/editor/dist/src/editor/api';
+import {FrontMatter} from '../../utility/frontMatter';
+import {ProjectTypeStorageComponent} from '../../storage/storage';
+import {createImportSchema} from '../../utility/yamlSchemas';
 import express from 'express';
+import path from 'path';
+import yaml from 'js-yaml';
 
-export const COMMITTER_EMAIL = 'bot@editor.dev';
-export const COMMITTER_NAME = 'editor.dev bot';
-export const DEFAULT_AUTHOR_EMAIL = 'hello@blinkk.com';
-export const DEFAULT_AUTHOR_NAME = 'editor.dev';
+/**
+ * Method for retrieving the storage component.
+ *
+ * Different services require different ways to manage the storage component.
+ * To keep things consistent, allow the service to determine the best way
+ * to retrieve the service component.
+ */
+export type GetStorage = (
+  expressRequest: express.Request,
+  expressResponse: express.Response
+) => Promise<ProjectTypeStorageComponent>;
 
 export class GrowApi implements ApiBaseComponent {
   protected _apiRouter?: express.Router;
-  storageManager: StorageManager;
+  getStorage: GetStorage;
 
-  constructor(storageManager: StorageManager) {
-    this.storageManager = storageManager;
+  constructor(getStorage: GetStorage) {
+    this.getStorage = getStorage;
   }
 
   get apiRouter() {
@@ -42,14 +56,45 @@ export class GrowApi implements ApiBaseComponent {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: GetPartialsRequest
   ): Promise<Array<GrowPartialData>> {
-    // TODO: Read all the partial configurations.
-    return Promise.resolve([
-      {
-        key: 'test',
-      },
-    ]);
+    const storage = await this.getStorage(expressRequest, expressResponse);
+    const importSchema = createImportSchema(storage);
+    const partials: Array<GrowPartialData> = [];
+    const viewFiles = await storage.readDir('/views/partials/');
+
+    const partialInfos: Array<PendingPartialInfo> = [];
+    for (const viewFile of viewFiles) {
+      partialInfos.push({
+        partial: path.basename(viewFile.path).split('.')[0],
+        promise: storage.readFile(viewFile.path),
+      });
+    }
+
+    // Read the editor config from each view file, if available.
+    for (const partialInfo of partialInfos) {
+      const rawViewFile = await partialInfo.promise;
+      const splitParts = FrontMatter.split(rawViewFile);
+      if (splitParts.frontMatter) {
+        const fields = yaml.load(splitParts.frontMatter as string, {
+          schema: importSchema,
+        }) as Record<string, any>;
+
+        if (fields.editor) {
+          partials.push({
+            partial: partialInfo.partial,
+            editor: fields.editor as EditorFileConfig,
+          });
+        }
+      }
+    }
+
+    return partials;
   }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface GetPartialsRequest {}
+
+interface PendingPartialInfo {
+  partial: string;
+  promise: Promise<any>;
+}
