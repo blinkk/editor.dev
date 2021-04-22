@@ -8,8 +8,12 @@ import {
   EditorFileConfig,
   GrowPartialData,
 } from '@blinkk/editor/dist/src/editor/api';
+import {
+  ImportYaml,
+  asyncYamlLoad,
+  createImportSchema,
+} from '../../utility/yamlSchemas';
 import {FrontMatter} from '../../utility/frontMatter';
-import {createImportSchema} from '../../utility/yamlSchemas';
 import express from 'express';
 import path from 'path';
 import yaml from 'js-yaml';
@@ -66,9 +70,14 @@ export class GrowApi implements ApiBaseComponent {
       const rawViewFile = await partialInfo.promise;
       const splitParts = FrontMatter.split(rawViewFile);
       if (splitParts.frontMatter) {
-        const fields = yaml.load(splitParts.frontMatter as string, {
+        let fields = yaml.load(splitParts.frontMatter as string, {
           schema: importSchema,
         }) as Record<string, any>;
+
+        // Async yaml operations (like file loading) cannot be done natively in
+        // js-yaml, instead uses placeholders that can handle the async operations
+        // to resolve the value.
+        fields = await asyncYamlLoad(fields, importSchema, [ImportYaml]);
 
         if (fields.editor) {
           partials[partialInfo.partial] = {
