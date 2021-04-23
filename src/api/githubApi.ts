@@ -64,7 +64,7 @@ export class GithubApi implements ApiComponent {
       const router = express.Router({
         mergeParams: true,
       });
-      router.use(express.json());
+      router.use(express.json({limit: '5mb'}));
 
       // Use auth middleware for authenticating.
       router.use(githubAuthMiddleware);

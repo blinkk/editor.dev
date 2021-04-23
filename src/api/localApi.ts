@@ -55,7 +55,7 @@ export class LocalApi implements ApiComponent {
   get apiRouter() {
     if (!this._apiRouter) {
       const router = express.Router();
-      router.use(express.json());
+      router.use(express.json({limit: '5mb'}));
 
       addApiRoute(router, '/devices.get', this.getDevices.bind(this));
       addApiRoute(router, '/file.copy', this.copyFile.bind(this));
