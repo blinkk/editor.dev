@@ -200,15 +200,15 @@
     "@babel/helper-validator-identifier" "^7.12.11"
     to-fast-properties "^2.0.0"
 
-"@blinkk/editor@^1.0.14":
-  version "1.0.14"
-  resolved "https://registry.yarnpkg.com/@blinkk/editor/-/editor-1.0.14.tgz#9f3f7dbfc7817dbe09b7f8b4d34cd54a1af0c32b"
-  integrity sha512-8UJiI81E8jzud9U45q/Wz5K+8d+brIKKvRFsIcloL0TcEmQOqaXLKFbqIwrnvTxPKvb8/nmsEccTakja/C53sA==
+"@blinkk/editor@^1.0.15":
+  version "1.0.15"
+  resolved "https://registry.yarnpkg.com/@blinkk/editor/-/editor-1.0.15.tgz#9dc879186c79ab6ef3614427bcb6402cef957cc8"
+  integrity sha512-8dioRR3kqU8gaKx7vzWeXH5j+W6LNxSiFbIPCcvgzCXj4FXBf2+N8hvVXGJfh/1LPhqtPeYauI1FuDkxbznttQ==
   dependencies:
-    "@blinkk/selective-edit" "^1.0.24"
+    "@blinkk/selective-edit" "^1.0.28"
     "@types/bent" "^7.3.2"
     "@types/javascript-time-ago" "^2.0.2"
-    "@types/js-yaml" "^4.0.0"
+    "@types/js-yaml" "^4.0.1"
     "@types/lodash.merge" "^4.6.6"
     "@types/marked" "^2.0.2"
     bent "^7.3.12"
@@ -218,10 +218,10 @@
     marked "^2.0.3"
     stackdriver-errors-js "^0.8.0"
 
-"@blinkk/selective-edit@^1.0.24":
-  version "1.0.27"
-  resolved "https://registry.yarnpkg.com/@blinkk/selective-edit/-/selective-edit-1.0.27.tgz#d3c540721d8bcd8f72dd8e4909b69cc820bc50e5"
-  integrity sha512-J/Y3IzPfWSAHpDXKTgCND5KwKAEsegvaDNYQj51qHQ1a/JvVhBaOkxcQAEM6mmIFOlNcACV2KkbTqwptCk7HfQ==
+"@blinkk/selective-edit@^1.0.28":
+  version "1.0.28"
+  resolved "https://registry.yarnpkg.com/@blinkk/selective-edit/-/selective-edit-1.0.28.tgz#8b1e343a5222d3585b11ae3571e7ec6ec725e743"
+  integrity sha512-jTrleN1Lw44qmK1+JVru6R18BsFe7JG68UPyjCKTR5imF+EmMGO7KvlO7c30BotgIXSZ3fiw0GddFgH6gFReOQ==
   dependencies:
     json-stable-stringify "^1.0.1"
     lit-html "^1.3.0"
@@ -391,10 +391,10 @@
     "@octokit/types" "^6.0.3"
     universal-user-agent "^6.0.0"
 
-"@octokit/openapi-types@^6.0.0":
-  version "6.1.0"
-  resolved "https://registry.yarnpkg.com/@octokit/openapi-types/-/openapi-types-6.1.0.tgz#cf0f859f9a4833b7fa5141b53e1d62d5d1cbc78f"
-  integrity sha512-Z9fDZVbGj4dFLErEoXUSuZhk3wJ8KVGnbrUwoPijsQ9EyNwOeQ+U2jSqaHUz8WtgIWf0aeO59oJyhMpWCKaabg==
+"@octokit/openapi-types@^6.1.1":
+  version "6.1.1"
+  resolved "https://registry.yarnpkg.com/@octokit/openapi-types/-/openapi-types-6.1.1.tgz#27f9386fcbcb9846b27b1bc8a41ba6f313c922a6"
+  integrity sha512-ICBhnEb+ahi/TTdNuYb/kTyKVBgAM0VD4k6JPzlhJyzt3Z+Tq/bynwCD+gpkJP7AEcNnzC8YO5R39trmzEo2UA==
 
 "@octokit/request-error@^2.0.0", "@octokit/request-error@^2.0.5":
   version "2.0.5"
@@ -418,11 +418,11 @@
     universal-user-agent "^6.0.0"
 
 "@octokit/types@^6.0.3", "@octokit/types@^6.7.1":
-  version "6.13.1"
-  resolved "https://registry.yarnpkg.com/@octokit/types/-/types-6.13.1.tgz#85f447f97dc7edb672f221df51f56a51785c131a"
-  integrity sha512-UF/PL0y4SKGx/p1azFf7e6j9lB78tVwAFvnHtslzOJ6VipshYks74qm9jjTEDlCyaTmbhbk2h3Run5l0CtCF6A==
+  version "6.13.2"
+  resolved "https://registry.yarnpkg.com/@octokit/types/-/types-6.13.2.tgz#e3423dc733567ac4836e116b34d154a8e9cbbf3c"
+  integrity sha512-jN5LImYHvv7W6SZargq1UMJ3EiaqIz5qkpfsv4GAb4b16SGqctxtOU2TQAZxvsKHkOw2A4zxdsi5wR9en1/ezQ==
   dependencies:
-    "@octokit/openapi-types" "^6.0.0"
+    "@octokit/openapi-types" "^6.1.1"
 
 "@protobufjs/aspromise@^1.1.1", "@protobufjs/aspromise@^1.1.2":
   version "1.1.2"
@@ -545,7 +545,7 @@
   resolved "https://registry.yarnpkg.com/@types/javascript-time-ago/-/javascript-time-ago-2.0.2.tgz#875569ced6fa170dea36e6b6efe3c9f498e3d553"
   integrity sha512-uBUXwIG8YzPuWw5c6yV5RGvskkNOxnR+9hctOv8cptyMlB0IgfzeqFo0jkK+Ich8zGchvWghOT3Ryqr3bZmH3A==
 
-"@types/js-yaml@^4.0.0", "@types/js-yaml@^4.0.1":
+"@types/js-yaml@^4.0.1":
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/@types/js-yaml/-/js-yaml-4.0.1.tgz#5544730b65a480b18ace6b6ce914e519cec2d43b"
   integrity sha512-xdOvNmXmrZqqPy3kuCQ+fz6wA0xU5pji9cd1nDrflWaAWtYLLGk5ykW0H6yg5TVyehHP1pfmuuSaZkhP+kspVA==
@@ -4501,9 +4501,9 @@ supports-color@^8.1.0:
     has-flag "^4.0.0"
 
 table@^6.0.4:
-  version "6.4.0"
-  resolved "https://registry.yarnpkg.com/table/-/table-6.4.0.tgz#9501324358c313162cf52b2843a8b221e75fbefc"
-  integrity sha512-/Vfr23BDjJT2kfsCmYtnJqEPdD/8Dh/MDIQxfcbe+09lZUel6gluquwdMTrLERBw623Nv34DLGZ11krWn5AAqw==
+  version "6.5.1"
+  resolved "https://registry.yarnpkg.com/table/-/table-6.5.1.tgz#930885a7430f15f8766b35cd1e36de40793db523"
+  integrity sha512-xGDXWTBJxahkzPQCsn1S9ESHEenU7TbMD5Iv4FeopXv/XwJyWatFjfbor+6ipI10/MNPXBYUamYukOrbPZ9L/w==
   dependencies:
     ajv "^8.0.1"
     lodash.clonedeep "^4.5.0"
@@ -4511,6 +4511,7 @@ table@^6.0.4:
     lodash.truncate "^4.4.2"
     slice-ansi "^4.0.0"
     string-width "^4.2.0"
+    strip-ansi "^6.0.0"
 
 teeny-request@6.0.1:
   version "6.0.1"
