@@ -12,6 +12,7 @@ import {
 } from './storage';
 import {FileData} from '@blinkk/editor/dist/src/editor/api';
 import {Octokit} from '@octokit/core';
+import {PromiseCache} from '../utility/promiseCache';
 import {promises as fs} from 'fs';
 import path from 'path';
 
@@ -21,6 +22,13 @@ import path from 'path';
  */
 export class GithubStorage implements ProjectTypeApiStorageComponent {
   api: Octokit;
+  /**
+   * Cache to store the promises for loading files.
+   *
+   * Normally the storage class is created with each request so the
+   * cache is not long-lived and should be separate for each request.
+   */
+  cache: PromiseCache;
   meta?: Record<string, any>;
   root: string;
 
@@ -32,6 +40,7 @@ export class GithubStorage implements ProjectTypeApiStorageComponent {
     this.root = path.resolve(root);
     this.api = api as Octokit;
     this.meta = meta;
+    this.cache = new PromiseCache();
 
     fs.mkdir(this.root, {recursive: true})
       .then(() => {})
@@ -114,16 +123,20 @@ export class GithubStorage implements ProjectTypeApiStorageComponent {
     }
 
     try {
-      const response = await this.api.request(
-        'GET /repos/{owner}/{repo}/contents/{path}',
-        {
-          headers: headers,
-          owner: this.meta?.owner,
-          repo: this.meta?.repo,
-          path: remotePath,
-          ref: this.meta?.branch,
-        }
-      );
+      if (!this.cache.has(filePath)) {
+        this.cache.set(
+          filePath,
+          this.api.request('GET /repos/{owner}/{repo}/contents/{path}', {
+            headers: headers,
+            owner: this.meta?.owner,
+            repo: this.meta?.repo,
+            path: remotePath,
+            ref: this.meta?.branch,
+          })
+        );
+      }
+      const cached = this.cache.get(filePath);
+      const response = await cached;
 
       // Write the file contents to the local cache.
       const fullPath = expandPath(this.root, filePath);
@@ -270,16 +283,20 @@ export class GithubStorage implements ProjectTypeApiStorageComponent {
     }
 
     try {
-      const response = await this.api.request(
-        'GET /repos/{owner}/{repo}/contents/{path}',
-        {
-          headers: headers,
-          owner: this.meta?.owner,
-          repo: this.meta?.repo,
-          path: remotePath,
-          ref: this.meta?.branch,
-        }
-      );
+      if (!this.cache.has(filePath)) {
+        this.cache.set(
+          filePath,
+          this.api.request('GET /repos/{owner}/{repo}/contents/{path}', {
+            headers: headers,
+            owner: this.meta?.owner,
+            repo: this.meta?.repo,
+            path: remotePath,
+            ref: this.meta?.branch,
+          })
+        );
+      }
+      const cached = this.cache.get(filePath);
+      const response = await cached;
 
       // Write the file contents to the local cache.
       const fileContents = Buffer.from(

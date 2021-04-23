@@ -5,6 +5,12 @@ import yaml from 'js-yaml';
 
 type TagKinds = 'scalar' | 'sequence' | 'mapping';
 
+interface yamlCacheInfo {
+  filePromise?: Promise<any>;
+  loadPromise?: Promise<any>;
+  value?: DeepObject;
+}
+
 const deepWalker = new DeepWalk();
 
 /**
@@ -57,10 +63,16 @@ export interface AsyncYamlTagConstructor {
 export class ImportYaml implements AsyncYamlTagComponent {
   rawPath: string;
   storage: ProjectTypeStorageComponent;
+  cache: Record<string, yamlCacheInfo>;
 
-  constructor(storage: ProjectTypeStorageComponent, path: string) {
+  constructor(
+    storage: ProjectTypeStorageComponent,
+    path: string,
+    cache: Record<string, yamlCacheInfo>
+  ) {
     this.rawPath = path;
     this.storage = storage;
+    this.cache = cache;
   }
 
   get deepPath() {
@@ -71,17 +83,46 @@ export class ImportYaml implements AsyncYamlTagComponent {
     return this.rawPath.split('?')[0];
   }
 
+  async loadData(
+    schema: yaml.Schema,
+    asyncTagClasses: Array<AsyncYamlTagConstructor>
+  ): Promise<any> {
+    const cached = this.cache[this.path];
+    const importFile = await cached.loadPromise;
+    const importData = yaml.load(importFile as string, {
+      schema: schema,
+    });
+    cached.value = new DeepObject(
+      await asyncYamlLoad(importData, schema, asyncTagClasses)
+    );
+    return cached.value;
+  }
+
   async resolve(
     schema: yaml.Schema,
     asyncTagClasses: Array<AsyncYamlTagConstructor>
   ): Promise<any> {
-    const importFile = await this.storage.readFile(this.path);
-    let importData = yaml.load(importFile as string, {
-      schema: schema,
-    });
-    importData = await asyncYamlLoad(importData, schema, asyncTagClasses);
-    const deepImportData = new DeepObject(importData as any);
-    return deepImportData.get(this.deepPath);
+    if (!this.cache[this.path]) {
+      this.cache[this.path] = {};
+    }
+    const cached = this.cache[this.path];
+
+    // If no file has been read, read in the file.
+    if (cached.filePromise === undefined) {
+      cached.filePromise = this.storage.readFile(this.path);
+    }
+
+    if (cached.value === undefined) {
+      // If the file has not been yaml loaded, load the file.
+      if (cached.loadPromise === undefined) {
+        cached.loadPromise = this.loadData(schema, asyncTagClasses);
+      }
+      await cached.loadPromise;
+    }
+    if (!cached.value) {
+      throw Error('Resolved data without a value.');
+    }
+    return cached.value.get(this.deepPath);
   }
 }
 
@@ -130,17 +171,18 @@ export const ANY_SCHEMA = yaml.DEFAULT_SCHEMA.extend(anyTags);
 export function createImportSchema(
   storage: ProjectTypeStorageComponent
 ): yaml.Schema {
+  const cache: Record<string, yamlCacheInfo> = {};
   const importTags: Array<yaml.Type> = [
-    new yaml.Type('!a.yaml', {
+    new yaml.Type('!pod.yaml', {
       kind: 'scalar',
       construct: function (data: any): any {
-        return new ImportYaml(storage, data);
+        return new ImportYaml(storage, data, cache);
       },
     }),
     new yaml.Type('!g.yaml', {
       kind: 'scalar',
       construct: function (data: any): any {
-        return new ImportYaml(storage, data);
+        return new ImportYaml(storage, data, cache);
       },
     }),
   ];
