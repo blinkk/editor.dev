@@ -4,13 +4,22 @@ import {
   expandPath,
 } from './storage';
 import {promises as fs, constants as fsConstants} from 'fs';
+import {PromiseCache} from '../utility/promiseCache';
 import path from 'path';
 
 export class LocalStorage implements ProjectTypeStorageComponent {
   root: string;
+  /**
+   * Cache to store the promises for loading files.
+   *
+   * Normally the storage class is created with each request so the
+   * cache is not long-lived and should be separate for each request.
+   */
+  cache: PromiseCache;
 
   constructor(root?: string) {
     this.root = path.resolve(root || process.cwd());
+    this.cache = new PromiseCache();
   }
 
   async deleteFile(filePath: string): Promise<void> {
@@ -59,7 +68,12 @@ export class LocalStorage implements ProjectTypeStorageComponent {
   async readFile(filePath: string): Promise<any> {
     const fullPath = expandPath(this.root, filePath);
     try {
-      return (await fs.readFile(fullPath)).toString('utf-8');
+      const cached = this.cache.get(filePath);
+      if (cached) {
+        return (await cached).toString('utf-8');
+      }
+      const promise = this.cache.set(filePath, fs.readFile(fullPath));
+      return (await promise).toString('utf-8');
     } catch (err) {
       if (err.code === 'ENOENT') {
         throw new FileNotFoundError('File not found', {
