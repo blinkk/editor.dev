@@ -44,6 +44,7 @@ interface DocumentParts {
 }
 
 const deepCleaner = new DeepClean({
+  protectedKeyPatterns: [/\$path.*/],
   removeEmptyArrays: true,
   removeEmptyObjects: true,
   removeEmptyStrings: true,
