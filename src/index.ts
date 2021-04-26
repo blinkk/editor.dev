@@ -27,13 +27,17 @@ const program = new Command('npx @blinkk/editor.dev');
 program.version(packageData.version);
 program.arguments('[path]');
 program.addOption(
-  new Option('-p, --port', 'port to serve the local API from.').default(PORT)
+  new Option(
+    '-p, --port <number>',
+    'port to serve the local API from.'
+  ).default(PORT)
 );
 program.action((path, options) => {
   // Running as a command uses the local storage and api.
   const storage = new LocalStorage(path);
   const localApi = new LocalApi(storage);
   const port = options.port || PORT;
+
   app.use('/', localApi.apiRouter);
 
   app.listen(port, () => {
