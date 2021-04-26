@@ -42,6 +42,7 @@ import express from 'express';
 import fs from 'fs';
 import git from 'isomorphic-git';
 import yaml from 'js-yaml';
+import {AmagakiProjectType} from '../projectType/amagakiProjectType';
 
 export class LocalApi implements ApiComponent {
   protected _projectType?: ProjectTypeComponent;
@@ -73,6 +74,17 @@ export class LocalApi implements ApiComponent {
       addApiRoute(router, '/ping', this.ping.bind(this));
 
       // Add project type specific routes.
+      const amagakiApi = new AmagakiApi(
+        async (
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          expressRequest: express.Request,
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          expressResponse: express.Response
+        ) => {
+          return this.storage;
+        }
+      );
+      router.use('/amagaki', amagakiApi.apiRouter);
       const growApi = new GrowApi(
         async (
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -203,6 +215,8 @@ export class LocalApi implements ApiComponent {
       // Check for specific features of the supported projectTypes.
       if (await GrowProjectType.canApply(this.storage)) {
         this._projectType = new GrowProjectType(this.storage);
+      } else if (await AmagakiProjectType.canApply(this.storage)) {
+        this._projectType = new AmagakiProjectType(this.storage);
       } else {
         // TODO: use generic projectType.
         throw new Error('Unable to determine projectType.');

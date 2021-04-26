@@ -6,7 +6,7 @@ import {
 } from '../api';
 import {
   EditorFileConfig,
-  GrowPartialData,
+  PartialData,
 } from '@blinkk/editor/dist/src/editor/api';
 import {
   ImportYaml,
@@ -51,10 +51,10 @@ export class GrowApi implements ApiBaseComponent {
     expressResponse: express.Response,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: GetPartialsRequest
-  ): Promise<Record<string, GrowPartialData>> {
+  ): Promise<Record<string, PartialData>> {
     const storage = await this.getStorage(expressRequest, expressResponse);
     const importSchema = createImportSchema(storage);
-    const partials: Record<string, GrowPartialData> = {};
+    const partials: Record<string, PartialData> = {};
     const viewFiles = await storage.readDir('/views/partials/');
 
     const partialInfos: Array<PendingPartialInfo> = [];
