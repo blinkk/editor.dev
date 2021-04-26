@@ -30,6 +30,8 @@ import {
   RepoCommit,
   WorkspaceData,
 } from '@blinkk/editor/dist/src/editor/api';
+import {AmagakiApi} from './projectType/amagakiApi';
+import {AmagakiProjectType} from '../projectType/amagakiProjectType';
 import {FeatureFlags} from '@blinkk/editor/dist/src/editor/features';
 import {FileNotFoundError} from '../storage/storage';
 import {GrowApi} from './projectType/growApi';
@@ -42,7 +44,6 @@ import express from 'express';
 import fs from 'fs';
 import git from 'isomorphic-git';
 import yaml from 'js-yaml';
-import {AmagakiProjectType} from '../projectType/amagakiProjectType';
 
 export class LocalApi implements ApiComponent {
   protected _projectType?: ProjectTypeComponent;
@@ -73,28 +74,19 @@ export class LocalApi implements ApiComponent {
       addApiRoute(router, '/workspaces.get', this.getWorkspaces.bind(this));
       addApiRoute(router, '/ping', this.ping.bind(this));
 
+      const getStorage = async (
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        expressRequest: express.Request,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        expressResponse: express.Response
+      ) => {
+        return this.storage;
+      };
+
       // Add project type specific routes.
-      const amagakiApi = new AmagakiApi(
-        async (
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          expressRequest: express.Request,
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          expressResponse: express.Response
-        ) => {
-          return this.storage;
-        }
-      );
+      const amagakiApi = new AmagakiApi(getStorage);
       router.use('/amagaki', amagakiApi.apiRouter);
-      const growApi = new GrowApi(
-        async (
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          expressRequest: express.Request,
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          expressResponse: express.Response
-        ) => {
-          return this.storage;
-        }
-      );
+      const growApi = new GrowApi(getStorage);
       router.use('/grow', growApi.apiRouter);
 
       router.use(apiErrorHandler);

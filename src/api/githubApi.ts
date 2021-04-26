@@ -37,6 +37,8 @@ import {
   ProjectTypeStorageComponent,
   StorageManager,
 } from '../storage/storage';
+import {AmagakiApi} from './projectType/amagakiApi';
+import {AmagakiProjectType} from '../projectType/amagakiProjectType';
 import {GrowApi} from './projectType/growApi';
 import {GrowProjectType} from '../projectType/growProjectType';
 import {Octokit} from '@octokit/core';
@@ -44,8 +46,6 @@ import {ProjectTypeComponent} from '../projectType/projectType';
 import express from 'express';
 import {githubAuthMiddleware} from '../auth/githubAuth';
 import yaml from 'js-yaml';
-import {AmagakiProjectType} from '../projectType/amagakiProjectType';
-import {AmagakiApi} from './projectType/amagakiApi';
 
 export const COMMITTER_EMAIL = 'bot@editor.dev';
 export const COMMITTER_NAME = 'editor.dev bot';
