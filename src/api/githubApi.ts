@@ -37,6 +37,8 @@ import {
   ProjectTypeStorageComponent,
   StorageManager,
 } from '../storage/storage';
+import {AmagakiApi} from './projectType/amagakiApi';
+import {AmagakiProjectType} from '../projectType/amagakiProjectType';
 import {GrowApi} from './projectType/growApi';
 import {GrowProjectType} from '../projectType/growProjectType';
 import {Octokit} from '@octokit/core';
@@ -84,6 +86,8 @@ export class GithubApi implements ApiComponent {
       addApiRoute(router, '/workspaces.get', this.getWorkspaces.bind(this));
 
       // Add project type specific routes.
+      const amagakiApi = new AmagakiApi(this.getStorage.bind(this));
+      router.use('/amagaki', amagakiApi.apiRouter);
       const growApi = new GrowApi(this.getStorage.bind(this));
       router.use('/grow', growApi.apiRouter);
 
@@ -431,6 +435,8 @@ export class GithubApi implements ApiComponent {
       // Check for specific features of the supported projectTypes.
       if (await GrowProjectType.canApply(storage)) {
         this._projectType = new GrowProjectType(storage);
+      } else if (await AmagakiProjectType.canApply(storage)) {
+        this._projectType = new AmagakiProjectType(storage);
       } else {
         // TODO: use generic projectType.
         throw new Error('Unable to determine projectType.');
