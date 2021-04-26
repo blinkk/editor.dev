@@ -5,6 +5,7 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "outDir": "dist",
+    "resolveJsonModule": true,
     "rootDir": ".",
     "target": "es2020",
   },

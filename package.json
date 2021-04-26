@@ -61,7 +61,7 @@
     "ava": "^3.14.0",
     "codecov": "^3.8.1",
     "concurrently": "^6.0.2",
-    "eslint": "^7.24.0",
+    "eslint": "^7.25.0",
     "eslint-plugin-prettier": "^3.4.0",
     "eslint-plugin-sort-class-members": "^1.11.0",
     "gts": "^3.1.0",
@@ -72,12 +72,13 @@
     "typescript": "^4.2.4"
   },
   "dependencies": {
-    "@blinkk/editor": "^1.0.15",
+    "@blinkk/editor": "^1.0.16",
     "@google-cloud/datastore": "^6.3.1",
     "@google-cloud/error-reporting": "^2.0.1",
     "@octokit/core": "^3.4.0",
     "@types/bent": "^7.3.2",
     "bent": "^7.3.12",
+    "commander": "^7.2.0",
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "isomorphic-git": "^1.8.2",
