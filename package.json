@@ -35,7 +35,7 @@
     "docs": "npx typedoc",
     "fix": "npx eslint --fix src/**/*.ts",
     "hosted": "nodemon ./src/server/server.ts",
-    "prepublishOnly": "yarn run compile",
+    "prepublishOnly": "npx tsc",
     "serve": "nodemon  ./src/index.ts",
     "test": "nyc ava",
     "test-ci": "nyc --reporter=lcov ava && codecov"
