@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-import * as packageData from '../package.json';
 import {Command, Option} from 'commander';
 import {LocalApi} from './api/localApi';
 import {LocalStorage} from './storage/localStorage';
@@ -24,7 +23,6 @@ app.use(
 );
 
 const program = new Command('npx @blinkk/editor.dev');
-program.version(packageData.version);
 program.arguments('[path]');
 program.addOption(
   new Option(
