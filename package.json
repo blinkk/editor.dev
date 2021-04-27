@@ -1,6 +1,6 @@
 {
   "name": "@blinkk/editor.dev",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "license": "MIT",
   "homepage": "https://blinkkcode.github.com/live-edit-connector",
   "description": "Server for live editor.",
