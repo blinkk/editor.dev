@@ -16,7 +16,7 @@ export class FrontMatter {
     options?: FrontMatterCombineOptions
   ): string {
     if (!doc.frontMatter && !doc.body) {
-      console.log('no frontmatter or body');
+      console.error('no frontmatter or body');
       return '';
     }
 

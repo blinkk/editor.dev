@@ -2,6 +2,7 @@
 import {Command, Option} from 'commander';
 import {LocalApi} from './api/localApi';
 import {LocalStorage} from './storage/localStorage';
+import {StorageManager} from './storage/storage';
 import cors from 'cors';
 import express from 'express';
 
@@ -31,9 +32,14 @@ program.addOption(
   ).default(PORT)
 );
 program.action((path, options) => {
+  // Site files are managed by the storage manager.
+  const storageManager = new StorageManager({
+    rootDir: path,
+    storageCls: LocalStorage,
+  });
+
   // Running as a command uses the local storage and api.
-  const storage = new LocalStorage(path);
-  const localApi = new LocalApi(storage);
+  const localApi = new LocalApi(storageManager);
   const port = options.port || PORT;
 
   app.use('/', localApi.apiRouter);
