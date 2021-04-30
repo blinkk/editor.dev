@@ -1,3 +1,4 @@
+import {YamlTypeComponent, YamlTypeConstructor} from './yamlConvert';
 import {DeepObject} from '@blinkk/selective-edit/dist/src/utility/deepObject';
 import {DeepWalk} from '@blinkk/editor/dist/src/utility/deepWalk';
 import {ProjectTypeStorageComponent} from '../storage/storage';
@@ -136,7 +137,7 @@ export class UnknownTag {
   _data: any;
 
   constructor(type: string, data: any) {
-    this._type = type;
+    this._type = type.startsWith('!') ? type.slice(1) : type;
     this._data = data;
   }
 }
@@ -191,6 +192,32 @@ export function createImportSchema(
 }
 
 /**
+ * Create an schema based on a set of yaml type classes.
+ *
+ * @returns Yaml schema that can dump project type specific constructors.
+ */
+export function createCustomTypesSchema(
+  yamlTypes: Record<string, YamlTypeConstructor>
+): yaml.Schema {
+  const customTags: Array<yaml.Type> = [];
+
+  for (const [key, yamlConstructor] of Object.entries(yamlTypes)) {
+    customTags.push(
+      new yaml.Type(`!${key}`, {
+        // Interface cannot support static methods declaration.
+        kind: (yamlConstructor as any).kind(),
+        instanceOf: yamlConstructor,
+        represent: function (value) {
+          return (value as YamlTypeComponent).represent();
+        },
+      })
+    );
+  }
+
+  return yaml.DEFAULT_SCHEMA.extend([...customTags]);
+}
+
+/**
  * When loading yaml that requires async operations need to
  * use a placeholder for the data that is async.
  *
@@ -218,7 +245,7 @@ export async function asyncYamlLoad(
   });
 
   // Second walk waits for the promises to resolve and replaces the value.
-  return deepWalker.walk(data, async (value: any) => {
+  return await deepWalker.walk(data, async (value: any) => {
     for (const asyncTagClass of asyncTagClasses) {
       if (value instanceof asyncTagClass) {
         return await value.resolvePromise;
