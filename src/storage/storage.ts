@@ -52,6 +52,13 @@ export class StorageManager {
     const fullPath = path.join(this.config.rootDir, branchPath);
     return new this.config.storageCls(fullPath, api, meta);
   }
+
+  storageForPath(
+    api?: ProjectTypeApiComponent,
+    meta?: Record<string, any>
+  ): ProjectTypeStorageComponent {
+    return new this.config.storageCls(this.config.rootDir, api, meta);
+  }
 }
 
 function cleanDirectory(dirName: string): string {

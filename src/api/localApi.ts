@@ -30,15 +30,18 @@ import {
   RepoCommit,
   WorkspaceData,
 } from '@blinkk/editor/dist/src/editor/api';
+import {
+  FileNotFoundError,
+  ProjectTypeStorageComponent,
+} from '../storage/storage';
 import {AmagakiApi} from './projectType/amagakiApi';
 import {AmagakiProjectType} from '../projectType/amagakiProjectType';
 import {FeatureFlags} from '@blinkk/editor/dist/src/editor/features';
-import {FileNotFoundError} from '../storage/storage';
 import {GrowApi} from './projectType/growApi';
 import {GrowProjectType} from '../projectType/growProjectType';
-import {LocalStorage} from '../storage/localStorage';
 import {ProjectTypeComponent} from '../projectType/projectType';
 import {ReadCommitResult} from 'isomorphic-git';
+import {StorageManager} from '../storage/storage';
 import express from 'express';
 // TODO: FS promises does not work with isomorphic-git?
 import fs from 'fs';
@@ -48,10 +51,10 @@ import yaml from 'js-yaml';
 export class LocalApi implements ApiComponent {
   protected _projectType?: ProjectTypeComponent;
   protected _apiRouter?: express.Router;
-  storage: LocalStorage;
+  storageManager: StorageManager;
 
-  constructor(storage: LocalStorage) {
-    this.storage = storage;
+  constructor(storageManager: StorageManager) {
+    this.storageManager = storageManager;
   }
 
   get apiRouter() {
@@ -74,19 +77,10 @@ export class LocalApi implements ApiComponent {
       addApiRoute(router, '/workspaces.get', this.getWorkspaces.bind(this));
       addApiRoute(router, '/ping', this.ping.bind(this));
 
-      const getStorage = async (
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        expressRequest: express.Request,
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        expressResponse: express.Response
-      ) => {
-        return this.storage;
-      };
-
       // Add project type specific routes.
-      const amagakiApi = new AmagakiApi(getStorage);
+      const amagakiApi = new AmagakiApi(this.getStorage.bind(this));
       router.use('/amagaki', amagakiApi.apiRouter);
-      const growApi = new GrowApi(getStorage);
+      const growApi = new GrowApi(this.getStorage.bind(this));
       router.use('/grow', growApi.apiRouter);
 
       router.use(apiErrorHandler);
@@ -98,15 +92,14 @@ export class LocalApi implements ApiComponent {
   }
 
   async copyFile(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressResponse: express.Response,
     request: CopyFileRequest
   ): Promise<FileData> {
-    await this.storage.writeFile(
+    const storage = await this.getStorage(expressRequest, expressResponse);
+    await storage.writeFile(
       request.path,
-      await this.storage.readFile(request.originalPath)
+      await storage.readFile(request.originalPath)
     );
     return {
       path: request.path,
@@ -114,13 +107,12 @@ export class LocalApi implements ApiComponent {
   }
 
   async createFile(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressResponse: express.Response,
     request: CreateFileRequest
   ): Promise<FileData> {
-    await this.storage.writeFile(request.path, request.content || '');
+    const storage = await this.getStorage(expressRequest, expressResponse);
+    await storage.writeFile(request.path, request.content || '');
     return {
       path: request.path,
     };
@@ -138,12 +130,12 @@ export class LocalApi implements ApiComponent {
   }
 
   async deleteFile(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
     expressResponse: express.Response,
     request: DeleteFileRequest
   ): Promise<EmptyData> {
-    await this.storage.deleteFile(request.file.path);
+    const storage = await this.getStorage(expressRequest, expressResponse);
+    await storage.deleteFile(request.file.path);
     return {};
   }
 
@@ -159,6 +151,7 @@ export class LocalApi implements ApiComponent {
    * @returns Array of commits that match the file.
    */
   async fileHistory(
+    storage: ProjectTypeStorageComponent,
     filePath: string,
     depth = 10
   ): Promise<Array<ReadCommitResult>> {
@@ -167,7 +160,7 @@ export class LocalApi implements ApiComponent {
 
     const commits = await git.log({
       fs: fs,
-      dir: this.storage.root,
+      dir: storage.root,
     });
     let lastSHA = null;
     let lastCommit = null;
@@ -180,7 +173,7 @@ export class LocalApi implements ApiComponent {
       try {
         const o = await git.readObject({
           fs: fs,
-          dir: this.storage.root,
+          dir: storage.root,
           oid: commit.oid,
           filepath: filePath,
         });
@@ -202,13 +195,15 @@ export class LocalApi implements ApiComponent {
     return commitsThatMatter;
   }
 
-  async getProjectType(): Promise<ProjectTypeComponent> {
+  async getProjectType(
+    storage: ProjectTypeStorageComponent
+  ): Promise<ProjectTypeComponent> {
     if (!this._projectType) {
       // Check for specific features of the supported projectTypes.
-      if (await GrowProjectType.canApply(this.storage)) {
-        this._projectType = new GrowProjectType(this.storage);
-      } else if (await AmagakiProjectType.canApply(this.storage)) {
-        this._projectType = new AmagakiProjectType(this.storage);
+      if (await GrowProjectType.canApply(storage)) {
+        this._projectType = new GrowProjectType(storage);
+      } else if (await AmagakiProjectType.canApply(storage)) {
+        this._projectType = new AmagakiProjectType(storage);
       } else {
         // TODO: use generic projectType.
         throw new Error('Unable to determine projectType.');
@@ -219,30 +214,31 @@ export class LocalApi implements ApiComponent {
   }
 
   async getDevices(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressResponse: express.Response,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: GetDevicesRequest
   ): Promise<Array<DeviceData>> {
-    const editorConfig = (await this.readEditorConfig()) as EditorFileSettings;
+    const storage = await this.getStorage(expressRequest, expressResponse);
+    const editorConfig = (await this.readEditorConfig(
+      storage
+    )) as EditorFileSettings;
     return Promise.resolve(editorConfig.devices || []);
   }
 
   async getFile(
     expressRequest: express.Request,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressResponse: express.Response,
     request: GetFileRequest
   ): Promise<EditorFileData> {
-    const projectType = await this.getProjectType();
+    const storage = await this.getStorage(expressRequest, expressResponse);
+    const projectType = await this.getProjectType(storage);
     const projectTypeResult = await projectType.getFile(
       expressRequest,
       request
     );
 
-    const history = await this.fileHistory(request.file.path);
+    const history = await this.fileHistory(storage, request.file.path);
     const commitHistory: Array<RepoCommit> = [];
     for (const commit of history) {
       commitHistory.push({
@@ -266,15 +262,14 @@ export class LocalApi implements ApiComponent {
   }
 
   async getFiles(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressResponse: express.Response,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: GetFilesRequest
   ): Promise<Array<FileData>> {
-    const projectType = await this.getProjectType();
-    const files = await this.storage.readDir('/');
+    const storage = await this.getStorage(expressRequest, expressResponse);
+    const projectType = await this.getProjectType(storage);
+    const files = await storage.readDir('/');
     let filteredFiles = files;
     if (projectType.fileFilter) {
       filteredFiles = files.filter(file =>
@@ -296,16 +291,16 @@ export class LocalApi implements ApiComponent {
 
   async getProject(
     expressRequest: express.Request,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressResponse: express.Response,
     request: GetProjectRequest
   ): Promise<ProjectData> {
-    const projectType = await this.getProjectType();
+    const storage = await this.getStorage(expressRequest, expressResponse);
+    const projectType = await this.getProjectType(storage);
     const projectTypeResult = await projectType.getProject(
       expressRequest,
       request
     );
-    const editorConfig = await this.readEditorConfig();
+    const editorConfig = await this.readEditorConfig(storage);
     projectTypeResult.experiments = projectTypeResult.experiments || {};
     projectTypeResult.features = projectTypeResult.features || {};
 
@@ -342,22 +337,30 @@ export class LocalApi implements ApiComponent {
     );
   }
 
-  async getWorkspace(
+  async getStorage(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    expressResponse: express.Response
+  ): Promise<ProjectTypeStorageComponent> {
+    return this.storageManager.storageForPath();
+  }
+
+  async getWorkspace(
+    expressRequest: express.Request,
     expressResponse: express.Response,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: GetWorkspaceRequest
   ): Promise<WorkspaceData> {
+    const storage = await this.getStorage(expressRequest, expressResponse);
     const currentBranch = await git.currentBranch({
       fs: fs,
-      dir: this.storage.root,
+      dir: storage.root,
     });
 
     const commits = await git.log({
       fs: fs,
-      dir: this.storage.root,
+      dir: storage.root,
       depth: 1,
     });
 
@@ -384,22 +387,21 @@ export class LocalApi implements ApiComponent {
   }
 
   async getWorkspaces(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressRequest: express.Request,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressResponse: express.Response,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: GetWorkspacesRequest
   ): Promise<Array<WorkspaceData>> {
+    const storage = await this.getStorage(expressRequest, expressResponse);
     // Only list the current branch as a workspace for local.
     const currentBranch = await git.currentBranch({
       fs: fs,
-      dir: this.storage.root,
+      dir: storage.root,
     });
 
     const commits = await git.log({
       fs: fs,
-      dir: this.storage.root,
+      dir: storage.root,
       depth: 1,
     });
 
@@ -452,10 +454,12 @@ export class LocalApi implements ApiComponent {
     throw new Error('Publish workflow not available for local.');
   }
 
-  async readEditorConfig(): Promise<EditorFileSettings> {
+  async readEditorConfig(
+    storage: ProjectTypeStorageComponent
+  ): Promise<EditorFileSettings> {
     let rawFile = null;
     try {
-      rawFile = await this.storage.readFile('editor.yaml');
+      rawFile = await storage.readFile('editor.yaml');
     } catch (error) {
       if (error instanceof FileNotFoundError) {
         rawFile = Promise.resolve('');
@@ -468,19 +472,25 @@ export class LocalApi implements ApiComponent {
 
   async saveFile(
     expressRequest: express.Request,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressResponse: express.Response,
     request: SaveFileRequest
   ): Promise<EditorFileData> {
-    return (await this.getProjectType()).saveFile(expressRequest, request);
+    const storage = await this.getStorage(expressRequest, expressResponse);
+    return (await this.getProjectType(storage)).saveFile(
+      expressRequest,
+      request
+    );
   }
 
   async uploadFile(
     expressRequest: express.Request,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expressResponse: express.Response,
     request: UploadFileRequest
   ): Promise<FileData> {
-    return (await this.getProjectType()).uploadFile(expressRequest, request);
+    const storage = await this.getStorage(expressRequest, expressResponse);
+    return (await this.getProjectType(storage)).uploadFile(
+      expressRequest,
+      request
+    );
   }
 }

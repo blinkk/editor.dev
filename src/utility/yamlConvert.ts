@@ -42,14 +42,6 @@ class YamlConvertDeepWalk extends DeepWalk {
       originalValue._data !== undefined &&
       originalValue._type in this.constructorMap
     ) {
-      console.log(
-        'Converting.',
-        new this.constructorMap[originalValue._type](
-          originalValue._type,
-          originalValue._data
-        )
-      );
-
       return new this.constructorMap[originalValue._type](
         originalValue._type,
         originalValue._data
