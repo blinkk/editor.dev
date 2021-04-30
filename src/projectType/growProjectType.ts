@@ -239,8 +239,6 @@ export class GrowProjectType implements ProjectTypeComponent {
       // Convert the json into yaml constructors.
       const convertedFields = await deepWalker.convert(cleanedFields);
 
-      // console.log(convertedFields);
-
       await this.storage.writeFile(
         request.file.file.path,
         yaml.dump(convertedFields, {
