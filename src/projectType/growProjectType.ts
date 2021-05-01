@@ -33,6 +33,7 @@ import {
 import {DeepClean} from '@blinkk/editor/dist/src/utility/deepClean';
 import {FrontMatter} from '../utility/frontMatter';
 import {ProjectTypeComponent} from './projectType';
+import {createPriorityKeySort} from '../utility/prioritySort';
 import express from 'express';
 import path from 'path';
 import yaml from 'js-yaml';
@@ -42,11 +43,24 @@ export const MIXED_FRONT_MATTER_EXTS = ['.md'];
 export const ONLY_FRONT_MATTER_EXTS = ['.yaml', '.yml'];
 
 class GrowDocumentConstructor extends ScalarYamlConstructor {}
+class GrowStaticConstructor extends ScalarYamlConstructor {}
 
 const CONFIG_FILE = '_editor.yaml';
+const YAML_PRIORITY_KEYS = [
+  '$path',
+  '$localization',
+  'partial',
+  'title',
+  'key',
+  'id',
+];
 const YAML_TYPES: Record<string, YamlTypeConstructor> = {
   'g.doc': GrowDocumentConstructor,
+  'g.static': GrowStaticConstructor,
 };
+
+const yamlCustomSchema = createCustomTypesSchema(YAML_TYPES);
+const yamlKeySort = createPriorityKeySort(YAML_PRIORITY_KEYS);
 
 interface DocumentParts {
   body?: string | null;
@@ -244,8 +258,8 @@ export class GrowProjectType implements ProjectTypeComponent {
         yaml.dump(convertedFields, {
           noArrayIndent: true,
           noCompatMode: true,
-          schema: createCustomTypesSchema(YAML_TYPES),
-          sortKeys: true,
+          schema: yamlCustomSchema,
+          sortKeys: yamlKeySort,
         }),
         request.file.sha
       );
