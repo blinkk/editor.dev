@@ -271,11 +271,9 @@ export class GithubApi implements ApiComponent {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: GetFileRequest
   ): Promise<EditorFileData> {
+    const storage = await this.getStorage(expressRequest, expressResponse);
     const api = this.getApi(expressResponse);
-    const projectType = await this.getProjectType(
-      expressRequest,
-      expressResponse
-    );
+    const projectType = await this.getProjectType(storage);
     const projectTypeResult = await projectType.getFile(
       expressRequest,
       request
@@ -372,10 +370,8 @@ export class GithubApi implements ApiComponent {
     expressResponse: express.Response,
     request: GetProjectRequest
   ): Promise<ProjectData> {
-    const projectType = await this.getProjectType(
-      expressRequest,
-      expressResponse
-    );
+    const storage = await this.getStorage(expressRequest, expressResponse);
+    const projectType = await this.getProjectType(storage);
     const projectTypeResult = await projectType.getProject(
       expressRequest,
       request
@@ -427,23 +423,16 @@ export class GithubApi implements ApiComponent {
   }
 
   async getProjectType(
-    expressRequest: express.Request,
-    expressResponse: express.Response
+    storage: ProjectTypeStorageComponent
   ): Promise<ProjectTypeComponent> {
-    const storage = await this.getStorage(expressRequest, expressResponse);
-    if (!this._projectType) {
-      // Check for specific features of the supported projectTypes.
-      if (await GrowProjectType.canApply(storage)) {
-        this._projectType = new GrowProjectType(storage);
-      } else if (await AmagakiProjectType.canApply(storage)) {
-        this._projectType = new AmagakiProjectType(storage);
-      } else {
-        // TODO: use generic projectType.
-        throw new Error('Unable to determine projectType.');
-      }
+    // Check for specific features of the supported projectTypes.
+    if (await GrowProjectType.canApply(storage)) {
+      return new GrowProjectType(storage);
+    } else if (await AmagakiProjectType.canApply(storage)) {
+      return new AmagakiProjectType(storage);
     }
-
-    return Promise.resolve(this._projectType as ProjectTypeComponent);
+    // TODO: use generic projectType.
+    throw new Error('Unable to determine projectType.');
   }
 
   async getStorage(
@@ -728,11 +717,9 @@ export class GithubApi implements ApiComponent {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: SaveFileRequest
   ): Promise<EditorFileData> {
+    const storage = await this.getStorage(expressRequest, expressResponse);
     const api = this.getApi(expressResponse);
-    const projectType = await this.getProjectType(
-      expressRequest,
-      expressResponse
-    );
+    const projectType = await this.getProjectType(storage);
     const projectTypeResult = await projectType.saveFile(
       expressRequest,
       request
@@ -763,8 +750,10 @@ export class GithubApi implements ApiComponent {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: UploadFileRequest
   ): Promise<FileData> {
-    return (
-      await this.getProjectType(expressRequest, expressResponse)
-    ).uploadFile(expressRequest, request);
+    const storage = await this.getStorage(expressRequest, expressResponse);
+    return (await this.getProjectType(storage)).uploadFile(
+      expressRequest,
+      request
+    );
   }
 }

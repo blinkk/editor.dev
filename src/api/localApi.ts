@@ -49,7 +49,6 @@ import git from 'isomorphic-git';
 import yaml from 'js-yaml';
 
 export class LocalApi implements ApiComponent {
-  protected _projectType?: ProjectTypeComponent;
   protected _apiRouter?: express.Router;
   storageManager: StorageManager;
 
@@ -198,19 +197,14 @@ export class LocalApi implements ApiComponent {
   async getProjectType(
     storage: ProjectTypeStorageComponent
   ): Promise<ProjectTypeComponent> {
-    if (!this._projectType) {
-      // Check for specific features of the supported projectTypes.
-      if (await GrowProjectType.canApply(storage)) {
-        this._projectType = new GrowProjectType(storage);
-      } else if (await AmagakiProjectType.canApply(storage)) {
-        this._projectType = new AmagakiProjectType(storage);
-      } else {
-        // TODO: use generic projectType.
-        throw new Error('Unable to determine projectType.');
-      }
+    // Check for specific features of the supported projectTypes.
+    if (await GrowProjectType.canApply(storage)) {
+      return new GrowProjectType(storage);
+    } else if (await AmagakiProjectType.canApply(storage)) {
+      return new AmagakiProjectType(storage);
     }
-
-    return Promise.resolve(this._projectType as ProjectTypeComponent);
+    // TODO: use generic projectType.
+    throw new Error('Unable to determine projectType.');
   }
 
   async getDevices(
