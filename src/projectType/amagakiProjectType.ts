@@ -2,6 +2,7 @@ import {
   ANY_SCHEMA,
   ImportYaml,
   asyncYamlLoad,
+  createCustomTypesSchema,
   createImportSchema,
 } from '../utility/yamlSchemas';
 import {
@@ -24,6 +25,12 @@ import {
   SaveFileRequest,
   UploadFileRequest,
 } from '../api/api';
+import {
+  MappingYamlConstructor,
+  ScalarYamlConstructor,
+  YamlConvert,
+  YamlTypeConstructor,
+} from '../utility/yamlConvert';
 import {DeepClean} from '@blinkk/editor/dist/src/utility/deepClean';
 import {FrontMatter} from '../utility/frontMatter';
 import {ProjectTypeComponent} from './projectType';
@@ -35,7 +42,14 @@ export const AMAGAKI_TYPE = 'Amagaki';
 export const MIXED_FRONT_MATTER_EXTS = ['.md'];
 export const ONLY_FRONT_MATTER_EXTS = ['.yaml', '.yml'];
 
+class AmagakiDocumentConstructor extends ScalarYamlConstructor {}
+class AmagakiStringConstructor extends MappingYamlConstructor {}
+
 const CONFIG_FILE = '_editor.yaml';
+const YAML_TYPES: Record<string, YamlTypeConstructor> = {
+  'pod.document': AmagakiDocumentConstructor,
+  'pod.string': AmagakiStringConstructor,
+};
 
 interface DocumentParts {
   body?: string | null;
@@ -51,6 +65,7 @@ const deepCleaner = new DeepClean({
   removeNulls: true,
   removeUndefineds: true,
 });
+const deepWalker = new YamlConvert(YAML_TYPES);
 
 /**
  * Project type for working with a Amagaki website.
@@ -214,12 +229,15 @@ export class AmagakiProjectType implements ProjectTypeComponent {
     } else {
       const cleanedFields = deepCleaner.clean(request.file.data);
 
-      // TODO: Convert json into correct yaml constructors.
+      // Convert the json into yaml constructors.
+      const convertedFields = await deepWalker.convert(cleanedFields);
+
       await this.storage.writeFile(
         request.file.file.path,
-        yaml.dump(cleanedFields, {
+        yaml.dump(convertedFields, {
           noArrayIndent: true,
           noCompatMode: true,
+          schema: createCustomTypesSchema(YAML_TYPES),
           sortKeys: true,
         }),
         request.file.sha
