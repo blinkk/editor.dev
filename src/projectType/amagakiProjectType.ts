@@ -34,7 +34,7 @@ import {
 import {DeepClean} from '@blinkk/editor/dist/src/utility/deepClean';
 import {FrontMatter} from '../utility/frontMatter';
 import {ProjectTypeComponent} from './projectType';
-import {createPriorityKeySort} from '../utility/prioritySort';
+import {createPriorityKeySort} from '@blinkk/editor/dist/src/utility/prioritySort';
 import express from 'express';
 import path from 'path';
 import yaml from 'js-yaml';
