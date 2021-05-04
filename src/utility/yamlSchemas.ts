@@ -80,6 +80,13 @@ export class ImportYaml implements AsyncYamlTagComponent {
     return this.rawPath.split('?')[1] || '';
   }
 
+  getCached(path: string): yamlCacheInfo {
+    if (!this.cache[this.path]) {
+      this.cache[this.path] = {};
+    }
+    return this.cache[this.path];
+  }
+
   get path() {
     return this.rawPath.split('?')[0];
   }
@@ -88,8 +95,15 @@ export class ImportYaml implements AsyncYamlTagComponent {
     schema: yaml.Schema,
     asyncTagClasses: Array<AsyncYamlTagConstructor>
   ): Promise<any> {
-    const cached = this.cache[this.path];
-    const importFile = await cached.loadPromise;
+    const cached = this.getCached(this.path);
+
+    // If no file has been read, read in the file.
+    if (cached.filePromise === undefined) {
+      cached.filePromise = this.storage.readFile(this.path);
+    }
+
+    const importFile = await cached.filePromise;
+
     const importData = yaml.load(importFile as string, {
       schema: schema,
     });
@@ -103,15 +117,7 @@ export class ImportYaml implements AsyncYamlTagComponent {
     schema: yaml.Schema,
     asyncTagClasses: Array<AsyncYamlTagConstructor>
   ): Promise<any> {
-    if (!this.cache[this.path]) {
-      this.cache[this.path] = {};
-    }
-    const cached = this.cache[this.path];
-
-    // If no file has been read, read in the file.
-    if (cached.filePromise === undefined) {
-      cached.filePromise = this.storage.readFile(this.path);
-    }
+    const cached = this.getCached(this.path);
 
     if (cached.value === undefined) {
       // If the file has not been yaml loaded, load the file.
@@ -123,6 +129,7 @@ export class ImportYaml implements AsyncYamlTagComponent {
     if (!cached.value) {
       throw Error('Resolved data without a value.');
     }
+
     return cached.value.get(this.deepPath);
   }
 }
