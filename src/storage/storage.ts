@@ -61,7 +61,7 @@ export class StorageManager {
   }
 }
 
-function cleanDirectory(dirName: string): string {
+export function cleanDirectory(dirName: string): string {
   // TODO: More security around valid directory names.
 
   // Disallow slashes in a directory name.
