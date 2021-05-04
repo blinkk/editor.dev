@@ -126,6 +126,8 @@ export class ImportYaml implements AsyncYamlTagComponent {
       }
       await cached.loadPromise;
     }
+
+    // Should not happen, but if it does, there is a problem.
     if (!cached.value) {
       throw Error('Resolved data without a value.');
     }

@@ -33,8 +33,6 @@ export class MemoryStorage implements ProjectTypeStorageComponent {
       });
     }
 
-    console.log('Read file: ', this.files[filePath]);
-
     return this.files[filePath];
   }
 
