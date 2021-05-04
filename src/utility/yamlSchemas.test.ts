@@ -22,25 +22,28 @@ test('import yaml functionality', t => {
 });
 
 test('async load yaml', async t => {
-  t.plan(3);
+  t.plan(4);
   const storage = new MemoryStorage();
-  storage.writeFile('/other.yaml', 'baz: 42');
+  storage.writeFile('/other.yaml', 'baz: 42\nbar: 84');
   const schema = createImportSchema(storage);
   const source = `foo: bar
-remote: !g.yaml /other.yaml?baz`;
+grow: !g.yaml /other.yaml?baz
+amagaki: !pod.yaml /other.yaml?bar`;
 
   const loadedYaml = yaml.load(source, {
     schema: schema,
   }) as any;
 
   t.is(loadedYaml.foo, 'bar');
-  t.true(loadedYaml.remote instanceof ImportYaml);
+  t.true(loadedYaml.grow instanceof ImportYaml);
+  t.true(loadedYaml.amagaki instanceof ImportYaml);
 
   const loadedAsync = await asyncYamlLoad(loadedYaml, schema, [ImportYaml]);
 
   t.deepEqual(loadedAsync, {
     foo: 'bar',
-    remote: 42,
+    grow: 42,
+    amagaki: 84,
   });
 });
 

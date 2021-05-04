@@ -127,12 +127,7 @@ export class ImportYaml implements AsyncYamlTagComponent {
       await cached.loadPromise;
     }
 
-    // Should not happen, but if it does, there is a problem.
-    if (!cached.value) {
-      throw Error('Resolved data without a value.');
-    }
-
-    return cached.value.get(this.deepPath);
+    return cached.value?.get(this.deepPath);
   }
 }
 
@@ -152,16 +147,10 @@ export class UnknownTag {
 }
 
 const anyTags = ['scalar', 'sequence', 'mapping'].map(kind => {
-  // First argument here is a prefix, so this type will handle anything starting with !
+  // First argument is a prefix, so this type will handle anything starting with !
   return new yaml.Type('!', {
     kind: kind as TagKinds,
     multi: true,
-    representName: function (object: any) {
-      return object._type;
-    },
-    represent: function (object: any) {
-      return object._data;
-    },
     instanceOf: UnknownTag,
     construct: function (data: any, type?: string): any {
       return new UnknownTag(type as string, data);
