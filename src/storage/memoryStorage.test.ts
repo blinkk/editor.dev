@@ -3,7 +3,7 @@ import {MemoryStorage} from './memoryStorage';
 import test from 'ava';
 
 test('storage operations', async t => {
-  t.plan(5);
+  t.plan(6);
   const storage = new MemoryStorage();
 
   t.false(await storage.existsFile('/foo.yaml'));
@@ -21,4 +21,8 @@ test('storage operations', async t => {
       instanceOf: FileNotFoundError,
     }
   );
+
+  await t.throwsAsync(async () => {
+    await storage.readDir('/');
+  });
 });
