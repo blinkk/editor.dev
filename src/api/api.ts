@@ -217,6 +217,7 @@ export function addApiRoute(
 
 export function apiErrorHandler(
   err: any,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   req: express.Request,
   res: express.Response,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -224,7 +225,6 @@ export function apiErrorHandler(
 ) {
   // Cloud error reporting
   errorReporting.report(err);
-
   console.error(err);
 
   res.status(500);

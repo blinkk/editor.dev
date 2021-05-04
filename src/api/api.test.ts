@@ -1,4 +1,9 @@
-import {GenericApiError, expandWorkspaceBranch, isWorkspaceBranch} from './api';
+import {
+  GenericApiError,
+  expandWorkspaceBranch,
+  isWorkspaceBranch,
+  shortenWorkspaceName,
+} from './api';
 import test from 'ava';
 
 test('GenericApiError properties', t => {
@@ -35,4 +40,20 @@ test('is workspace branch', t => {
   t.is(isWorkspaceBranch('feature/foo'), false);
   t.is(isWorkspaceBranch('bug/bar'), false);
   t.is(isWorkspaceBranch('foogoo'), false);
+});
+
+test('shorten workspace branch', t => {
+  // Special branches.
+  t.is(shortenWorkspaceName('master'), 'master');
+  t.is(shortenWorkspaceName('main'), 'main');
+  t.is(shortenWorkspaceName('staging'), 'staging');
+
+  // Normal workspace branches.
+  t.is(shortenWorkspaceName('workspace/foo'), 'foo');
+  t.is(shortenWorkspaceName('workspace/bar'), 'bar');
+
+  // Non-workspace branches.
+  t.is(shortenWorkspaceName('feature/foo'), 'feature/foo');
+  t.is(shortenWorkspaceName('bug/bar'), 'bug/bar');
+  t.is(shortenWorkspaceName('foogoo'), 'foogoo');
 });
