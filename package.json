@@ -73,7 +73,7 @@
   },
   "dependencies": {
     "@blinkk/editor": "^1.0.23",
-    "@blinkk/selective-edit": "^1.0.28",
+    "@blinkk/selective-edit": "^1.1.0",
     "@google-cloud/datastore": "^6.4.0",
     "@google-cloud/error-reporting": "^2.0.1",
     "@octokit/core": "^3.4.0",
