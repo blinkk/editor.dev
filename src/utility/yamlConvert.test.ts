@@ -1,5 +1,8 @@
 import {
   JsonYamlTypeStructure,
+  MappingYamlConstructor,
+  ScalarYamlConstructor,
+  SequenceYamlConstructor,
   YamlConvert,
   YamlTypeComponent,
 } from './yamlConvert';
@@ -28,6 +31,19 @@ test('ignore unknown type', async t => {
   const expected = from;
   const actual = await converter.convert(from);
   t.deepEqual(actual, expected);
+});
+
+test('class types', async t => {
+  t.is(ScalarYamlConstructor.kind(), 'scalar');
+  t.is(SequenceYamlConstructor.kind(), 'sequence');
+  t.is(MappingYamlConstructor.kind(), 'mapping');
+});
+
+test('constructor functionality', async t => {
+  const scalarConstructor = new ScalarYamlConstructor('test', 'foo');
+  t.is(scalarConstructor.type, 'test');
+  t.is(scalarConstructor.data, 'foo');
+  t.is(scalarConstructor.represent(), 'foo');
 });
 
 class TestYamlType implements YamlTypeComponent {
