@@ -3,8 +3,14 @@ import {
   ImportYaml,
   UnknownTag,
   asyncYamlLoad,
+  createCustomTypesSchema,
   createImportSchema,
 } from './yamlSchemas';
+import {
+  ScalarYamlConstructor,
+  YamlConvert,
+  YamlTypeConstructor,
+} from './yamlConvert';
 import {MemoryStorage} from '../storage/memoryStorage';
 import test from 'ava';
 import yaml from 'js-yaml';
@@ -55,5 +61,30 @@ test('any schema parses unknown tags', t => {
     {
       test: new UnknownTag('!something', 'foo'),
     }
+  );
+});
+
+test('dump custom yaml tags', async t => {
+  t.plan(1);
+  class TestConstructor extends ScalarYamlConstructor {}
+  const yamlTypes: Record<string, YamlTypeConstructor> = {
+    test: TestConstructor,
+  };
+  const yamlCustomSchema = createCustomTypesSchema(yamlTypes);
+  const deepWalker = new YamlConvert(yamlTypes);
+
+  // Convert the json into yaml constructors.
+  const convertedFields = await deepWalker.convert({
+    foo: {
+      _type: 'test',
+      _data: 'foobar',
+    },
+  });
+
+  t.is(
+    yaml.dump(convertedFields, {
+      schema: yamlCustomSchema,
+    }),
+    'foo: !test foobar\n'
   );
 });
