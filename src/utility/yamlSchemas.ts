@@ -80,6 +80,7 @@ export class ImportYaml implements AsyncYamlTagComponent {
     return this.rawPath.split('?')[1] || '';
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   getCached(path: string): yamlCacheInfo {
     if (!this.cache[this.path]) {
       this.cache[this.path] = {};

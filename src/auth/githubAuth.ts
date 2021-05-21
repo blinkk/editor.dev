@@ -221,7 +221,7 @@ function verifyAuthResponse(
   errorMessage = 'Unable to verify authentication with GitHub.'
 ) {
   if ((response as GHAuthError).error) {
-    response = (response as unknown) as GHAuthError;
+    response = response as unknown as GHAuthError;
     throw new GenericApiError(errorMessage, {
       message: errorMessage,
       description: response.error_description || response.error,

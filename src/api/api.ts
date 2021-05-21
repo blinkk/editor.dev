@@ -169,7 +169,7 @@ export interface SaveFileRequest {
 
 export interface UploadFileRequest {
   file: File;
-  meta: Record<string, any>;
+  options?: Record<string, any>;
 }
 
 export class GenericApiError extends Error {

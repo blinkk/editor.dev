@@ -36,7 +36,7 @@ class YamlConvertDeepWalk extends DeepWalk {
     originalValue: Record<string, any>,
     transformValue: TransformFunction
   ): Promise<Record<string, any>> {
-    originalValue = (originalValue as unknown) as JsonYamlTypeStructure;
+    originalValue = originalValue as unknown as JsonYamlTypeStructure;
     if (
       originalValue._type !== undefined &&
       originalValue._data !== undefined &&
@@ -91,7 +91,8 @@ export class ScalarYamlConstructor implements YamlTypeComponent {
 
 export class SequenceYamlConstructor
   extends ScalarYamlConstructor
-  implements YamlTypeComponent {
+  implements YamlTypeComponent
+{
   static kind(): string {
     return 'sequence';
   }
@@ -99,7 +100,8 @@ export class SequenceYamlConstructor
 
 export class MappingYamlConstructor
   extends ScalarYamlConstructor
-  implements YamlTypeComponent {
+  implements YamlTypeComponent
+{
   static kind(): string {
     return 'mapping';
   }

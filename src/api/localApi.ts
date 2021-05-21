@@ -320,15 +320,9 @@ export class LocalApi implements ApiComponent {
     projectTypeResult.features[FeatureFlags.WorkspaceCreate] = false;
 
     // ProjectType config take precedence over editor config.
-    return Object.assign(
-      {},
-      {
-        site: editorConfig.site,
-        type: projectType.type,
-        title: editorConfig.title,
-      },
-      projectTypeResult
-    );
+    return Object.assign({}, editorConfig, projectTypeResult, {
+      type: projectType.type,
+    });
   }
 
   async getStorage(
