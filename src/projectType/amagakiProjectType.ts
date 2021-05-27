@@ -84,7 +84,7 @@ const deepWalker = new YamlConvert(YAML_TYPES);
 /**
  * Project type for working with a Amagaki website.
  *
- * @see https://github.com/blinkkcode/amagaki
+ * @see https://github.com/blinkk/amagaki
  */
 export class AmagakiProjectType implements ProjectTypeComponent {
   storage: ProjectTypeStorageComponent;
