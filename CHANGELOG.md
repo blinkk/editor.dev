@@ -1,5 +1,12 @@
 # Changelog
 
+### [1.1.2](https://www.github.com/blinkk/live-edit-connector/compare/v1.1.1...v1.1.2) (2021-06-09)
+
+
+### Bug Fixes
+
+* Adjust the amagaki apply check for async operations. ([29b1d12](https://www.github.com/blinkk/live-edit-connector/commit/29b1d120c03a30ed454ac996b691b540fa9e2926))
+
 ### [1.1.1](https://www.github.com/blinkk/live-edit-connector/compare/v1.1.0...v1.1.1) (2021-06-09)
 
 
