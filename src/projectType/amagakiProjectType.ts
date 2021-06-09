@@ -103,7 +103,10 @@ export class AmagakiProjectType implements ProjectTypeComponent {
   static async canApply(
     storage: ProjectTypeStorageComponent
   ): Promise<boolean> {
-    return storage.existsFile('amagaki.js') || storage.existsFile('amagaki.ts');
+    if (await storage.existsFile('amagaki.ts')) {
+      return true;
+    }
+    return await storage.existsFile('amagaki.js');
   }
 
   async getEditorConfigForDirectory(
