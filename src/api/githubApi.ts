@@ -404,10 +404,9 @@ export class GithubApi implements ApiComponent {
     // ProjectType config take precedence over editor config.
     return Object.assign(
       {},
+      editorConfig,
       {
-        site: editorConfig.site,
         type: projectType.type,
-        title: editorConfig.title,
         publish: {
           fields: [],
         },
