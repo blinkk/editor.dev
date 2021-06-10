@@ -74,7 +74,7 @@
   "dependencies": {
     "@blinkk/editor": "^1.2.1",
     "@blinkk/selective-edit": "^1.2.0",
-    "@google-cloud/datastore": "^6.4.0",
+    "@google-cloud/datastore": "^6.4.1",
     "@google-cloud/error-reporting": "^2.0.2",
     "@octokit/core": "^3.4.0",
     "@types/bent": "^7.3.2",
