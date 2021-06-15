@@ -6,7 +6,7 @@ Provides an API server for the live editor to connect to and request project fil
 
 Supports generic editor fields and ability to use specialized editor fields for `grow` and `amagaki`.
 
-[![codecov](https://codecov.io/gh/blinkk/live-edit-connector/branch/main/graph/badge.svg?token=ZzekLnqLhc)](https://codecov.io/gh/blinkk/live-edit-connector)
+[![codecov](https://codecov.io/gh/blinkk/editor.dev/branch/main/graph/badge.svg?token=ZzekLnqLhc)](https://codecov.io/gh/blinkk/editor.dev)
 
 ## Usage
 

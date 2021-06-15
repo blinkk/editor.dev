@@ -2,7 +2,7 @@
   "name": "@blinkk/editor.dev",
   "version": "1.1.2",
   "license": "MIT",
-  "homepage": "https://blinkk.github.com/live-edit-connector",
+  "homepage": "https://blinkk.github.com/editor.dev",
   "description": "Server for live editor.",
   "keywords": [
     "editor",
@@ -10,11 +10,11 @@
     "server"
   ],
   "bugs": {
-    "url": "https://github.com/blinkk/live-edit-connector/issues"
+    "url": "https://github.com/blinkk/editor.dev/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/blinkk/live-edit-connector.git"
+    "url": "git://github.com/blinkk/editor.dev.git"
   },
   "engines": {
     "node": ">=14"
