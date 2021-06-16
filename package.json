@@ -29,8 +29,7 @@
   "scripts": {
     "check": "gts check",
     "clean": "gts clean",
-    "compile": "npx tsc",
-    "compile:prod": "npx tsc --skipLibCheck",
+    "compile": "npx tsc --skipLibCheck",
     "coverage": "codecov",
     "dev": "concurrently \"npx ava --watch\" \"npx tsc --watch\"",
     "docs": "npx typedoc",

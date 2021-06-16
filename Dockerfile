@@ -26,7 +26,7 @@ COPY ./tsconfig.json ./
 COPY ./src ./src
 
 # Compile the production js files.
-RUN yarn run compile:prod
+RUN yarn run compile
 
 # Copy the secrets if available locally.
 COPY ./secrets/* ./secrets/
