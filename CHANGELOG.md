@@ -1,5 +1,13 @@
 # Changelog
 
+### [1.1.3](https://www.github.com/blinkk/editor.dev/compare/v1.1.2...v1.1.3) (2021-06-16)
+
+
+### Bug Fixes
+
+* Update gcloud ids to be valid. ([bf954b4](https://www.github.com/blinkk/editor.dev/commit/bf954b453b119e191ddd2f5aadac23779879dc81))
+* Update image ids for cloudbuild. ([bfb7deb](https://www.github.com/blinkk/editor.dev/commit/bfb7deb992155bbdb6be535b524b873d928bc21c))
+
 ### [1.1.2](https://www.github.com/blinkk/editor.dev/compare/v1.1.1...v1.1.2) (2021-06-09)
 
 
