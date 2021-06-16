@@ -1,5 +1,12 @@
 # Changelog
 
+### [1.1.7](https://www.github.com/blinkk/editor.dev/compare/v1.1.6...v1.1.7) (2021-06-16)
+
+
+### Bug Fixes
+
+* Bad command for pre-publish. ([bccf8eb](https://www.github.com/blinkk/editor.dev/commit/bccf8ebb6416ec9a4d0c495281fd9e816a4b7ee9))
+
 ### [1.1.6](https://www.github.com/blinkk/editor.dev/compare/v1.1.5...v1.1.6) (2021-06-16)
 
 
