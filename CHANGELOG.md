@@ -1,5 +1,14 @@
 # Changelog
 
+### [1.1.5](https://www.github.com/blinkk/editor.dev/compare/v1.1.4...v1.1.5) (2021-06-16)
+
+
+### Bug Fixes
+
+* References to the editor ui package. ([6e70763](https://www.github.com/blinkk/editor.dev/commit/6e707634f34e6078bd47f56dac53f60b4a44e698))
+* skip lib check on all `compile` runs. ([85ca552](https://www.github.com/blinkk/editor.dev/commit/85ca552601a5d213daee3ac5d1eb98adfe29a5ba))
+* Skip the lib check on prod compiling. ([1903757](https://www.github.com/blinkk/editor.dev/commit/190375791eae670ad54ebd9d49bc595bf7545e53))
+
 ### [1.1.4](https://www.github.com/blinkk/editor.dev/compare/v1.1.3...v1.1.4) (2021-06-16)
 
 
