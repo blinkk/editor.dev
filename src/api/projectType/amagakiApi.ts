@@ -7,7 +7,7 @@ import {
 import {
   EditorFileConfig,
   PartialData,
-} from '@blinkk/editor/dist/src/editor/api';
+} from '@blinkk/editor.dev-ui/dist/src/editor/api';
 import {
   ImportYaml,
   asyncYamlLoad,

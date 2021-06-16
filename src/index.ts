@@ -23,7 +23,7 @@ app.use(
   })
 );
 
-const program = new Command('npx @blinkk/editor.dev');
+const program = new Command('npx @blinkk/editor.dev-ui.dev');
 program.arguments('[path]');
 program.addOption(
   new Option(

@@ -1,6 +1,6 @@
 import {YamlTypeComponent, YamlTypeConstructor} from './yamlConvert';
 import {DeepObject} from '@blinkk/selective-edit/dist/src/utility/deepObject';
-import {DeepWalk} from '@blinkk/editor/dist/src/utility/deepWalk';
+import {DeepWalk} from '@blinkk/editor.dev-ui/dist/src/utility/deepWalk';
 import {ProjectTypeStorageComponent} from '../storage/storage';
 import yaml from 'js-yaml';
 

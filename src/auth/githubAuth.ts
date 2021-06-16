@@ -1,4 +1,4 @@
-import {ApiError} from '@blinkk/editor/dist/src/editor/api';
+import {ApiError} from '@blinkk/editor.dev-ui/dist/src/editor/api';
 import {Datastore} from '@google-cloud/datastore';
 import {GenericApiError} from '../api/api';
 import bent from 'bent';

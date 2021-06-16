@@ -10,7 +10,7 @@ import {
   EditorFileData,
   FileData,
   ProjectData,
-} from '@blinkk/editor/dist/src/editor/api';
+} from '@blinkk/editor.dev-ui/dist/src/editor/api';
 import {
   FileNotFoundError,
   ProjectTypeStorageComponent,
@@ -18,7 +18,7 @@ import {
 import {
   FilterComponent,
   IncludeExcludeFilter,
-} from '@blinkk/editor/dist/src/utility/filter';
+} from '@blinkk/editor.dev-ui/dist/src/utility/filter';
 import {
   GetFileRequest,
   GetProjectRequest,
@@ -31,10 +31,10 @@ import {
   YamlConvert,
   YamlTypeConstructor,
 } from '../utility/yamlConvert';
-import {DeepClean} from '@blinkk/editor/dist/src/utility/deepClean';
+import {DeepClean} from '@blinkk/editor.dev-ui/dist/src/utility/deepClean';
 import {FrontMatter} from '../utility/frontMatter';
 import {ProjectTypeComponent} from './projectType';
-import {createPriorityKeySort} from '@blinkk/editor/dist/src/utility/prioritySort';
+import {createPriorityKeySort} from '@blinkk/editor.dev-ui/dist/src/utility/prioritySort';
 import express from 'express';
 import path from 'path';
 import yaml from 'js-yaml';

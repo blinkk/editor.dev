@@ -2,7 +2,7 @@ import {
   DeepWalk,
   DeepWalkConfig,
   TransformFunction,
-} from '@blinkk/editor/dist/src/utility/deepWalk';
+} from '@blinkk/editor.dev-ui/dist/src/utility/deepWalk';
 
 export interface JsonYamlTypeStructure {
   _type: string;
