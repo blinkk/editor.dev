@@ -1,5 +1,12 @@
 # Changelog
 
+### [1.1.4](https://www.github.com/blinkk/editor.dev/compare/v1.1.3...v1.1.4) (2021-06-16)
+
+
+### Bug Fixes
+
+* Update release process to deploy production version. ([9660e43](https://www.github.com/blinkk/editor.dev/commit/9660e436d6d75b3fbfece0f2c8f49ab5074bdd52))
+
 ### [1.1.3](https://www.github.com/blinkk/editor.dev/compare/v1.1.2...v1.1.3) (2021-06-16)
 
 
