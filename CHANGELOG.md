@@ -1,5 +1,13 @@
 # Changelog
 
+### [1.1.6](https://www.github.com/blinkk/editor.dev/compare/v1.1.5...v1.1.6) (2021-06-16)
+
+
+### Bug Fixes
+
+* Add deploy step after tagging, remove from release please workflow. ([4950588](https://www.github.com/blinkk/editor.dev/commit/49505882c81f3c1eafeff04dc81e6941f068e982))
+* Remove lib checks when publishing. ([fd11028](https://www.github.com/blinkk/editor.dev/commit/fd11028cc4c1cfeed35dbc258e66d78137a39ead))
+
 ### [1.1.5](https://www.github.com/blinkk/editor.dev/compare/v1.1.4...v1.1.5) (2021-06-16)
 
 
