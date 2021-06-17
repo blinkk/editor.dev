@@ -24,9 +24,17 @@ jobs:
       if: ${{ steps.release.outputs.release_created }}
     - run: yarn install --frozen-lockfile
       if: ${{ steps.release.outputs.release_created }}
-    - run: |
-        yarn run compile
-        yarn publish
+    - name: Publish npm package
+      run: yarn publish
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      if: ${{ steps.release.outputs.release_created }}
+    - name: Setup Cloud SDK
+      uses: google-github-actions/setup-gcloud@v0.2.1
+      with:
+        project_id: ${{ secrets.GCP_PROJECT }}
+        service_account_key: ${{ secrets.GCP_SA_KEY }}
+      if: ${{ steps.release.outputs.release_created }}
+    - name: Deploy to prod
+      run: make build-and-deploy-prod-tag tag=${{ steps.release.outputs.tag_name }}
       if: ${{ steps.release.outputs.release_created }}
