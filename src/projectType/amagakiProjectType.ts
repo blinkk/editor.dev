@@ -58,7 +58,7 @@ const YAML_PRIORITY_KEYS = [
   'id',
 ];
 const YAML_TYPES: Record<string, YamlTypeConstructor> = {
-  'pod.document': AmagakiDocumentConstructor,
+  'pod.doc': AmagakiDocumentConstructor,
   'pod.string': AmagakiStringConstructor,
   'pod.staticFile': AmagakiStaticConstructor,
   'pod.yaml': AmagakiYamlConstructor,
