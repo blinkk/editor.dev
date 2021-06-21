@@ -1,5 +1,12 @@
 # Changelog
 
+### [1.1.9](https://www.github.com/blinkk/editor.dev/compare/v1.1.8...v1.1.9) (2021-06-21)
+
+
+### Bug Fixes
+
+* Update the amagaki project type to convert yaml constructors. ([b898c8e](https://www.github.com/blinkk/editor.dev/commit/b898c8e4889f59bd96f7f70168f9977d8fedc17e))
+
 ### [1.1.8](https://www.github.com/blinkk/editor.dev/compare/v1.1.7...v1.1.8) (2021-06-17)
 
 
