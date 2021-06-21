@@ -1,5 +1,12 @@
 # Changelog
 
+### [1.1.10](https://www.github.com/blinkk/editor.dev/compare/v1.1.9...v1.1.10) (2021-06-21)
+
+
+### Bug Fixes
+
+* Correct yaml type for amagaki doc. ([1d75acb](https://www.github.com/blinkk/editor.dev/commit/1d75acbdde7b5c137d97a2b242aeee2fb5de3e68))
+
 ### [1.1.9](https://www.github.com/blinkk/editor.dev/compare/v1.1.8...v1.1.9) (2021-06-21)
 
 
