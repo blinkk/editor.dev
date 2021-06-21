@@ -46,6 +46,7 @@ export const ONLY_FRONT_MATTER_EXTS = ['.yaml', '.yml'];
 class AmagakiDocumentConstructor extends ScalarYamlConstructor {}
 class AmagakiStringConstructor extends MappingYamlConstructor {}
 class AmagakiStaticConstructor extends ScalarYamlConstructor {}
+class AmagakiYamlConstructor extends ScalarYamlConstructor {}
 
 const CONFIG_FILE = '_editor.yaml';
 const YAML_PRIORITY_KEYS = [
@@ -60,6 +61,7 @@ const YAML_TYPES: Record<string, YamlTypeConstructor> = {
   'pod.document': AmagakiDocumentConstructor,
   'pod.string': AmagakiStringConstructor,
   'pod.staticFile': AmagakiStaticConstructor,
+  'pod.yaml': AmagakiYamlConstructor,
 };
 
 const yamlCustomSchema = createCustomTypesSchema(YAML_TYPES);
