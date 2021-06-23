@@ -1,4 +1,10 @@
-import {YamlTypeComponent, YamlTypeConstructor} from './yamlConvert';
+import {
+  MappingYamlConstructor,
+  ScalarYamlConstructor,
+  SequenceYamlConstructor,
+  YamlTypeComponent,
+  YamlTypeConstructor,
+} from './yamlConvert';
 import {DeepObject} from '@blinkk/selective-edit/dist/src/utility/deepObject';
 import {DeepWalk} from '@blinkk/editor.dev-ui/dist/src/utility/deepWalk';
 import {ProjectTypeStorageComponent} from '../storage/storage';
@@ -153,11 +159,53 @@ const anyTags = ['scalar', 'sequence', 'mapping'].map(kind => {
     kind: kind as TagKinds,
     multi: true,
     instanceOf: UnknownTag,
+    represent: function (data: object) {
+      return (data as unknown as UnknownTag)._data;
+    },
+    representName: function (data: object) {
+      return (data as unknown as UnknownTag)._type;
+    },
     construct: function (data: any, type?: string): any {
       return new UnknownTag(type as string, data);
     },
   });
 });
+
+const genericTags: Array<yaml.Type> = [
+  new yaml.Type('!', {
+    kind: 'scalar',
+    multi: true,
+    instanceOf: ScalarYamlConstructor,
+    represent: function (value) {
+      return (value as YamlTypeComponent).represent();
+    },
+    representName: function (data: object) {
+      return `!${(data as unknown as YamlTypeComponent).type}`;
+    },
+  }),
+  new yaml.Type('!', {
+    kind: 'mapping',
+    multi: true,
+    instanceOf: MappingYamlConstructor,
+    represent: function (value) {
+      return (value as YamlTypeComponent).represent();
+    },
+    representName: function (data: object) {
+      return `!${(data as unknown as YamlTypeComponent).type}`;
+    },
+  }),
+  new yaml.Type('!', {
+    kind: 'sequence',
+    multi: true,
+    instanceOf: SequenceYamlConstructor,
+    represent: function (value) {
+      return (value as YamlTypeComponent).represent();
+    },
+    representName: function (data: object) {
+      return `!${(data as unknown as YamlTypeComponent).type}`;
+    },
+  }),
+];
 
 export const ANY_SCHEMA = yaml.DEFAULT_SCHEMA.extend(anyTags);
 
@@ -213,7 +261,7 @@ export function createCustomTypesSchema(
     );
   }
 
-  return yaml.DEFAULT_SCHEMA.extend([...customTags]);
+  return yaml.DEFAULT_SCHEMA.extend([...customTags, ...genericTags]);
 }
 
 /**

@@ -4,17 +4,19 @@ import {
   TransformFunction,
 } from '@blinkk/editor.dev-ui/dist/src/utility/deepWalk';
 
+import {DataType} from '@blinkk/selective-edit/dist/src/utility/dataType';
+
 export interface JsonYamlTypeStructure {
   _type: string;
   _data: any;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface YamlTypeComponent {
   /**
    * Controls how the yaml dumper represents the value in the yaml.
    */
   represent(): any;
+  type: string;
 }
 
 export interface YamlTypeConstructor {
@@ -22,14 +24,17 @@ export interface YamlTypeConstructor {
 }
 
 class YamlConvertDeepWalk extends DeepWalk {
+  options?: YamlConvertOptions;
   constructorMap: Record<string, YamlTypeConstructor>;
 
   constructor(
     config?: DeepWalkConfig,
-    constructorMap?: Record<string, YamlTypeConstructor>
+    constructorMap?: Record<string, YamlTypeConstructor>,
+    options?: YamlConvertOptions
   ) {
     super(config);
     this.constructorMap = constructorMap || {};
+    this.options = options;
   }
 
   protected async walkRecord(
@@ -37,20 +42,41 @@ class YamlConvertDeepWalk extends DeepWalk {
     transformValue: TransformFunction
   ): Promise<Record<string, any>> {
     originalValue = originalValue as unknown as JsonYamlTypeStructure;
-    if (
-      originalValue._type !== undefined &&
-      originalValue._data !== undefined &&
-      originalValue._type in this.constructorMap
-    ) {
-      return new this.constructorMap[originalValue._type](
-        originalValue._type,
-        originalValue._data
-      );
+    if (originalValue._type !== undefined) {
+      if (originalValue._type in this.constructorMap) {
+        return new this.constructorMap[originalValue._type](
+          originalValue._type,
+          originalValue._data
+        );
+      }
+
+      // Only convert the unknown types when asked to do so.
+      if (this.options?.convertUnknown) {
+        if (DataType.isObject(originalValue._data)) {
+          return new MappingYamlConstructor(
+            originalValue._type,
+            originalValue._data
+          );
+        } else if (DataType.isArray(originalValue._data)) {
+          return new SequenceYamlConstructor(
+            originalValue._type,
+            originalValue._data
+          );
+        }
+        return new ScalarYamlConstructor(
+          originalValue._type,
+          originalValue._data || ''
+        );
+      }
     }
 
     // Fallback to the normal record walking.
     return await super.walkRecord(originalValue, transformValue);
   }
+}
+
+export interface YamlConvertOptions {
+  convertUnknown?: boolean;
 }
 
 /**
@@ -61,9 +87,12 @@ export class YamlConvert {
   constructorMap: Record<string, YamlTypeConstructor>;
   deepWalker: YamlConvertDeepWalk;
 
-  constructor(constructorMap: Record<string, YamlTypeConstructor>) {
+  constructor(
+    constructorMap: Record<string, YamlTypeConstructor>,
+    options?: YamlConvertOptions
+  ) {
     this.constructorMap = constructorMap;
-    this.deepWalker = new YamlConvertDeepWalk({}, this.constructorMap);
+    this.deepWalker = new YamlConvertDeepWalk({}, this.constructorMap, options);
   }
 
   async convert(data: any): Promise<any> {

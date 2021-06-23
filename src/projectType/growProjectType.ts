@@ -76,7 +76,9 @@ const deepCleaner = new DeepClean({
   removeNulls: true,
   removeUndefineds: true,
 });
-const deepWalker = new YamlConvert(YAML_TYPES);
+const deepWalker = new YamlConvert(YAML_TYPES, {
+  convertUnknown: true,
+});
 
 /**
  * Project type for working with a Grow website.
