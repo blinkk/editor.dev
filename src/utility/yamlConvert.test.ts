@@ -33,6 +33,58 @@ test('ignore unknown type', async t => {
   t.deepEqual(actual, expected);
 });
 
+test('convert unknown type - scalar', async t => {
+  const converter = new YamlConvert(
+    {},
+    {
+      convertUnknown: true,
+    }
+  );
+  const from: JsonYamlTypeStructure = {
+    _type: 'foo',
+    _data: 'bar',
+  };
+  const expected = new ScalarYamlConstructor('foo', 'bar');
+  const actual = await converter.convert(from);
+  t.deepEqual(actual, expected);
+});
+
+test('convert unknown type - mapping', async t => {
+  const converter = new YamlConvert(
+    {},
+    {
+      convertUnknown: true,
+    }
+  );
+  const from: JsonYamlTypeStructure = {
+    _type: 'foo',
+    _data: {
+      bar: 'foobar',
+    },
+  };
+  const expected = new MappingYamlConstructor('foo', {
+    bar: 'foobar',
+  });
+  const actual = await converter.convert(from);
+  t.deepEqual(actual, expected);
+});
+
+test('convert unknown type - sequence', async t => {
+  const converter = new YamlConvert(
+    {},
+    {
+      convertUnknown: true,
+    }
+  );
+  const from: JsonYamlTypeStructure = {
+    _type: 'foo',
+    _data: ['foobar'],
+  };
+  const expected = new SequenceYamlConstructor('foo', ['foobar']);
+  const actual = await converter.convert(from);
+  t.deepEqual(actual, expected);
+});
+
 test('class types', async t => {
   t.is(ScalarYamlConstructor.kind(), 'scalar');
   t.is(SequenceYamlConstructor.kind(), 'sequence');

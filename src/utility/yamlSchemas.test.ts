@@ -88,3 +88,21 @@ test('dump custom yaml tags', async t => {
     'foo: !test foobar\n'
   );
 });
+
+test('read and dump unknown yaml tags', async t => {
+  const yamlTypes: Record<string, YamlTypeConstructor> = {};
+  const yamlCustomSchema = createCustomTypesSchema(yamlTypes);
+  const deepWalker = new YamlConvert(yamlTypes);
+
+  // Convert the json into yaml constructors.
+  const convertedFields = await deepWalker.convert({
+    foo: new ScalarYamlConstructor('test', 'foobar'),
+  });
+
+  t.is(
+    yaml.dump(convertedFields, {
+      schema: yamlCustomSchema,
+    }),
+    'foo: !test foobar\n'
+  );
+});
