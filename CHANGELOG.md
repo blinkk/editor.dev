@@ -1,5 +1,12 @@
 # Changelog
 
+### [1.1.11](https://www.github.com/blinkk/editor.dev/compare/v1.1.10...v1.1.11) (2021-06-23)
+
+
+### Bug Fixes
+
+* convert unknown tags when writing yaml ([#35](https://www.github.com/blinkk/editor.dev/issues/35)) ([1c3db5c](https://www.github.com/blinkk/editor.dev/commit/1c3db5caa92ff0aabcdd0757add2ad273240404a))
+
 ### [1.1.10](https://www.github.com/blinkk/editor.dev/compare/v1.1.9...v1.1.10) (2021-06-21)
 
 
