@@ -10,6 +10,7 @@ const PORT = process.env.PORT || 9090;
 const ORIGIN_HOSTS = [
   'https://editor.dev',
   'https://beta.editor.dev',
+  'http://localhost:3000',
   'http://localhost:8080',
 ];
 
