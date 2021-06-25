@@ -7,7 +7,7 @@ import {
 import {
   EditorFileConfig,
   PartialData,
-} from '@blinkk/editor.dev-ui/dist/src/editor/api';
+} from '@blinkk/editor.dev-ui/dist/editor/api';
 import {
   ImportYaml,
   asyncYamlLoad,
@@ -18,7 +18,7 @@ import express from 'express';
 import path from 'path';
 import yaml from 'js-yaml';
 
-export class GrowApi implements ApiBaseComponent {
+export class AmagakiApi implements ApiBaseComponent {
   protected _apiRouter?: express.Router;
   getStorage: GetStorage;
 
@@ -34,7 +34,6 @@ export class GrowApi implements ApiBaseComponent {
       router.use(express.json());
 
       addApiRoute(router, '/partials.get', this.getPartials.bind(this));
-      addApiRoute(router, '/strings.get', this.getStrings.bind(this));
 
       // Error handler needs to be last.
       router.use(apiErrorHandler);
@@ -99,59 +98,12 @@ export class GrowApi implements ApiBaseComponent {
 
     return partials;
   }
-
-  async getStrings(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    expressRequest: express.Request,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    expressResponse: express.Response,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    request: GetStringsRequest
-  ): Promise<Record<string, any>> {
-    const storage = await this.getStorage(expressRequest, expressResponse);
-    const importSchema = createImportSchema(storage);
-    const strings: Record<string, any> = {};
-    const podFiles = await storage.readDir('/content/strings/');
-
-    const stringInfos: Array<PendingStringsInfo> = [];
-    for (const podFile of podFiles) {
-      stringInfos.push({
-        podPath: podFile.path,
-        promise: storage.readFile(podFile.path),
-      });
-    }
-
-    // Read the editor config from each view file, if available.
-    for (const stringInfo of stringInfos) {
-      const rawStringsFile = await stringInfo.promise;
-      const fields = yaml.load(rawStringsFile as string, {
-        schema: importSchema,
-      }) as Record<string, any>;
-
-      // Async yaml operations (like file loading) cannot be done natively in
-      // js-yaml, instead uses placeholders that can handle the async operations
-      // to resolve the value.
-      strings[stringInfo.podPath] = await asyncYamlLoad(fields, importSchema, [
-        ImportYaml,
-      ]);
-    }
-
-    return strings;
-  }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface GetPartialsRequest {}
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface GetStringsRequest {}
-
 interface PendingPartialInfo {
   partial: string;
-  promise: Promise<any>;
-}
-
-interface PendingStringsInfo {
-  podPath: string;
   promise: Promise<any>;
 }

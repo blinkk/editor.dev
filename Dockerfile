@@ -40,4 +40,4 @@ RUN if [ ! -f ./secrets/client-secret.secret ]; then \
 
 EXPOSE 8080
 
-CMD [ "node", "dist/src/server/server.js" ]
+CMD [ "node", "dist/server/server.js" ]

@@ -7,7 +7,7 @@ import {
   ProjectData,
   PublishResult,
   WorkspaceData,
-} from '@blinkk/editor.dev-ui/dist/src/editor/api';
+} from '@blinkk/editor.dev-ui/dist/editor/api';
 import {ErrorReporting} from '@google-cloud/error-reporting';
 import {ProjectTypeStorageComponent} from '../storage/storage';
 import express from 'express';
