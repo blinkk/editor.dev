@@ -1,6 +1,6 @@
 .DS_Store
 .npmrc
-api/
+/api/
 dist/
 docs/
 node_modules/

@@ -10,7 +10,7 @@ import {
   ProjectTypeApiStorageComponent,
   expandPath,
 } from './storage';
-import {FileData} from '@blinkk/editor.dev-ui/dist/src/editor/api';
+import {FileData} from '@blinkk/editor.dev-ui/dist/editor/api';
 import {Octokit} from '@octokit/core';
 import {PromiseCache} from '../utility/promiseCache';
 import {promises as fs} from 'fs';

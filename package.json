@@ -19,12 +19,12 @@
   "engines": {
     "node": ">=14"
   },
-  "main": "./dist/src/index.js",
+  "main": "./dist/index.js",
   "bin": {
-    "editor-dev": "./dist/src/index.js"
+    "editor-dev": "./dist/index.js"
   },
   "files": [
-    "dist/src"
+    "dist"
   ],
   "scripts": {
     "check": "gts check",
@@ -33,10 +33,10 @@
     "coverage": "codecov",
     "dev": "concurrently \"npx ava --watch\" \"npx tsc --watch\"",
     "docs": "npx typedoc",
-    "fix": "npx eslint --fix src/**/*.ts",
-    "hosted": "nodemon ./src/server/server.ts",
+    "fix": "npx eslint --fix src/ts/**/*.ts",
+    "hosted": "nodemon ./src/ts/server/server.ts",
     "prepublishOnly": "npx tsc --skipLibCheck",
-    "serve": "nodemon ./src/index.ts",
+    "serve": "nodemon ./src/ts/index.ts",
     "test": "nyc ava",
     "test-ci": "nyc --reporter=lcov ava && codecov"
   },
@@ -70,17 +70,17 @@
     "nodemon": "^2.0.7",
     "nyc": "^15.1.0",
     "ts-node": "^10.0.0",
-    "typedoc": "^0.21.0",
+    "typedoc": "^0.21.1",
     "typescript": "^4.3.4"
   },
   "dependencies": {
-    "@blinkk/editor.dev-ui": "^2.0.0",
-    "@blinkk/selective-edit": "^1.2.1",
+    "@blinkk/editor.dev-ui": "^3.0.0",
+    "@blinkk/selective-edit": "^2.0.0",
     "@google-cloud/datastore": "^6.4.2",
     "@google-cloud/error-reporting": "^2.0.2",
     "@octokit/core": "^3.5.1",
     "bent": "^7.3.12",
-    "commander": "^7.2.0",
+    "commander": "^8.0.0",
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "isomorphic-git": "^1.8.3",

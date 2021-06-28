@@ -29,14 +29,14 @@ import {
   PublishResult,
   RepoCommit,
   WorkspaceData,
-} from '@blinkk/editor.dev-ui/dist/src/editor/api';
+} from '@blinkk/editor.dev-ui/dist/editor/api';
 import {
   FileNotFoundError,
   ProjectTypeStorageComponent,
 } from '../storage/storage';
 import {AmagakiApi} from './projectType/amagakiApi';
 import {AmagakiProjectType} from '../projectType/amagakiProjectType';
-import {FeatureFlags} from '@blinkk/editor.dev-ui/dist/src/editor/features';
+import {FeatureFlags} from '@blinkk/editor.dev-ui/dist/editor/features';
 import {GrowApi} from './projectType/growApi';
 import {GrowProjectType} from '../projectType/growProjectType';
 import {ProjectTypeComponent} from '../projectType/projectType';

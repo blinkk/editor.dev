@@ -10,7 +10,7 @@ import {
   EditorFileData,
   FileData,
   ProjectData,
-} from '@blinkk/editor.dev-ui/dist/src/editor/api';
+} from '@blinkk/editor.dev-ui/dist/editor/api';
 import {
   FileNotFoundError,
   ProjectTypeStorageComponent,
@@ -18,7 +18,7 @@ import {
 import {
   FilterComponent,
   IncludeExcludeFilter,
-} from '@blinkk/editor.dev-ui/dist/src/utility/filter';
+} from '@blinkk/editor.dev-ui/dist/utility/filter';
 import {
   GetFileRequest,
   GetProjectRequest,
@@ -26,27 +26,24 @@ import {
   UploadFileRequest,
 } from '../api/api';
 import {
-  MappingYamlConstructor,
   ScalarYamlConstructor,
   YamlConvert,
   YamlTypeConstructor,
 } from '../utility/yamlConvert';
-import {DeepClean} from '@blinkk/editor.dev-ui/dist/src/utility/deepClean';
+import {DeepClean} from '@blinkk/editor.dev-ui/dist/utility/deepClean';
 import {FrontMatter} from '../utility/frontMatter';
 import {ProjectTypeComponent} from './projectType';
-import {createPriorityKeySort} from '@blinkk/editor.dev-ui/dist/src/utility/prioritySort';
+import {createPriorityKeySort} from '@blinkk/editor.dev-ui/dist/utility/prioritySort';
 import express from 'express';
 import path from 'path';
 import yaml from 'js-yaml';
 
-export const AMAGAKI_TYPE = 'Amagaki';
+export const GROW_TYPE = 'Grow';
 export const MIXED_FRONT_MATTER_EXTS = ['.md'];
 export const ONLY_FRONT_MATTER_EXTS = ['.yaml', '.yml'];
 
-class AmagakiDocumentConstructor extends ScalarYamlConstructor {}
-class AmagakiStringConstructor extends MappingYamlConstructor {}
-class AmagakiStaticConstructor extends ScalarYamlConstructor {}
-class AmagakiYamlConstructor extends ScalarYamlConstructor {}
+class GrowDocumentConstructor extends ScalarYamlConstructor {}
+class GrowStaticConstructor extends ScalarYamlConstructor {}
 
 const CONFIG_FILE = '_editor.yaml';
 const YAML_PRIORITY_KEYS = [
@@ -58,10 +55,8 @@ const YAML_PRIORITY_KEYS = [
   'id',
 ];
 const YAML_TYPES: Record<string, YamlTypeConstructor> = {
-  'pod.doc': AmagakiDocumentConstructor,
-  'pod.string': AmagakiStringConstructor,
-  'pod.staticFile': AmagakiStaticConstructor,
-  'pod.yaml': AmagakiYamlConstructor,
+  'g.doc': GrowDocumentConstructor,
+  'g.static': GrowStaticConstructor,
 };
 
 const yamlCustomSchema = createCustomTypesSchema(YAML_TYPES);
@@ -86,11 +81,11 @@ const deepWalker = new YamlConvert(YAML_TYPES, {
 });
 
 /**
- * Project type for working with a Amagaki website.
+ * Project type for working with a Grow website.
  *
- * @see https://github.com/blinkk/amagaki
+ * @see https://grow.dev
  */
-export class AmagakiProjectType implements ProjectTypeComponent {
+export class GrowProjectType implements ProjectTypeComponent {
   storage: ProjectTypeStorageComponent;
   fileFilter?: FilterComponent;
 
@@ -107,10 +102,7 @@ export class AmagakiProjectType implements ProjectTypeComponent {
   static async canApply(
     storage: ProjectTypeStorageComponent
   ): Promise<boolean> {
-    if (await storage.existsFile('amagaki.ts')) {
-      return true;
-    }
-    return await storage.existsFile('amagaki.js');
+    return storage.existsFile('podspec.yaml');
   }
 
   async getEditorConfigForDirectory(
@@ -188,7 +180,10 @@ export class AmagakiProjectType implements ProjectTypeComponent {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: GetProjectRequest
   ): Promise<ProjectData> {
-    return {} as any;
+    const podspec = await this.readPodspecConfig();
+    return {
+      title: podspec.title,
+    };
   }
 
   async readAndSplitFile(filePath: string): Promise<DocumentParts> {
@@ -215,6 +210,13 @@ export class AmagakiProjectType implements ProjectTypeComponent {
       }) as Record<string, any>;
     }
     return parts;
+  }
+
+  async readPodspecConfig(): Promise<PodspecConfig> {
+    const rawFile = await this.storage.readFile('podspec.yaml');
+    return yaml.load(rawFile, {
+      schema: ANY_SCHEMA,
+    }) as PodspecConfig;
   }
 
   async saveFile(
@@ -271,7 +273,7 @@ export class AmagakiProjectType implements ProjectTypeComponent {
   }
 
   get type(): string {
-    return AMAGAKI_TYPE;
+    return GROW_TYPE;
   }
 
   async uploadFile(
@@ -284,4 +286,8 @@ export class AmagakiProjectType implements ProjectTypeComponent {
       path: '/unsupported',
     };
   }
+}
+
+export interface PodspecConfig {
+  title: string;
 }
