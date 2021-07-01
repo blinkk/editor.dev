@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://www.github.com/blinkk/editor.dev/compare/v1.1.11...v1.2.0) (2021-07-01)
+
+
+### Features
+
+* GitHub onboarding apis ([#38](https://www.github.com/blinkk/editor.dev/issues/38)) ([af65394](https://www.github.com/blinkk/editor.dev/commit/af65394f82e97d96b19fde982a426cf0253674af))
+
 ### [1.1.11](https://www.github.com/blinkk/editor.dev/compare/v1.1.10...v1.1.11) (2021-06-23)
 
 
