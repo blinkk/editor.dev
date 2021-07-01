@@ -32,6 +32,7 @@ const storageManager = new StorageManager({
 
 const githubApi = new GithubApi(storageManager);
 app.use('/gh/:organization/:project/:branch', githubApi.apiRouter);
+app.use('/gh', githubApi.apiGenericRouter);
 
 app.listen(PORT, () => {
   console.log(`Running on port ${PORT}`);
