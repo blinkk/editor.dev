@@ -55,12 +55,11 @@ export const DEFAULT_AUTHOR_EMAIL = 'hello@blinkk.com';
 export const DEFAULT_AUTHOR_NAME = 'editor.dev';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface GetOrganizationsRequest {}
+
 export interface GetRepositoriesRequest {
   installationId: number;
 }
-
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface GetOrganizationsRequest {}
 
 export class GithubApi implements ApiComponent {
   protected _projectType?: ProjectTypeComponent;
@@ -130,6 +129,7 @@ export class GithubApi implements ApiComponent {
         this.getOrganizations.bind(this)
       );
       addApiRoute(router, '/repositories.get', this.getRepositories.bind(this));
+      addApiRoute(router, '/workspaces.get', this.getWorkspaces.bind(this));
 
       // Error handler needs to be last.
       router.use(apiErrorHandler);
@@ -534,7 +534,7 @@ export class GithubApi implements ApiComponent {
 
     for (const rawRepository of rawResponse.repositories) {
       installations.push({
-        name: rawRepository.name,
+        repo: rawRepository.name,
         org: rawRepository.owner?.login || '',
         url: rawRepository.html_url,
         description: rawRepository.description || '',
@@ -654,11 +654,18 @@ export class GithubApi implements ApiComponent {
     request: GetWorkspacesRequest
   ): Promise<Array<WorkspaceData>> {
     const api = this.getApi(expressResponse);
+    const owner = expressRequest.params.organization || request.org;
+    const repo = expressRequest.params.project || request.repo;
+
+    if (!owner || !repo) {
+      throw new Error('Missing organization or repository');
+    }
+
     const branchesResponse = await api.request(
       'GET /repos/{owner}/{repo}/branches',
       {
-        owner: expressRequest.params.organization,
-        repo: expressRequest.params.project,
+        owner: owner,
+        repo: repo,
         per_page: 100,
       }
     );
