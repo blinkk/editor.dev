@@ -151,8 +151,10 @@ export interface GetProjectRequest {}
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface GetWorkspaceRequest {}
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface GetWorkspacesRequest {}
+export interface GetWorkspacesRequest {
+  org?: string;
+  repo?: string;
+}
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface PingRequest {}

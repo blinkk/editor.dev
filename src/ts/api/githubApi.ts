@@ -25,6 +25,8 @@ import {
   EditorFileSettings,
   EmptyData,
   FileData,
+  GithubInstallationInfo,
+  GithubOrgInstallationInfo,
   ProjectData,
   PublishResult,
   RepoCommit,
@@ -52,9 +54,17 @@ export const COMMITTER_NAME = 'editor.dev bot';
 export const DEFAULT_AUTHOR_EMAIL = 'hello@blinkk.com';
 export const DEFAULT_AUTHOR_NAME = 'editor.dev';
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface GetOrganizationsRequest {}
+
+export interface GetRepositoriesRequest {
+  installationId: number;
+}
+
 export class GithubApi implements ApiComponent {
   protected _projectType?: ProjectTypeComponent;
   protected _apiRouter?: express.Router;
+  protected _apiGenericRouter?: express.Router;
   storageManager: StorageManager;
 
   constructor(storageManager: StorageManager) {
@@ -98,6 +108,36 @@ export class GithubApi implements ApiComponent {
     }
 
     return this._apiRouter;
+  }
+
+  /**
+   * Generic api routes for talking with GitHub without a specific
+   * repository and branch.
+   */
+  get apiGenericRouter() {
+    if (!this._apiGenericRouter) {
+      const router = express.Router({
+        mergeParams: true,
+      });
+      router.use(express.json({limit: '5mb'}));
+
+      // Use auth middleware for authenticating.
+      router.use(githubAuthMiddleware);
+      addApiRoute(
+        router,
+        '/organizations.get',
+        this.getOrganizations.bind(this)
+      );
+      addApiRoute(router, '/repositories.get', this.getRepositories.bind(this));
+      addApiRoute(router, '/workspaces.get', this.getWorkspaces.bind(this));
+
+      // Error handler needs to be last.
+      router.use(apiErrorHandler);
+
+      this._apiGenericRouter = router;
+    }
+
+    return this._apiGenericRouter;
   }
 
   async copyFile(
@@ -365,6 +405,28 @@ export class GithubApi implements ApiComponent {
     return (await storage.readDir('/')) as Array<FileData>;
   }
 
+  async getOrganizations(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    expressRequest: express.Request,
+    expressResponse: express.Response,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    request: GetOrganizationsRequest
+  ): Promise<Array<GithubInstallationInfo>> {
+    const api = this.getApi(expressResponse);
+    const installations: Array<GithubInstallationInfo> = [];
+    const rawResponse = (await api.request('GET /user/installations')).data;
+
+    for (const rawInstallation of rawResponse.installations) {
+      installations.push({
+        id: rawInstallation.id,
+        org: rawInstallation.account?.login || '',
+        url: rawInstallation.html_url,
+      });
+    }
+
+    return installations;
+  }
+
   async getProject(
     expressRequest: express.Request,
     expressResponse: express.Response,
@@ -450,6 +512,36 @@ export class GithubApi implements ApiComponent {
         getUser: this.getUser.bind(this),
       }
     );
+  }
+
+  async getRepositories(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    expressRequest: express.Request,
+    expressResponse: express.Response,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    request: GetRepositoriesRequest
+  ): Promise<Array<GithubOrgInstallationInfo>> {
+    const api = this.getApi(expressResponse);
+    const installations: Array<GithubOrgInstallationInfo> = [];
+    const rawResponse = (
+      await api.request(
+        'GET /user/installations/{installation_id}/repositories',
+        {
+          installation_id: request.installationId,
+        }
+      )
+    ).data;
+
+    for (const rawRepository of rawResponse.repositories) {
+      installations.push({
+        repo: rawRepository.name,
+        org: rawRepository.owner?.login || '',
+        url: rawRepository.html_url,
+        description: rawRepository.description || '',
+      });
+    }
+
+    return installations;
   }
 
   async getUser(api: Octokit) {
@@ -562,11 +654,19 @@ export class GithubApi implements ApiComponent {
     request: GetWorkspacesRequest
   ): Promise<Array<WorkspaceData>> {
     const api = this.getApi(expressResponse);
+    const owner = expressRequest.params.organization || request.org;
+    const repo = expressRequest.params.project || request.repo;
+
+    if (!owner || !repo) {
+      throw new Error('Missing organization or repository');
+    }
+
     const branchesResponse = await api.request(
       'GET /repos/{owner}/{repo}/branches',
       {
-        owner: expressRequest.params.organization,
-        repo: expressRequest.params.project,
+        owner: owner,
+        repo: repo,
+        per_page: 100,
       }
     );
     const resultBranches: Array<WorkspaceData> = [];
