@@ -15,9 +15,6 @@ import {
   UploadFileRequest,
   addApiRoute,
   apiErrorHandler,
-  expandWorkspaceBranch,
-  isWorkspaceBranch,
-  shortenWorkspaceName,
 } from './api';
 import {
   DeviceData,
@@ -39,6 +36,11 @@ import {
   ProjectTypeStorageComponent,
   StorageManager,
 } from '../storage/storage';
+import {
+  expandWorkspaceBranch,
+  isWorkspaceBranch,
+  shortenWorkspaceName,
+} from '@blinkk/editor.dev-ui/dist/editor/workspace';
 import {AmagakiApi} from './projectType/amagakiApi';
 import {AmagakiProjectType} from '../projectType/amagakiProjectType';
 import {GrowApi} from './projectType/growApi';
