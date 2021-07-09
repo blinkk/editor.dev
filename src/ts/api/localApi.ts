@@ -16,7 +16,6 @@ import {
   UploadFileRequest,
   addApiRoute,
   apiErrorHandler,
-  shortenWorkspaceName,
 } from './api';
 import {
   DeviceData,
@@ -46,6 +45,7 @@ import express from 'express';
 // TODO: FS promises does not work with isomorphic-git?
 import fs from 'fs';
 import git from 'isomorphic-git';
+import {shortenWorkspaceName} from '@blinkk/editor.dev-ui/dist/editor/workspace';
 import yaml from 'js-yaml';
 
 export class LocalApi implements ApiComponent {
