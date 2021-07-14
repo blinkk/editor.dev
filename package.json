@@ -35,6 +35,7 @@
     "docs": "npx typedoc",
     "fix": "npx eslint --fix src/ts/**/*.ts",
     "hosted": "nodemon ./src/ts/server/server.ts",
+    "lint": "npx eslint src/ts/**/*.ts",
     "prepublishOnly": "npx tsc --skipLibCheck",
     "serve": "nodemon ./src/ts/index.ts",
     "test": "nyc ava",
