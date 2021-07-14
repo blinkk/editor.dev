@@ -7,6 +7,8 @@ See the [docs][docs] or [typescript docs][tsdocs].
 [docs]: https://editor.dev/docs/
 [tsdocs]: https://editor.dev/api/connector/
 
+![Main build](https://github.com/blinkk/editor.dev/actions/workflows/push_main.yaml/badge.svg)
+
 ## Usage
 
 To use `editor.dev` with your local project run the following in your project directory (does not need to be added to your node dependencies):

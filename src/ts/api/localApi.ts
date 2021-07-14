@@ -21,6 +21,7 @@ import {
   DeviceData,
   EditorFileData,
   EditorFileSettings,
+  EditorPreviewSettings,
   EmptyData,
   FileData,
   PingResult,
@@ -48,12 +49,18 @@ import git from 'isomorphic-git';
 import {shortenWorkspaceName} from '@blinkk/editor.dev-ui/dist/editor/workspace';
 import yaml from 'js-yaml';
 
+export interface LocalApiOptions {
+  preview?: EditorPreviewSettings;
+}
+
 export class LocalApi implements ApiComponent {
   protected _apiRouter?: express.Router;
+  options?: LocalApiOptions;
   storageManager: StorageManager;
 
-  constructor(storageManager: StorageManager) {
+  constructor(storageManager: StorageManager, options?: LocalApiOptions) {
     this.storageManager = storageManager;
+    this.options = options;
   }
 
   get apiRouter() {
@@ -319,10 +326,17 @@ export class LocalApi implements ApiComponent {
     // Local api does not currently allow creating workspaces.
     projectTypeResult.features[FeatureFlags.WorkspaceCreate] = false;
 
-    // ProjectType config take precedence over editor config.
-    return Object.assign({}, editorConfig, projectTypeResult, {
+    // Check for overrides, such as from CLI.
+    const overrides: Record<string, any> = {
       type: projectType.type,
-    });
+    };
+
+    if (this.options?.preview) {
+      overrides.preview = this.options.preview;
+    }
+
+    // ProjectType config take precedence over editor config.
+    return Object.assign({}, editorConfig, projectTypeResult, overrides);
   }
 
   async getStorage(
