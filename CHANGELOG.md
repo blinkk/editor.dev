@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://www.github.com/blinkk/editor.dev/compare/v1.2.0...v1.3.0) (2021-07-14)
+
+
+### Features
+
+* flags for custom preview server config ([#41](https://www.github.com/blinkk/editor.dev/issues/41)) ([092730d](https://www.github.com/blinkk/editor.dev/commit/092730de116fb361869ee875e2914c7f0d839384))
+
 ## [1.2.0](https://www.github.com/blinkk/editor.dev/compare/v1.1.11...v1.2.0) (2021-07-01)
 
 
