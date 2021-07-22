@@ -1,5 +1,12 @@
 # Changelog
 
+### [1.3.1](https://www.github.com/blinkk/editor.dev/compare/v1.3.0...v1.3.1) (2021-07-22)
+
+
+### Bug Fixes
+
+* prefer amagaki projects over grow projects ([#43](https://www.github.com/blinkk/editor.dev/issues/43)) ([926d1b4](https://www.github.com/blinkk/editor.dev/commit/926d1b48927bd454ed56b897dc2163f2a072c167))
+
 ## [1.3.0](https://www.github.com/blinkk/editor.dev/compare/v1.2.0...v1.3.0) (2021-07-14)
 
 
