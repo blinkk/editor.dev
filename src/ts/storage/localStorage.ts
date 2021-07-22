@@ -4,9 +4,10 @@ import {
   expandPath,
 } from './storage';
 import {promises as fs, constants as fsConstants} from 'fs';
+
+import {ApiErrorCode} from '@blinkk/editor.dev-ui/dist/editor/api';
 import {PromiseCache} from '../utility/promiseCache';
 import path from 'path';
-import {ApiErrorCode} from '@blinkk/editor.dev-ui/dist/editor/api';
 
 export class LocalStorage implements ProjectTypeStorageComponent {
   root: string;
