@@ -5,7 +5,6 @@ import {
 } from './storage';
 import {promises as fs, constants as fsConstants} from 'fs';
 
-import {ApiErrorCode} from '@blinkk/editor.dev-ui/dist/editor/api';
 import {PromiseCache} from '../utility/promiseCache';
 import path from 'path';
 
@@ -81,7 +80,7 @@ export class LocalStorage implements ProjectTypeStorageComponent {
         throw new FileNotFoundError('File not found', {
           message: 'File was not found.',
           description: `Unable to find ${filePath}`,
-          errorCode: ApiErrorCode.FileNotFound,
+          errorCode: 'FileNotFound',
         });
       }
       throw err;

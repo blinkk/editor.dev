@@ -208,12 +208,12 @@
     "@babel/helper-validator-identifier" "^7.14.8"
     to-fast-properties "^2.0.0"
 
-"@blinkk/editor.dev-ui@^3.4.0":
-  version "3.4.0"
-  resolved "https://registry.yarnpkg.com/@blinkk/editor.dev-ui/-/editor.dev-ui-3.4.0.tgz#27d6b262d861562986a2df375bcf7a554d4f0617"
-  integrity sha512-V19rHL7m73Ws7EE3CWsH0ehiHpCLdHybNKoZjnl3cAnkOn6asKdgTRfW6Eqaq8DG45GeSoq8Fu/5Inm7ZsbQvg==
+"@blinkk/editor.dev-ui@^3.4.1":
+  version "3.4.1"
+  resolved "https://registry.yarnpkg.com/@blinkk/editor.dev-ui/-/editor.dev-ui-3.4.1.tgz#e402aeb5588f86472abdd5c6fe46703fc65db939"
+  integrity sha512-W2JnjNsfzIhk0Tipx4FK5DHcM2KBDvV+s9KlDMr8k6VnRxweWkVjOnf+Rc4zgMVTZQbSAPcWa4vs9Xt7+B53ow==
   dependencies:
-    "@blinkk/selective-edit" "^2.0.1"
+    "@blinkk/selective-edit" "^2.0.3"
     "@toast-ui/editor" "^2.5.3"
     bent "^7.3.12"
     codemirror "^5.62.2"
@@ -225,10 +225,10 @@
     sass "^1.35.2"
     stackdriver-errors-js "^0.8.0"
 
-"@blinkk/selective-edit@^2.0.1":
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/@blinkk/selective-edit/-/selective-edit-2.0.1.tgz#53ecb3c7ff843654962b90198d86dc84f35bb7cb"
-  integrity sha512-m69WUfuS92fwTfoSNzIqzXp+Hn2N32li3LoiqGIAbWAL4jvnYBSo4zxLK22Hn8TtI5rCFwDkrX6fwsNR5o+gZA==
+"@blinkk/selective-edit@^2.0.3":
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/@blinkk/selective-edit/-/selective-edit-2.0.3.tgz#d3db522a2e1ea1549b193bc3da95aefae236b7e5"
+  integrity sha512-20DhOtL1RS83c/O28DJ5YwkK3RFbs+JWf8i4pIGo9qqG/65FchaxQIImwtx3AHirGqRfmjWW4eh71lDIK7ifaw==
   dependencies:
     json-stable-stringify "^1.0.1"
     lit-html "^1.4.1"
@@ -1757,9 +1757,9 @@ ee-first@1.1.1:
   integrity sha1-WQxhFWsK4vTwJVcyoViyZrxWsh0=
 
 electron-to-chromium@^1.3.723:
-  version "1.3.784"
-  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.3.784.tgz#c370be79374b02b7f13e8a8fb0d7a02641161dac"
-  integrity sha512-JTPxdUibkefeomWNaYs8lI/x/Zb4cOhZWX+d7kpzsNKzUd07pNuo/AcHeNJ/qgEchxM1IAxda9aaGUhKN/poOg==
+  version "1.3.785"
+  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.3.785.tgz#79f546c69a6be4f30913aaace361bc746f26df48"
+  integrity sha512-WmCgAeURsMFiyoJ646eUaJQ7GNfvMRLXo+GamUyKVNEM4MqTAsXyC0f38JEB4N3BtbD0tlAKozGP5E2T9K3YGg==
 
 emittery@^0.8.0:
   version "0.8.1"
