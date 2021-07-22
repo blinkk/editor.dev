@@ -1,3 +1,4 @@
+import {ApiErrorCode, FileData} from '@blinkk/editor.dev-ui/dist/editor/api';
 import {
   COMMITTER_EMAIL,
   COMMITTER_NAME,
@@ -10,7 +11,7 @@ import {
   ProjectTypeApiStorageComponent,
   expandPath,
 } from './storage';
-import {FileData} from '@blinkk/editor.dev-ui/dist/editor/api';
+
 import {Octokit} from '@octokit/core';
 import {PromiseCache} from '../utility/promiseCache';
 import {promises as fs} from 'fs';
@@ -322,6 +323,7 @@ export class GithubStorage implements ProjectTypeApiStorageComponent {
         throw new FileNotFoundError('File not found', {
           message: 'File was not found.',
           description: `Unable to find ${filePath} in the ${this.meta?.branch} branch.`,
+          errorCode: ApiErrorCode.FileNotFound,
         });
       }
 
