@@ -205,10 +205,11 @@ export class LocalApi implements ApiComponent {
     storage: ProjectTypeStorageComponent
   ): Promise<ProjectTypeComponent> {
     // Check for specific features of the supported projectTypes.
-    if (await GrowProjectType.canApply(storage)) {
-      return new GrowProjectType(storage);
-    } else if (await AmagakiProjectType.canApply(storage)) {
+    // Prefer amagaki over grow.
+    if (await AmagakiProjectType.canApply(storage)) {
       return new AmagakiProjectType(storage);
+    } else if (await GrowProjectType.canApply(storage)) {
+      return new GrowProjectType(storage);
     }
     // TODO: use generic projectType.
     throw new Error('Unable to determine projectType.');
