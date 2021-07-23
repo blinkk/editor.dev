@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.4.0](https://www.github.com/blinkk/editor.dev/compare/v1.3.0...v1.4.0) (2021-07-22)
+
+
+### Features
+
+* error code for missing file ([#45](https://www.github.com/blinkk/editor.dev/issues/45)) ([e96e86f](https://www.github.com/blinkk/editor.dev/commit/e96e86f4bde073cc440eafd67ce2c0b581dedae2))
+
+
+### Bug Fixes
+
+* adjusting to use a string for the error code ([82e3165](https://www.github.com/blinkk/editor.dev/commit/82e3165206a247b6d7755abe48ebcb20d230aa51))
+* prefer amagaki projects over grow projects ([#43](https://www.github.com/blinkk/editor.dev/issues/43)) ([926d1b4](https://www.github.com/blinkk/editor.dev/commit/926d1b48927bd454ed56b897dc2163f2a072c167))
+
 ## [1.3.0](https://www.github.com/blinkk/editor.dev/compare/v1.2.0...v1.3.0) (2021-07-14)
 
 
