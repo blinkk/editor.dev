@@ -94,7 +94,6 @@ export class GrowProjectType implements ProjectTypeComponent {
 
     // TODO: Make the file filter configurable for grow projects.
     this.fileFilter = new IncludeExcludeFilter({
-      includes: [/^\/(content|static)/],
       excludes: [/\/[_.]/],
     });
   }
