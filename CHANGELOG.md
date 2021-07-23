@@ -1,5 +1,12 @@
 # Changelog
 
+### [1.4.1](https://www.github.com/blinkk/editor.dev/compare/v1.4.0...v1.4.1) (2021-07-23)
+
+
+### Bug Fixes
+
+* adjust the file filtering from the api ([69fd6e2](https://www.github.com/blinkk/editor.dev/commit/69fd6e26727461b3b6c7a3a52c2108ff025c4f6e))
+
 ## [1.4.0](https://www.github.com/blinkk/editor.dev/compare/v1.3.0...v1.4.0) (2021-07-22)
 
 
