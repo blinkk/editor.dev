@@ -330,6 +330,9 @@ export class LocalApi implements ApiComponent {
     // Check for overrides, such as from CLI.
     const overrides: Record<string, any> = {
       type: projectType.type,
+      source: {
+        source: 'Local',
+      },
     };
 
     if (this.options?.preview) {

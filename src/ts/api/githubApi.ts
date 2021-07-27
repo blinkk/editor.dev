@@ -474,6 +474,10 @@ export class GithubApi implements ApiComponent {
         publish: {
           fields: [],
         },
+        source: {
+          source: 'GitHub',
+          label: `${expressRequest.params.organization}/${expressRequest.params.project}`,
+        },
         ui: {
           labels: {
             publishNotStarted: 'Create PR',
