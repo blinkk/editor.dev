@@ -1,5 +1,5 @@
-import {GithubApi} from '../api/githubApi';
-import {GithubStorage} from '../storage/githubStorage';
+import {GitHubApi} from '../api/githubApi';
+import {GitHubStorage} from '../storage/githubStorage';
 import {StorageManager} from '../storage/storage';
 import cors from 'cors';
 import express from 'express';
@@ -27,10 +27,10 @@ app.use(
 // different projects and branches.
 const storageManager = new StorageManager({
   rootDir: './sites',
-  storageCls: GithubStorage,
+  storageCls: GitHubStorage,
 });
 
-const githubApi = new GithubApi(storageManager);
+const githubApi = new GitHubApi(storageManager);
 app.use('/gh/:organization/:project/:branch', githubApi.apiRouter);
 app.use('/gh', githubApi.apiGenericRouter);
 

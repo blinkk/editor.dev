@@ -22,8 +22,8 @@ import {
   EditorFileSettings,
   EmptyData,
   FileData,
-  GithubInstallationInfo,
-  GithubOrgInstallationInfo,
+  GitHubInstallationInfo,
+  GitHubOrgInstallationInfo,
   ProjectData,
   PublishResult,
   RepoCommit,
@@ -55,6 +55,7 @@ export const COMMITTER_EMAIL = 'bot@editor.dev';
 export const COMMITTER_NAME = 'editor.dev bot';
 export const DEFAULT_AUTHOR_EMAIL = 'hello@blinkk.com';
 export const DEFAULT_AUTHOR_NAME = 'editor.dev';
+const PER_PAGE = 100;
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface GetOrganizationsRequest {}
@@ -63,7 +64,7 @@ export interface GetRepositoriesRequest {
   installationId: number;
 }
 
-export class GithubApi implements ApiComponent {
+export class GitHubApi implements ApiComponent {
   protected _projectType?: ProjectTypeComponent;
   protected _apiRouter?: express.Router;
   protected _apiGenericRouter?: express.Router;
@@ -413,10 +414,14 @@ export class GithubApi implements ApiComponent {
     expressResponse: express.Response,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: GetOrganizationsRequest
-  ): Promise<Array<GithubInstallationInfo>> {
+  ): Promise<Array<GitHubInstallationInfo>> {
     const api = this.getApi(expressResponse);
-    const installations: Array<GithubInstallationInfo> = [];
-    const rawResponse = (await api.request('GET /user/installations')).data;
+    const installations: Array<GitHubInstallationInfo> = [];
+    const rawResponse = (
+      await api.request('GET /user/installations', {
+        per_page: PER_PAGE,
+      })
+    ).data;
 
     for (const rawInstallation of rawResponse.installations) {
       installations.push({
@@ -477,6 +482,7 @@ export class GithubApi implements ApiComponent {
         source: {
           source: 'GitHub',
           label: `${expressRequest.params.organization}/${expressRequest.params.project}`,
+          identifier: `${expressRequest.params.organization}/${expressRequest.params.project}`,
         },
         ui: {
           labels: {
@@ -527,25 +533,35 @@ export class GithubApi implements ApiComponent {
     expressResponse: express.Response,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: GetRepositoriesRequest
-  ): Promise<Array<GithubOrgInstallationInfo>> {
+  ): Promise<Array<GitHubOrgInstallationInfo>> {
     const api = this.getApi(expressResponse);
-    const installations: Array<GithubOrgInstallationInfo> = [];
-    const rawResponse = (
-      await api.request(
-        'GET /user/installations/{installation_id}/repositories',
-        {
-          installation_id: request.installationId,
-        }
-      )
-    ).data;
+    const installations: Array<GitHubOrgInstallationInfo> = [];
+    let hasMore = true;
+    let page = 1;
 
-    for (const rawRepository of rawResponse.repositories) {
-      installations.push({
-        repo: rawRepository.name,
-        org: rawRepository.owner?.login || '',
-        url: rawRepository.html_url,
-        description: rawRepository.description || '',
-      });
+    while (hasMore) {
+      const rawResponse = (
+        await api.request(
+          'GET /user/installations/{installation_id}/repositories',
+          {
+            installation_id: request.installationId,
+            per_page: PER_PAGE,
+            page: page,
+          }
+        )
+      ).data;
+
+      hasMore = page++ * PER_PAGE < rawResponse.total_count;
+
+      for (const rawRepository of rawResponse.repositories) {
+        installations.push({
+          repo: rawRepository.name,
+          org: rawRepository.owner?.login || '',
+          url: rawRepository.html_url,
+          description: rawRepository.description || '',
+          updatedAt: rawRepository.updated_at || undefined,
+        });
+      }
     }
 
     return installations;
@@ -668,31 +684,41 @@ export class GithubApi implements ApiComponent {
       throw new Error('Missing organization or repository');
     }
 
-    const branchesResponse = await api.request(
-      'GET /repos/{owner}/{repo}/branches',
-      {
-        owner: owner,
-        repo: repo,
-        per_page: 100,
-      }
-    );
     const resultBranches: Array<WorkspaceData> = [];
+    let hasMore = true;
+    let page = 1;
 
-    for (const branchInfo of branchesResponse.data) {
-      if (!isWorkspaceBranch(branchInfo.name)) {
-        continue;
-      }
+    while (hasMore) {
+      const branchesResponse = (
+        await api.request('GET /repos/{owner}/{repo}/branches', {
+          owner: owner,
+          repo: repo,
+          page: page,
+          per_page: PER_PAGE,
+        })
+      ).data;
 
-      resultBranches.push({
-        branch: {
-          name: branchInfo.name,
-          commit: {
-            hash: branchInfo.commit.sha,
-            url: branchInfo.commit.url,
+      // Branches response does not include the count so try the next
+      // page if the number of results is maxed out.
+      hasMore = PER_PAGE <= branchesResponse.length;
+      page += 1;
+
+      for (const branchInfo of branchesResponse) {
+        if (!isWorkspaceBranch(branchInfo.name)) {
+          continue;
+        }
+
+        resultBranches.push({
+          branch: {
+            name: branchInfo.name,
+            commit: {
+              hash: branchInfo.commit.sha,
+              url: branchInfo.commit.url,
+            },
           },
-        },
-        name: shortenWorkspaceName(branchInfo.name || ''),
-      });
+          name: shortenWorkspaceName(branchInfo.name || ''),
+        });
+      }
     }
     return resultBranches;
   }

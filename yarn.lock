@@ -208,12 +208,12 @@
     "@babel/helper-validator-identifier" "^7.14.8"
     to-fast-properties "^2.0.0"
 
-"@blinkk/editor.dev-ui@^3.4.1":
-  version "3.4.1"
-  resolved "https://registry.yarnpkg.com/@blinkk/editor.dev-ui/-/editor.dev-ui-3.4.1.tgz#e402aeb5588f86472abdd5c6fe46703fc65db939"
-  integrity sha512-W2JnjNsfzIhk0Tipx4FK5DHcM2KBDvV+s9KlDMr8k6VnRxweWkVjOnf+Rc4zgMVTZQbSAPcWa4vs9Xt7+B53ow==
+"@blinkk/editor.dev-ui@^3.5.0":
+  version "3.5.0"
+  resolved "https://registry.yarnpkg.com/@blinkk/editor.dev-ui/-/editor.dev-ui-3.5.0.tgz#838983374807c889fc83bb35a57b88c47115b0c9"
+  integrity sha512-f4PCAxFq3oiAdEhBSLnnqLIpOZ1qSKOap+xfmxtmPgIJN981MI+wqwAIIeL4dsqmoTs+VmVWbRXDqQWStdHEeQ==
   dependencies:
-    "@blinkk/selective-edit" "^2.0.3"
+    "@blinkk/selective-edit" "^2.2.0"
     "@toast-ui/editor" "^2.5.3"
     bent "^7.3.12"
     codemirror "^5.62.2"
@@ -222,10 +222,10 @@
     lodash.merge "^4.6.2"
     marked "^2.1.3"
     quill "^1.3.7"
-    sass "^1.35.2"
+    sass "^1.36.0"
     stackdriver-errors-js "^0.8.0"
 
-"@blinkk/selective-edit@^2.0.3", "@blinkk/selective-edit@^2.2.0":
+"@blinkk/selective-edit@^2.2.0":
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/@blinkk/selective-edit/-/selective-edit-2.2.0.tgz#a1839b8e7136087c62785e02d0e87d049d45149f"
   integrity sha512-K4VWwb2tiKFXaRaSGRCovj6BL1fDSonou2Pfu1AEsxTFtBbp2JBM3sS2WUIuiAiYHypvJgENPrK7h2VikQzRNQ==
@@ -410,10 +410,10 @@
     "@octokit/types" "^6.0.3"
     universal-user-agent "^6.0.0"
 
-"@octokit/openapi-types@^9.1.1":
-  version "9.1.1"
-  resolved "https://registry.yarnpkg.com/@octokit/openapi-types/-/openapi-types-9.1.1.tgz#fb87f2e2f44b95a5720d61dee409a9f1fbc59217"
-  integrity sha512-xmyPP9tVb4T4A6Lk6SL6ScnIqAHpPV4jfMZI8VtY286212ri9J/6IFGuLsZ26daADUmriuLejake4k+azEfnaw==
+"@octokit/openapi-types@^9.2.0":
+  version "9.2.0"
+  resolved "https://registry.yarnpkg.com/@octokit/openapi-types/-/openapi-types-9.2.0.tgz#46bbfe6a85bfd2987e69216955fcd04df7d025bb"
+  integrity sha512-c4A1Xm0At+ypvBfEETREu519wLncJYQXvY+dBGg/V5YA51eg5EwdDsPPfcOMG0cuXscqRvsIgIySTmTJUdcTNA==
 
 "@octokit/request-error@^2.0.5", "@octokit/request-error@^2.1.0":
   version "2.1.0"
@@ -437,11 +437,11 @@
     universal-user-agent "^6.0.0"
 
 "@octokit/types@^6.0.3", "@octokit/types@^6.16.1":
-  version "6.21.1"
-  resolved "https://registry.yarnpkg.com/@octokit/types/-/types-6.21.1.tgz#d0f2b7598c88e13d0bd87e330d975e3fb2a90180"
-  integrity sha512-PP+m3T5EWZKawru4zi/FvX8KL2vkO5f1fLthx78/7743p7RtJUevt3z7698k+7oAYRA7YuVqfXthSEHqkDvZ8g==
+  version "6.22.0"
+  resolved "https://registry.yarnpkg.com/@octokit/types/-/types-6.22.0.tgz#389bade20955c919241b6ffb9dd33f6e0cf1cc6c"
+  integrity sha512-Y8GR0BJHQDpO09qw/ZQpN+DXrFzCWaE0pvK4frDm3zJ+h99AktsFfBoDazbCtHxiL8d0jD8xRH4BeynlKLeChg==
   dependencies:
-    "@octokit/openapi-types" "^9.1.1"
+    "@octokit/openapi-types" "^9.2.0"
 
 "@protobufjs/aspromise@^1.1.1", "@protobufjs/aspromise@^1.1.2":
   version "1.1.2"
@@ -629,10 +629,10 @@
   resolved "https://registry.yarnpkg.com/@types/minimist/-/minimist-1.2.2.tgz#ee771e2ba4b3dc5b372935d549fd9617bf345b8c"
   integrity sha512-jhuKLIRrhvCPLqwPcx6INqmKeiA5EWrsCOPhrlFSrbrmU4ZMPjj5Ul/oLCMDO98XRUIwVm78xICz4EPCektzeQ==
 
-"@types/node@*", "@types/node@>=12.12.47", "@types/node@>=13.7.0", "@types/node@^16.4.6":
-  version "16.4.6"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-16.4.6.tgz#1734d119dfa8fede5606d35ae10f9fc9c84d889b"
-  integrity sha512-FKyawK3o5KL16AwbeFajen8G4K3mmqUrQsehn5wNKs8IzlKHE8TfnSmILXVMVziAEcnB23u1RCFU1NT6hSyr7Q==
+"@types/node@*", "@types/node@>=12.12.47", "@types/node@>=13.7.0", "@types/node@^16.4.7":
+  version "16.4.7"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-16.4.7.tgz#f7afa78769d4b477f5092d7c3468e2e8653d779c"
+  integrity sha512-aDDY54sst8sx47CWT6QQqIZp45yURq4dic0+HCYfYNcY5Ejlb/CLmFnRLfy3wQuYafOeh3lB/DAKaqRKBtcZmA==
 
 "@types/normalize-package-data@^2.4.0":
   version "2.4.1"
@@ -1124,9 +1124,9 @@ buffer-equal-constant-time@1.0.1:
   integrity sha1-+OcRMvf/5uAaXJaXpMbz5I1cyBk=
 
 buffer-from@^1.0.0:
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/buffer-from/-/buffer-from-1.1.1.tgz#32713bc028f75c02fdb710d7c7bcec1f2c6070ef"
-  integrity sha512-MQcXEUbCKtEo7bhqEs6560Hyd4XaovZlO/k9V3hjVUF/zwW7KBVdSK4gIt/bzwS9MbR5qob+F5jusZsb0YQK2A==
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/buffer-from/-/buffer-from-1.1.2.tgz#2b146a6fd72e80b4f55d255f35ed59a3a9a41bd5"
+  integrity sha512-E+XQCRwSbaaiChtv6k6Dwgc+bx+Bs6vuKJHHl5kox/BaKbhiXzqQOwK4cO22yElGp2OCmjwVhT3HmxgyPGnJfQ==
 
 buffer@^5.5.0:
   version "5.7.1"
@@ -1756,9 +1756,9 @@ ee-first@1.1.1:
   integrity sha1-WQxhFWsK4vTwJVcyoViyZrxWsh0=
 
 electron-to-chromium@^1.3.723:
-  version "1.3.789"
-  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.3.789.tgz#c3ea060ba1e36e41c87943a47ed2daadc545be2b"
-  integrity sha512-lK4xn6C6ZF1kgLaC/EhOtC1MSKENExj3rMwGVnBTfHW81Z/Hb1Rge5YaWawN/YOXy3xCaESuE4KWSD50kOZ9rQ==
+  version "1.3.791"
+  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.3.791.tgz#e38f325ff22470bdcff34409d58c0baf9c2e3e93"
+  integrity sha512-Tdx7w1fZpeWOOBluK+kXTAKCXyc79K65RB6Zp0+sPSZZhDjXlrxfGlXrlMGVVQUrKCyEZFQs1UBBLNz5IdbF0g==
 
 emittery@^0.8.0:
   version "0.8.1"
@@ -2218,9 +2218,9 @@ flat-cache@^3.0.4:
     rimraf "^3.0.2"
 
 flatted@^3.1.0:
-  version "3.2.1"
-  resolved "https://registry.yarnpkg.com/flatted/-/flatted-3.2.1.tgz#bbef080d95fca6709362c73044a1634f7c6e7d05"
-  integrity sha512-OMQjaErSFHmHqZe+PSidH5n8j3O0F2DdnVh8JB4j4eUQ2k6KvB0qGfrKIhapvez5JerBbmWkaLYUYWISaESoXg==
+  version "3.2.2"
+  resolved "https://registry.yarnpkg.com/flatted/-/flatted-3.2.2.tgz#64bfed5cb68fe3ca78b3eb214ad97b63bedce561"
+  integrity sha512-JaTY/wtrcSyvXJl4IMFHPKyFur1sE9AUqc0QnhOaJ0CxHtAoIV8pYDzeEfAaNEtGkOfq4gr3LBFmdXW5mOQFnA==
 
 foreground-child@^2.0.0:
   version "2.0.0"
@@ -2385,9 +2385,9 @@ globby@^11.0.1, globby@^11.0.3:
     slash "^3.0.0"
 
 google-auth-library@^7.0.2, google-auth-library@^7.3.0:
-  version "7.3.0"
-  resolved "https://registry.yarnpkg.com/google-auth-library/-/google-auth-library-7.3.0.tgz#946a911c72425b05f02735915f03410604466657"
-  integrity sha512-MPeeMlnsYnoiiVFMwX3hgaS684aiXrSqKoDP+xL4Ejg4Z0qLvIeg4XsaChemyFI8ZUO7ApwDAzNtgmhWSDNh5w==
+  version "7.4.1"
+  resolved "https://registry.yarnpkg.com/google-auth-library/-/google-auth-library-7.4.1.tgz#1565d6a4f11171e4f7a54bf8b5eaa664d99fe0fe"
+  integrity sha512-TNLFbGKZZKIzOLHKaSXCo1pSZQ1ZOaAZZPkVKQa4MM7vrRNfHGzRTwE2WDxWAow/35kJP1710ZTMY4Qf3jH3Gw==
   dependencies:
     arrify "^2.0.0"
     base64-js "^1.3.0"
@@ -4205,7 +4205,7 @@ safe-buffer@^5.0.1, safe-buffer@~5.2.0:
   resolved "https://registry.yarnpkg.com/safer-buffer/-/safer-buffer-2.1.2.tgz#44fa161b0187b9549dd84bb91802f9bd8385cd6a"
   integrity sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==
 
-sass@^1.35.2:
+sass@^1.36.0:
   version "1.36.0"
   resolved "https://registry.yarnpkg.com/sass/-/sass-1.36.0.tgz#5912ef9d5d16714171ba11cb17edb274c4bbc07e"
   integrity sha512-fQzEjipfOv5kh930nu3Imzq3ie/sGDc/4KtQMJlt7RRdrkQSfe37Bwi/Rf/gfuYHsIuE1fIlDMvpyMcEwjnPvg==

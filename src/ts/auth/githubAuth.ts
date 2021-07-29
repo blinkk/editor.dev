@@ -29,26 +29,26 @@ export interface GHAuthAccessMeta {
 
 export interface GHAuthError {
   /**
-   * Github error identifier.
+   * GitHub error identifier.
    */
   error: string;
   /**
-   * Github error description
+   * GitHub error description
    */
   error_description: string;
   /**
-   * Github error reference
+   * GitHub error reference
    */
   error_uri: string;
 }
 
 export interface GHAuthRequest {
   /**
-   * Github state value used to retrieve the code.
+   * GitHub state value used to retrieve the code.
    */
   githubState: string;
   /**
-   * Github code used for retrieving the token.
+   * GitHub code used for retrieving the token.
    */
   githubCode: string;
 }
@@ -72,7 +72,7 @@ export function githubAuthMiddleware(
 ) {
   // Reset the access in case the response is reused in memory.
   res.locals.access = undefined;
-  authenticateGithub(req.body as GHAuthRequest)
+  authenticateGitHub(req.body as GHAuthRequest)
     .then(accessInfo => {
       res.locals.access = accessInfo;
       next();
@@ -82,7 +82,7 @@ export function githubAuthMiddleware(
     });
 }
 
-async function authenticateGithub(
+async function authenticateGitHub(
   request: GHAuthRequest
 ): Promise<GHAuthAccessMeta> {
   // Fail when not provided the code and state.

@@ -18,10 +18,10 @@ import {promises as fs} from 'fs';
 import path from 'path';
 
 /**
- * Github storage uses a local cache for the files.
+ * GitHub storage uses a local cache for the files.
  * Pulls from the github service when the cache is out of date.
  */
-export class GithubStorage implements ProjectTypeApiStorageComponent {
+export class GitHubStorage implements ProjectTypeApiStorageComponent {
   api: Octokit;
   /**
    * Cache to store the promises for loading files.
