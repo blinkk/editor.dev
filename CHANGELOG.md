@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.5.0](https://www.github.com/blinkk/editor.dev/compare/v1.4.1...v1.5.0) (2021-07-29)
+
+
+### Features
+
+* full list for repositories and workspaces ([ee44c1c](https://www.github.com/blinkk/editor.dev/commit/ee44c1c090afe8cdb239a4f01c840901963749df))
+* source information for the project details ([aec9a89](https://www.github.com/blinkk/editor.dev/commit/aec9a89e45a9a7e4ea4a1723ad1676c4a5b34e92))
+
 ### [1.4.1](https://www.github.com/blinkk/editor.dev/compare/v1.4.0...v1.4.1) (2021-07-23)
 
 
