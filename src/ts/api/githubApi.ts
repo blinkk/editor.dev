@@ -428,6 +428,7 @@ export class GitHubApi implements ApiComponent {
         id: rawInstallation.id,
         org: rawInstallation.account?.login || '',
         url: rawInstallation.html_url,
+        avatarUrl: rawInstallation.account?.avatar_url,
       });
     }
 

@@ -331,6 +331,8 @@ export class LocalApi implements ApiComponent {
     const overrides: Record<string, any> = {
       type: projectType.type,
       source: {
+        identifier: 'local',
+        label: 'Local',
         source: 'Local',
       },
     };
