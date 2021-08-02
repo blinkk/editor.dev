@@ -59,8 +59,8 @@
     "@types/javascript-time-ago": "^2.0.3",
     "@types/js-yaml": "^4.0.2",
     "@types/node": "^16.4.10",
-    "@typescript-eslint/eslint-plugin": "^4.28.5",
-    "@typescript-eslint/parser": "^4.28.5",
+    "@typescript-eslint/eslint-plugin": "^4.29.0",
+    "@typescript-eslint/parser": "^4.29.0",
     "ava": "^3.14.0",
     "codecov": "^3.8.3",
     "concurrently": "^6.2.0",
@@ -75,8 +75,8 @@
     "typescript": "^4.3.5"
   },
   "dependencies": {
-    "@blinkk/editor.dev-ui": "^3.5.0",
-    "@blinkk/selective-edit": "^2.2.0",
+    "@blinkk/editor.dev-ui": "^3.6.0",
+    "@blinkk/selective-edit": "^2.2.1",
     "@google-cloud/datastore": "^6.4.7",
     "@google-cloud/error-reporting": "^2.0.2",
     "@octokit/core": "^3.5.1",
