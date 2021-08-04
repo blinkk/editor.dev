@@ -111,6 +111,10 @@ async function authenticateGitHub(
 
       // Only update datastore in the original request.
       let response: GHAuthAccessMeta | GHAuthError = await authMeta.promise;
+
+      // Clear out the auth cache after the request.
+      delete authCache[cacheKey];
+
       verifyAuthResponse(
         response,
         'Unable to confirm authentication with GitHub.'
@@ -137,6 +141,9 @@ async function authenticateGitHub(
     }
 
     const response: GHAuthAccessMeta | GHAuthError = await authMeta.promise;
+
+    // Clear out the auth cache after the request.
+    delete authCache[cacheKey];
 
     verifyAuthResponse(
       response,
@@ -168,6 +175,10 @@ async function authenticateGitHub(
 
       // Only update datastore with the original request.
       let response: GHAuthAccessMeta | GHAuthError = await authMeta.promise;
+
+      // Clear out the auth cache after the request.
+      delete authCache[cacheKey];
+
       verifyAuthResponse(
         response,
         'Unable to refresh authentication with GitHub.'
