@@ -1,5 +1,13 @@
 # Changelog
 
+### [1.5.1](https://www.github.com/blinkk/editor.dev/compare/v1.5.0...v1.5.1) (2021-08-04)
+
+
+### Bug Fixes
+
+* Auth cache not clearing after auth request. ([#51](https://www.github.com/blinkk/editor.dev/issues/51)) ([cc1d21d](https://www.github.com/blinkk/editor.dev/commit/cc1d21d0d2a1770ea37bcbf3e49bbde88033dfb9)), closes [#50](https://www.github.com/blinkk/editor.dev/issues/50)
+* Filter local files using global ignores and .gitignore ([#53](https://www.github.com/blinkk/editor.dev/issues/53)) ([91e1bfb](https://www.github.com/blinkk/editor.dev/commit/91e1bfbfff88e20811d4847e816a116f099a39bb)), closes [#49](https://www.github.com/blinkk/editor.dev/issues/49)
+
 ## [1.5.0](https://www.github.com/blinkk/editor.dev/compare/v1.4.1...v1.5.0) (2021-07-29)
 
 
