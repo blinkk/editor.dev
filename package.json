@@ -75,7 +75,7 @@
     "typescript": "^4.3.5"
   },
   "dependencies": {
-    "@blinkk/editor.dev-ui": "^3.7.0",
+    "@blinkk/editor.dev-ui": "^3.8.0",
     "@blinkk/selective-edit": "^2.2.1",
     "@google-cloud/datastore": "^6.4.7",
     "@google-cloud/error-reporting": "^2.0.2",
