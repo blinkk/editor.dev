@@ -34,6 +34,11 @@ import {
   FileNotFoundError,
   ProjectTypeStorageComponent,
 } from '../storage/storage';
+import {
+  GitignoreFilter,
+  GlobFilter,
+} from '@blinkk/editor.dev-ui/dist/utility/filter';
+
 import {AmagakiApi} from './projectType/amagakiApi';
 import {AmagakiProjectType} from '../projectType/amagakiProjectType';
 import {FeatureFlags} from '@blinkk/editor.dev-ui/dist/editor/features';
@@ -273,12 +278,52 @@ export class LocalApi implements ApiComponent {
     const projectType = await this.getProjectType(storage);
     const files = await storage.readDir('/');
     let filteredFiles = files;
+
+    // Globally ignored files.
+    const ignoreFilter = new GlobFilter({
+      negate: true,
+      patterns: ['/.git/**', '**/.*', '**/_*'],
+    });
+    filteredFiles = filteredFiles.filter(file =>
+      ignoreFilter.matches(file.path)
+    );
+
+    // Check for project type specific filtering.
     if (projectType.fileFilter) {
-      filteredFiles = files.filter(file =>
+      filteredFiles = filteredFiles.filter(file =>
         projectType.fileFilter?.matches(file.path)
       );
-    } else {
-      // TODO: Default file filter for api.
+    }
+
+    // Ignore files that are in .gitignore.
+    try {
+      const gitIgnoreFile = await storage.readFile('.gitignore');
+      const ignorePatterns = gitIgnoreFile
+        .split(/\r?\n/)
+        .filter((value: string) => {
+          value = value.trim();
+          if (value.startsWith('#')) {
+            return false;
+          }
+          if (value.length === 0) {
+            return false;
+          }
+          return true;
+        });
+
+      const gitIgnoreFilter = new GitignoreFilter({
+        patterns: ignorePatterns,
+      });
+
+      filteredFiles = filteredFiles.filter(file =>
+        gitIgnoreFilter.matches(file.path)
+      );
+    } catch (error) {
+      if (error instanceof FileNotFoundError) {
+        // pass.
+      } else {
+        throw error;
+      }
     }
 
     // Convert to the correct FileDate interface.
