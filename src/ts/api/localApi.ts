@@ -387,7 +387,14 @@ export class LocalApi implements ApiComponent {
     }
 
     // ProjectType config take precedence over editor config.
-    return Object.assign({}, editorConfig, projectTypeResult, overrides);
+    return Object.assign(
+      {
+        title: storage.root,
+      },
+      editorConfig,
+      projectTypeResult,
+      overrides
+    );
   }
 
   async getStorage(
