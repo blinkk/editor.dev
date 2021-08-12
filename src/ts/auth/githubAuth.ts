@@ -221,6 +221,17 @@ async function authenticateGitHub(
   return entity.auth;
 }
 
+export async function clearAuthGitHub(request: GHAuthRequest): Promise<void> {
+  // Fail when not provided the code and state.
+  if (!request.githubCode || !request.githubState) {
+    throw new Error('No authentication information provided.');
+  }
+
+  const cacheKey = `${request.githubCode}---${request.githubState}`;
+  const key = datastore.key([AUTH_KIND, cacheKey]);
+  datastore.delete(key);
+}
+
 /**
  * Check the api response from GitHub for an error.
  *

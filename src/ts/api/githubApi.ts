@@ -37,10 +37,16 @@ import {
   StorageManager,
 } from '../storage/storage';
 import {
+  GHAuthRequest,
+  clearAuthGitHub,
+  githubAuthMiddleware,
+} from '../auth/githubAuth';
+import {
   expandWorkspaceBranch,
   isWorkspaceBranch,
   shortenWorkspaceName,
 } from '@blinkk/editor.dev-ui/dist/editor/workspace';
+
 import {AmagakiApi} from './projectType/amagakiApi';
 import {AmagakiProjectType} from '../projectType/amagakiProjectType';
 import {GrowApi} from './projectType/growApi';
@@ -48,7 +54,6 @@ import {GrowProjectType} from '../projectType/growProjectType';
 import {Octokit} from '@octokit/core';
 import {ProjectTypeComponent} from '../projectType/projectType';
 import express from 'express';
-import {githubAuthMiddleware} from '../auth/githubAuth';
 import yaml from 'js-yaml';
 
 export const COMMITTER_EMAIL = 'bot@editor.dev';
@@ -56,6 +61,12 @@ export const COMMITTER_NAME = 'editor.dev bot';
 export const DEFAULT_AUTHOR_EMAIL = 'hello@blinkk.com';
 export const DEFAULT_AUTHOR_NAME = 'editor.dev';
 const PER_PAGE = 100;
+
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface ClearAuthRequest extends GHAuthRequest {}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface ClearAuthResponse {}
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface GetOrganizationsRequest {}
@@ -84,6 +95,7 @@ export class GitHubApi implements ApiComponent {
       // Use auth middleware for authenticating.
       router.use(githubAuthMiddleware);
 
+      addApiRoute(router, '/auth.clear', this.clearAuth.bind(this));
       addApiRoute(router, '/devices.get', this.getDevices.bind(this));
       addApiRoute(router, '/file.copy', this.copyFile.bind(this));
       addApiRoute(router, '/file.create', this.createFile.bind(this));
@@ -141,6 +153,21 @@ export class GitHubApi implements ApiComponent {
     }
 
     return this._apiGenericRouter;
+  }
+
+  /**
+   * Log the user out of the github account by removing the stored
+   * authentication information.
+   */
+  async clearAuth(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    expressRequest: express.Request,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    expressResponse: express.Response,
+    request: ClearAuthRequest
+  ): Promise<ClearAuthResponse> {
+    await clearAuthGitHub(request);
+    return {};
   }
 
   async copyFile(
