@@ -228,10 +228,20 @@
     sass "^1.37.5"
     stackdriver-errors-js "^0.8.0"
 
-"@blinkk/selective-edit@^2.2.1", "@blinkk/selective-edit@^2.3.0":
+"@blinkk/selective-edit@^2.2.1":
   version "2.3.0"
   resolved "https://registry.yarnpkg.com/@blinkk/selective-edit/-/selective-edit-2.3.0.tgz#74451306ebbee6a2eeea15d2935c79a6f366bb5a"
   integrity sha512-6gwebP0zQ/VRbvmH+gMer/D1vRrmwi1mRcbzF4uCd7k/ehJLCtTdoXgKftto5MLIceU3V6b2216jEUWcVclkiw==
+  dependencies:
+    json-stable-stringify "^1.0.1"
+    lit-html "^1.4.1"
+    lodash.clonedeep "^4.5.0"
+    lodash.merge "^4.6.2"
+
+"@blinkk/selective-edit@^3.2.0":
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/@blinkk/selective-edit/-/selective-edit-3.2.0.tgz#5f4c89053d4ba8aeabca924455c0bc44dd7a244b"
+  integrity sha512-xhljgOCSriIQSqBhzmM+MDYnG4JMiWWL/ztkFt7Zjx+WHnmXNniig3fiY534Kun30z12VaiReBiJqtKQaAu1Kw==
   dependencies:
     json-stable-stringify "^1.0.1"
     lit-html "^1.4.1"
@@ -427,9 +437,9 @@
     universal-user-agent "^6.0.0"
 
 "@octokit/openapi-types@^9.5.0":
-  version "9.6.0"
-  resolved "https://registry.yarnpkg.com/@octokit/openapi-types/-/openapi-types-9.6.0.tgz#0260a84f5c61c01755402ab5ac5b1ab46e7c0730"
-  integrity sha512-L+8x7DpcNtHkMbTxxCxg3cozvHUNP46rOIzFwoMs0piWwQzAGNXqlIQO2GLvnKTWLUh99DkY+UyHVrP4jXlowg==
+  version "9.7.0"
+  resolved "https://registry.yarnpkg.com/@octokit/openapi-types/-/openapi-types-9.7.0.tgz#9897cdefd629cd88af67b8dbe2e5fb19c63426b2"
+  integrity sha512-TUJ16DJU8mekne6+KVcMV5g6g/rJlrnIKn7aALG9QrNpnEipFc1xjoarh0PKaAWf2Hf+HwthRKYt+9mCm5RsRg==
 
 "@octokit/request-error@^2.0.5", "@octokit/request-error@^2.1.0":
   version "2.1.0"
@@ -441,9 +451,9 @@
     once "^1.4.0"
 
 "@octokit/request@^5.6.0":
-  version "5.6.0"
-  resolved "https://registry.yarnpkg.com/@octokit/request/-/request-5.6.0.tgz#6084861b6e4fa21dc40c8e2a739ec5eff597e672"
-  integrity sha512-4cPp/N+NqmaGQwbh3vUsYqokQIzt7VjsgTYVXiwpUP2pxd5YiZB2XuTedbb0SPtv9XS7nzAKjAuQxmY8/aZkiA==
+  version "5.6.1"
+  resolved "https://registry.yarnpkg.com/@octokit/request/-/request-5.6.1.tgz#f97aff075c37ab1d427c49082fefeef0dba2d8ce"
+  integrity sha512-Ls2cfs1OfXaOKzkcxnqw5MR6drMA/zWX/LIS/p8Yjdz7QKTPQLMsB3R+OvoxE6XnXeXEE2X7xe4G4l4X0gRiKQ==
   dependencies:
     "@octokit/endpoint" "^6.0.1"
     "@octokit/request-error" "^2.1.0"
@@ -638,10 +648,10 @@
   resolved "https://registry.yarnpkg.com/@types/minimist/-/minimist-1.2.2.tgz#ee771e2ba4b3dc5b372935d549fd9617bf345b8c"
   integrity sha512-jhuKLIRrhvCPLqwPcx6INqmKeiA5EWrsCOPhrlFSrbrmU4ZMPjj5Ul/oLCMDO98XRUIwVm78xICz4EPCektzeQ==
 
-"@types/node@*", "@types/node@>=12.12.47", "@types/node@>=13.7.0", "@types/node@^16.4.13":
-  version "16.4.13"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-16.4.13.tgz#7dfd9c14661edc65cccd43a29eb454174642370d"
-  integrity sha512-bLL69sKtd25w7p1nvg9pigE4gtKVpGTPojBFLMkGHXuUgap2sLqQt2qUnqmVCDfzGUL0DRNZP+1prIZJbMeAXg==
+"@types/node@*", "@types/node@>=12.12.47", "@types/node@>=13.7.0", "@types/node@^16.6.0":
+  version "16.6.0"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-16.6.0.tgz#0d5685f85066f94e97f19e8a67fe003c5fadacc4"
+  integrity sha512-OyiZPohMMjZEYqcVo/UJ04GyAxXOJEZO/FpzyXxcH4r/ArrVoXHf4MbUrkLp0Tz7/p1mMKpo5zJ6ZHl8XBNthQ==
 
 "@types/normalize-package-data@^2.4.0":
   version "2.4.1"
@@ -1204,9 +1214,9 @@ camelcase@^6.2.0:
   integrity sha512-c7wVvbw3f37nuobQNtgsgG9POC9qMbNuMQmTCqZv23b6MIz0fcYpBiOlv9gEN/hdLdnZTDQhg6e9Dq5M1vKvfg==
 
 caniuse-lite@^1.0.30001248:
-  version "1.0.30001249"
-  resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001249.tgz#90a330057f8ff75bfe97a94d047d5e14fabb2ee8"
-  integrity sha512-vcX4U8lwVXPdqzPWi6cAJ3FnQaqXbBqy/GZseKNQzRj37J7qZdGcBtxq/QLFNLLlfsoXLUdHw8Iwenri86Tagw==
+  version "1.0.30001251"
+  resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001251.tgz#6853a606ec50893115db660f82c094d18f096d85"
+  integrity sha512-HOe1r+9VkU4TFmnU70z+r7OLmtR+/chB1rdcJUeQlAinjEeb0cKL20tlAtOagNZhbrtLnCvV19B4FmF1rgzl6A==
 
 caseless@~0.12.0:
   version "0.12.0"
@@ -1758,9 +1768,9 @@ ee-first@1.1.1:
   integrity sha1-WQxhFWsK4vTwJVcyoViyZrxWsh0=
 
 electron-to-chromium@^1.3.793:
-  version "1.3.802"
-  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.3.802.tgz#0afa989321de3e904ac653ee79e0d642883731a1"
-  integrity sha512-dXB0SGSypfm3iEDxrb5n/IVKeX4uuTnFHdve7v+yKJqNpEP0D4mjFJ8e1znmSR+OOVlVC+kDO6f2kAkTFXvJBg==
+  version "1.3.803"
+  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.3.803.tgz#78993a991d096500f21a77e91cd2a44295fe3cbe"
+  integrity sha512-tmRK9qB8Zs8eLMtTBp+w2zVS9MUe62gQQQHjYdAc5Zljam3ZIokNb+vZLPRz9RCREp6EFRwyhOFwbt1fEriQ2Q==
 
 emittery@^0.8.0:
   version "0.8.1"
@@ -2402,9 +2412,9 @@ google-auth-library@^7.0.2, google-auth-library@^7.3.0:
     lru-cache "^6.0.0"
 
 google-gax@^2.17.1:
-  version "2.22.1"
-  resolved "https://registry.yarnpkg.com/google-gax/-/google-gax-2.22.1.tgz#9753a162d63591e89606985547f00d8e5f2cdf85"
-  integrity sha512-/X5Ym6f6Q4sH/3blMr1w/QzFhH0ZKnx9kOusUPwwZH6JmSwLpbuyUDbOc7MAvadl4r7yI2AASILLWK3fT+1Thg==
+  version "2.24.0"
+  resolved "https://registry.yarnpkg.com/google-gax/-/google-gax-2.24.0.tgz#659ea97ec6758eb03d7de73d0019644789367ac0"
+  integrity sha512-PtE/Zk3jPrUIAL9YsIq5e+04U3aqEg6/0DmtR/tXKhbcS7SRA1sbPZja+vevuUavIdCXEiBbaKkrBqcQvSxXmw==
   dependencies:
     "@grpc/grpc-js" "~1.3.0"
     "@grpc/proto-loader" "^0.6.1"
@@ -2416,7 +2426,7 @@ google-gax@^2.17.1:
     is-stream-ended "^0.1.4"
     node-fetch "^2.6.1"
     object-hash "^2.1.1"
-    proto3-json-serializer "^0.1.0"
+    proto3-json-serializer "^0.1.1"
     protobufjs "6.11.2"
     retry-request "^4.0.0"
 
@@ -3984,7 +3994,7 @@ prosemirror-view@^1.18.7:
     prosemirror-state "^1.0.0"
     prosemirror-transform "^1.1.0"
 
-proto3-json-serializer@^0.1.0:
+proto3-json-serializer@^0.1.1:
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/proto3-json-serializer/-/proto3-json-serializer-0.1.1.tgz#b53d2f02082e95ed901b9843c382aa2f89de8b62"
   integrity sha512-Wucuvf7SqAw1wcai0zV+3jW3QZJiO/W9wZoJaTheebYdwfj2k9VfF3Gw9r2vGAaTeslhMbkVbojJG0+LjpgLxQ==
