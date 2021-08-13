@@ -6,6 +6,7 @@
   "description": "Server for live editor.",
   "keywords": [
     "editor",
+    "editor.dev",
     "live",
     "server"
   ],
@@ -36,8 +37,8 @@
     "fix": "npx eslint --fix src/ts/**/*.ts",
     "hosted": "nodemon ./src/ts/server/server.ts",
     "lint": "npx eslint src/ts/**/*.ts",
+    "local": "nodemon ./src/ts/index.ts",
     "prepublishOnly": "npx tsc --skipLibCheck",
-    "serve": "nodemon ./src/ts/index.ts",
     "test": "nyc ava",
     "test-ci": "nyc --reporter=lcov ava && codecov"
   },

@@ -35,12 +35,16 @@ desired version to roll back to. For example: `make deploy-prod tag=v1.0.5`.
 To develop on the editor server for local projects, run the following command:
 
 ```sh
-# ex: yarn run serve ~/code/project
-yarn run serve <project_dir>
+# ex: yarn run local --server http://localhost:8787/ ~/code/project
+yarn run local --server <preview_server_url> <project_dir>
 ```
+
+The local preview server url should point to a locally running development server (ex: `npx @amagaki/amagaki serve --port 8787`).
 
 If you are developing the hosted version of the server (that provides access to github, etc) then run the following command:
 
 ```sh
 yarn run hosted
 ```
+
+**Note:** Developing for the hosted version requires private keys to be able to communicate with GitHub as the app and are not available to non-core developers.
