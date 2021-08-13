@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.0](https://www.github.com/blinkk/editor.dev/compare/v1.5.1...v1.6.0) (2021-08-13)
+
+
+### Features
+
+* Authentication clear for Github API. ([#55](https://www.github.com/blinkk/editor.dev/issues/55)) ([d7b814f](https://www.github.com/blinkk/editor.dev/commit/d7b814f183ca234cace62d255726a9f394cedbfe))
+
 ### [1.5.1](https://www.github.com/blinkk/editor.dev/compare/v1.5.0...v1.5.1) (2021-08-04)
 
 
