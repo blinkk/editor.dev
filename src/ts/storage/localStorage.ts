@@ -75,7 +75,7 @@ export class LocalStorage implements ProjectTypeStorageComponent {
       }
       const promise = this.cache.set(filePath, fs.readFile(fullPath));
       return (await promise).toString('utf-8');
-    } catch (err) {
+    } catch (err: any) {
       if (err.code === 'ENOENT') {
         throw new FileNotFoundError('File not found', {
           message: 'File was not found.',

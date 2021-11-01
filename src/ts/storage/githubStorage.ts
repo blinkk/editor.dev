@@ -153,7 +153,7 @@ export class GitHubStorage implements ProjectTypeApiStorageComponent {
       await fs.writeFile(`${fullPath}.etag`, response.headers.etag || '');
 
       return true;
-    } catch (err) {
+    } catch (err: any) {
       // Check for unmodified file.
       if (err.status === 304) {
         return true;
@@ -185,7 +185,7 @@ export class GitHubStorage implements ProjectTypeApiStorageComponent {
     const fullPath = expandPath(this.root, filePath);
     try {
       return (await fs.readFile(`${fullPath}.etag`)).toString();
-    } catch (error) {
+    } catch (error: any) {
       if (error.code === 'ENOENT') {
         return '';
       } else {
@@ -312,7 +312,7 @@ export class GitHubStorage implements ProjectTypeApiStorageComponent {
       await fs.writeFile(`${fullPath}.etag`, response.headers.etag || '');
 
       return fileContents.toString('utf-8');
-    } catch (err) {
+    } catch (err: any) {
       // Check for unmodified file.
       if (err.status === 304) {
         return (await fs.readFile(fullPath)).toString('utf-8');
@@ -354,7 +354,7 @@ export class GitHubStorage implements ProjectTypeApiStorageComponent {
       // Write the file contents to the local cache.
       await this.ensureFileDir(fullPath);
       await fs.writeFile(fullPath, content);
-    } catch (err) {
+    } catch (err: any) {
       // File was created.
       if (err.status === 201) {
         return;
