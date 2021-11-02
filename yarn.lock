@@ -208,25 +208,25 @@
     "@babel/helper-validator-identifier" "^7.15.7"
     to-fast-properties "^2.0.0"
 
-"@blinkk/editor.dev-ui@^3.10.0":
-  version "3.10.0"
-  resolved "https://registry.yarnpkg.com/@blinkk/editor.dev-ui/-/editor.dev-ui-3.10.0.tgz#f77d83077accf3d6f1ce8abaeb8e324c8257448d"
-  integrity sha512-CEC2WMQPL9v1rIeXgOiod6FxoBJdK9ArAij8CLRVgkV3oSMYCgw3qEt5432vcIeoKfHP0juRIlfIqrzFOgY8TQ==
+"@blinkk/editor.dev-ui@^3.10.1":
+  version "3.10.1"
+  resolved "https://registry.yarnpkg.com/@blinkk/editor.dev-ui/-/editor.dev-ui-3.10.1.tgz#06dd1d57f9b804c4908e14bbf3a8482eceaba978"
+  integrity sha512-b32arNsSyoMbEV1jHVBeE3IwlzLMN8nRz8RK8o6gTuA82QialFW3AgQvM3xSfKTLCiHpVSgV8FoqqjaS8xQdnQ==
   dependencies:
     "@blinkk/selective-edit" "^3.2.2"
-    "@toast-ui/editor" "^3.0.2"
+    "@toast-ui/editor" "^3.1.1"
     bent "^7.3.12"
-    codemirror "^5.62.2"
-    javascript-time-ago "^2.3.8"
+    codemirror "^5.63.3"
+    javascript-time-ago "^2.3.10"
     js-yaml "^4.1.0"
     lodash.clonedeep "^4.5.0"
     lodash.merge "^4.6.2"
-    marked "^2.1.3"
+    marked "^4.0.0"
     minimatch "^3.0.4"
     path-browserify "^1.0.1"
     quill "^1.3.7"
-    sass "^1.37.5"
-    stackdriver-errors-js "^0.8.0"
+    sass "^1.43.4"
+    stackdriver-errors-js "^0.12.0"
 
 "@blinkk/selective-edit@^3.2.2":
   version "3.2.2"
@@ -549,7 +549,7 @@
   dependencies:
     defer-to-connect "^1.0.1"
 
-"@toast-ui/editor@^3.0.2":
+"@toast-ui/editor@^3.1.1":
   version "3.1.1"
   resolved "https://registry.yarnpkg.com/@toast-ui/editor/-/editor-3.1.1.tgz#c9765c28e2d2721664f3154d7da8026374fecba6"
   integrity sha512-9Js9+qpg6rMlPZjJLf96sFd87Wm+rc3N+CqQ4RWuqNvpYQLE/YifXHlJkaLIZTpYx40L08gkv205xKq6Ifa9TQ==
@@ -1446,7 +1446,7 @@ codecov@^3.8.3:
     teeny-request "7.1.1"
     urlgrey "1.0.0"
 
-codemirror@^5.62.2:
+codemirror@^5.63.3:
   version "5.63.3"
   resolved "https://registry.yarnpkg.com/codemirror/-/codemirror-5.63.3.tgz#97042a242027fe0c87c09b36bc01931d37b76527"
   integrity sha512-1C+LELr+5grgJYqwZKqxrcbPsHFHapVaVAloBsFBASbpLnQqLw1U8yXJ3gT5D+rhxIiSpo+kTqN+hQ+9ialIXw==
@@ -1583,11 +1583,6 @@ cookie@0.4.0:
   version "0.4.0"
   resolved "https://registry.yarnpkg.com/cookie/-/cookie-0.4.0.tgz#beb437e7022b3b6d49019d088665303ebe9c14ba"
   integrity sha512-+Hp8fLp57wnUSt0tY0tHEXh4voZRDnoIrZPqlo3DPiI4y9lwg/jqx+1Om94/W6ZaPDOUbnjOt/99w66zk+l1Xg==
-
-core-js@^2.6.9:
-  version "2.6.12"
-  resolved "https://registry.yarnpkg.com/core-js/-/core-js-2.6.12.tgz#d9333dfa7b065e347cc5682219d6f690859cc2ec"
-  integrity sha512-Kb2wC0fvsWfQrgk8HU5lW6U/Lcs8+9aaYcy4ZFc6DDlo4nZ7n70dEgE5rtR0oG6ufKDUnrwfWL1mXR5ljDatrQ==
 
 cors@^2.8.5:
   version "2.8.5"
@@ -3113,7 +3108,7 @@ istanbul-reports@^3.0.2:
     html-escaper "^2.0.0"
     istanbul-lib-report "^3.0.0"
 
-javascript-time-ago@^2.3.8:
+javascript-time-ago@^2.3.10:
   version "2.3.10"
   resolved "https://registry.yarnpkg.com/javascript-time-ago/-/javascript-time-ago-2.3.10.tgz#483e960d158a24394806aed96f34f00669b671e8"
   integrity sha512-eeZx3B8ACZpFTiaow4Xl3YTIG9UjebwVjHEDnKyzJ1NBve1ZqJIgy97yoT9Esw+Vf+XgSk4YCpOsyK5X/ByRzQ==
@@ -3392,15 +3387,15 @@ map-obj@^4.0.0:
   resolved "https://registry.yarnpkg.com/map-obj/-/map-obj-4.3.0.tgz#9304f906e93faae70880da102a9f1df0ea8bb05a"
   integrity sha512-hdN1wVrZbb29eBGiGjJbeP8JbKjq1urkHJ/LIP/NY48MZ1QVXUsQBV1G1zvYFHn1XE06cwjBsOI2K3Ulnj1YXQ==
 
-marked@^2.1.3:
-  version "2.1.3"
-  resolved "https://registry.yarnpkg.com/marked/-/marked-2.1.3.tgz#bd017cef6431724fd4b27e0657f5ceb14bff3753"
-  integrity sha512-/Q+7MGzaETqifOMWYEA7HVMaZb4XbcRfaOzcSsHZEith83KGlvaSG33u0SKu89Mj5h+T8V2hM+8O45Qc5XTgwA==
-
 marked@^3.0.8:
   version "3.0.8"
   resolved "https://registry.yarnpkg.com/marked/-/marked-3.0.8.tgz#2785f0dc79cbdc6034be4bb4f0f0a396bd3f8aeb"
   integrity sha512-0gVrAjo5m0VZSJb4rpL59K1unJAMb/hm8HRXqasD8VeC8m91ytDPMritgFSlKonfdt+rRYYpP/JfLxgIX8yoSw==
+
+marked@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/marked/-/marked-4.0.0.tgz#fd4ff16f6b99fbe6beb729f2077ea717d0ec4edb"
+  integrity sha512-K3C1JvtiXuXVLoxDQEJP4NMLBuThlTkthgUOCzqLghIpHfis1DIZZfPI3o4UgfFpQ0d+JvTql2h+szR9jQ1p1w==
 
 matcher@^3.0.0:
   version "3.0.0"
@@ -4431,7 +4426,7 @@ safe-buffer@^5.0.1, safe-buffer@~5.2.0:
   resolved "https://registry.yarnpkg.com/safer-buffer/-/safer-buffer-2.1.2.tgz#44fa161b0187b9549dd84bb91802f9bd8385cd6a"
   integrity sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==
 
-sass@^1.37.5:
+sass@^1.43.4:
   version "1.43.4"
   resolved "https://registry.yarnpkg.com/sass/-/sass-1.43.4.tgz#68c7d6a1b004bef49af0d9caf750e9b252105d1f"
   integrity sha512-/ptG7KE9lxpGSYiXn7Ar+lKOv37xfWsZRtFYal2QHNigyVQDx685VFT/h7ejVr+R8w7H4tmUgtulsKl5YpveOg==
@@ -4671,13 +4666,12 @@ stack-utils@^2.0.3:
   dependencies:
     escape-string-regexp "^2.0.0"
 
-stackdriver-errors-js@^0.8.0:
-  version "0.8.0"
-  resolved "https://registry.yarnpkg.com/stackdriver-errors-js/-/stackdriver-errors-js-0.8.0.tgz#7aa9964c04b45e9449862472d51e60b12a48608a"
-  integrity sha512-D8TA0Ty36UmnhMXWiwdGgbAVAka8Bma9xjuipBoAKNu1CmCPtOEIXBlIZ1Q/WjE1GddxPNeSoDs0ufZP8mF1ww==
+stackdriver-errors-js@^0.12.0:
+  version "0.12.0"
+  resolved "https://registry.yarnpkg.com/stackdriver-errors-js/-/stackdriver-errors-js-0.12.0.tgz#13cc9fcf8a01e90984dd08733fa7b6519f21b46b"
+  integrity sha512-yhPh40TfgyxF2wS7TvL5N18tSZDWenmVMJ+tcb2sUMCX022QVpYvwDLlNIfInU2S/xjQ1bT/WAkfoc5XhQxz0g==
   dependencies:
-    core-js "^2.6.9"
-    stacktrace-js "^2.0.0"
+    stacktrace-js "^2.0.2"
 
 stackframe@^1.1.1:
   version "1.2.0"
@@ -4692,7 +4686,7 @@ stacktrace-gps@^3.0.4:
     source-map "0.5.6"
     stackframe "^1.1.1"
 
-stacktrace-js@^2.0.0:
+stacktrace-js@^2.0.2:
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/stacktrace-js/-/stacktrace-js-2.0.2.tgz#4ca93ea9f494752d55709a081d400fdaebee897b"
   integrity sha512-Je5vBeY4S1r/RnLydLl0TBTi3F2qdfWmYsGvtfZgEI+SCprPppaIhQf5nGcal4gI4cGpCV/duLcAzT1np6sQqg==
