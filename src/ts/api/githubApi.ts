@@ -76,10 +76,10 @@ export interface GetRepositoriesRequest {
 }
 
 export class GitHubApi implements ApiComponent {
+  storageManager: StorageManager;
   protected _projectType?: ProjectTypeComponent;
   protected _apiRouter?: express.Router;
   protected _apiGenericRouter?: express.Router;
-  storageManager: StorageManager;
 
   constructor(storageManager: StorageManager) {
     this.storageManager = storageManager;

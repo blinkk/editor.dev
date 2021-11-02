@@ -101,16 +101,16 @@ export class YamlConvert {
 }
 
 export class ScalarYamlConstructor implements YamlTypeComponent {
+  static kind(): string {
+    return 'scalar';
+  }
+
   type: string;
   data: any;
 
   constructor(type: string, data: any) {
     this.type = type;
     this.data = data;
-  }
-
-  static kind(): string {
-    return 'scalar';
   }
 
   represent() {

@@ -84,6 +84,7 @@
     "bent": "^7.3.12",
     "commander": "^8.3.0",
     "cors": "^2.8.5",
+    "eslint-plugin-node": "^11.1.0",
     "express": "^4.17.1",
     "isomorphic-git": "^1.10.1",
     "js-yaml": "^4.1.0"

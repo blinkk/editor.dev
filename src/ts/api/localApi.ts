@@ -59,9 +59,9 @@ export interface LocalApiOptions {
 }
 
 export class LocalApi implements ApiComponent {
-  protected _apiRouter?: express.Router;
   options?: LocalApiOptions;
   storageManager: StorageManager;
+  protected _apiRouter?: express.Router;
 
   constructor(storageManager: StorageManager, options?: LocalApiOptions) {
     this.storageManager = storageManager;

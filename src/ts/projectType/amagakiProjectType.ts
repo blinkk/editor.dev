@@ -91,6 +91,15 @@ const deepWalker = new YamlConvert(YAML_TYPES, {
  * @see https://github.com/blinkk/amagaki
  */
 export class AmagakiProjectType implements ProjectTypeComponent {
+  static async canApply(
+    storage: ProjectTypeStorageComponent
+  ): Promise<boolean> {
+    if (await storage.existsFile('amagaki.ts')) {
+      return true;
+    }
+    return await storage.existsFile('amagaki.js');
+  }
+
   storage: ProjectTypeStorageComponent;
   fileFilter?: FilterComponent;
 
@@ -101,15 +110,6 @@ export class AmagakiProjectType implements ProjectTypeComponent {
     this.fileFilter = new IncludeExcludeFilter({
       excludes: [/\/[_.]/],
     });
-  }
-
-  static async canApply(
-    storage: ProjectTypeStorageComponent
-  ): Promise<boolean> {
-    if (await storage.existsFile('amagaki.ts')) {
-      return true;
-    }
-    return await storage.existsFile('amagaki.js');
   }
 
   async getEditorConfigForDirectory(

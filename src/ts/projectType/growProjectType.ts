@@ -86,6 +86,12 @@ const deepWalker = new YamlConvert(YAML_TYPES, {
  * @see https://grow.dev
  */
 export class GrowProjectType implements ProjectTypeComponent {
+  static async canApply(
+    storage: ProjectTypeStorageComponent
+  ): Promise<boolean> {
+    return storage.existsFile('podspec.yaml');
+  }
+
   storage: ProjectTypeStorageComponent;
   fileFilter?: FilterComponent;
 
@@ -96,12 +102,6 @@ export class GrowProjectType implements ProjectTypeComponent {
     this.fileFilter = new IncludeExcludeFilter({
       excludes: [/\/[_.]/],
     });
-  }
-
-  static async canApply(
-    storage: ProjectTypeStorageComponent
-  ): Promise<boolean> {
-    return storage.existsFile('podspec.yaml');
   }
 
   async getEditorConfigForDirectory(
