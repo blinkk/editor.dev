@@ -1,5 +1,12 @@
 # Changelog
 
+### [1.6.1](https://www.github.com/blinkk/editor.dev/compare/v1.6.0...v1.6.1) (2021-11-12)
+
+
+### Bug Fixes
+
+* Updating response for errors with retrieving workspaces. ([#57](https://www.github.com/blinkk/editor.dev/issues/57)) ([bc64c84](https://www.github.com/blinkk/editor.dev/commit/bc64c844f7ed8138df631ae70e556f8a852c0535))
+
 ## [1.6.0](https://www.github.com/blinkk/editor.dev/compare/v1.5.1...v1.6.0) (2021-08-13)
 
 
