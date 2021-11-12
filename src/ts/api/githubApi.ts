@@ -4,6 +4,7 @@ import {
   CreateFileRequest,
   CreateWorkspaceRequest,
   DeleteFileRequest,
+  GenericApiError,
   GetDevicesRequest,
   GetFileRequest,
   GetFilesRequest,
@@ -55,6 +56,11 @@ import {Octokit} from '@octokit/core';
 import {ProjectTypeComponent} from '../projectType/projectType';
 import express from 'express';
 import yaml from 'js-yaml';
+
+/**
+ * Normalized error for missing files in the storage classes.
+ */
+export class ApiNotFoundError extends GenericApiError {}
 
 export const COMMITTER_EMAIL = 'bot@editor.dev';
 export const COMMITTER_NAME = 'editor.dev bot';
@@ -717,35 +723,49 @@ export class GitHubApi implements ApiComponent {
     let page = 1;
 
     while (hasMore) {
-      const branchesResponse = (
-        await api.request('GET /repos/{owner}/{repo}/branches', {
-          owner: owner,
-          repo: repo,
-          page: page,
-          per_page: PER_PAGE,
-        })
-      ).data;
+      try {
+        const branchesResponse = (
+          await api.request('GET /repos/{owner}/{repo}/branches', {
+            owner: owner,
+            repo: repo,
+            page: page,
+            per_page: PER_PAGE,
+          })
+        ).data;
 
-      // Branches response does not include the count so try the next
-      // page if the number of results is maxed out.
-      hasMore = PER_PAGE <= branchesResponse.length;
-      page += 1;
+        // Branches response does not include the count so try the next
+        // page if the number of results is maxed out.
+        hasMore = PER_PAGE <= branchesResponse.length;
+        page += 1;
 
-      for (const branchInfo of branchesResponse) {
-        if (!isWorkspaceBranch(branchInfo.name)) {
-          continue;
-        }
+        for (const branchInfo of branchesResponse) {
+          if (!isWorkspaceBranch(branchInfo.name)) {
+            continue;
+          }
 
-        resultBranches.push({
-          branch: {
-            name: branchInfo.name,
-            commit: {
-              hash: branchInfo.commit.sha,
-              url: branchInfo.commit.url,
+          resultBranches.push({
+            branch: {
+              name: branchInfo.name,
+              commit: {
+                hash: branchInfo.commit.sha,
+                url: branchInfo.commit.url,
+              },
             },
-          },
-          name: shortenWorkspaceName(branchInfo.name || ''),
-        });
+            name: shortenWorkspaceName(branchInfo.name || ''),
+          });
+        }
+      } catch (err: any) {
+        if (err.status && err.status === 404) {
+          throw new ApiNotFoundError(
+            'Unable to retrieve the list of workspaces',
+            {
+              message: 'Unable to find workspaces from the GitHub api',
+              details: err.message,
+            }
+          );
+        } else {
+          throw err;
+        }
       }
     }
     return resultBranches;
