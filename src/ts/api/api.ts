@@ -203,15 +203,7 @@ export function addApiRoute(
   router.post(route, (req, res) => {
     apiMethod(req, res, req.body)
       .then(response => res.json(response))
-      .catch(err => {
-        console.error(err);
-        if (err.stack) {
-          console.error(err.stack);
-        }
-        return res.status(500).json({
-          message: err.toString(),
-        } as ApiError);
-      });
+      .catch(err => apiErrorHandler(err, req, res));
   });
 }
 
@@ -221,14 +213,18 @@ export function apiErrorHandler(
   req: express.Request,
   res: express.Response,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  next: express.NextFunction
+  next?: express.NextFunction
 ) {
   // Cloud error reporting
   errorReporting.report(err);
   console.error(err);
 
   res.status(500);
-  if (err.message && err.description) {
+
+  if (err.apiError) {
+    // Handle as an GenericApiError response.
+    res.json((err as GenericApiError).apiError);
+  } else if (err.message && err.description) {
     // Handle as an ApiError response.
     res.json(err as ApiError);
   } else if (err.name === 'ApiError') {
