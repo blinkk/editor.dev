@@ -757,9 +757,9 @@ export class GitHubApi implements ApiComponent {
       } catch (err: any) {
         if (err.status && err.status === 404) {
           throw new ApiNotFoundError(
-            'Unable to retrieve the list of workspaces',
+            'Unable to find workspaces from the GitHub api',
             {
-              message: 'Unable to find workspaces from the GitHub api',
+              message: `Unable to retrieve the list of workspaces for ${repo}`,
               details: err.message,
             }
           );
